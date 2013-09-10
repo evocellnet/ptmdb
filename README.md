@@ -5,12 +5,12 @@ This project contains all the necessary code to create and fill the database of 
 
 * Requirements:
 
-Check out the variables.sh file to be sure of the external databases necessary to fill the database.
+Check out the config.sh file to be sure of the external databases necessary to fill the database.
 
 * Dependencies:
 
-perl - (DBI)
+	* perl - (DBI)
 
-R - (RMySQL)
+	* R - (RMySQL)
 
-This repository can act also as a submodule of other projects intended to use the ptmdb
+This repository can act also as a submodule of other projects intended to use the ptmdb.
