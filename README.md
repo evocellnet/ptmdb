@@ -10,6 +10,7 @@ Check out the variables.sh file to be sure of the external databases necessary t
 * Dependencies:
 
 perl - (DBI)
+
 R - (RMySQL)
 
 This repository can act also as a submodule of other projects intended to use the ptmdb
