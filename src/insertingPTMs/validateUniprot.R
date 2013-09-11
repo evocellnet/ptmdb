@@ -1,0 +1,86 @@
+#PACKAGES
+suppressMessages(library(RMySQL))
+
+#PROJECT VARIABLES
+source("./config.sh")
+
+args <- commandArgs(TRUE)
+
+infile <- args[1]
+org <- args[2]
+
+#FUNCTIONS
+#calculates percentage
+percentage <- function(value, total){
+	return(round((value/total * 100), digits=2))
+}
+# Checks if a residue-position matches with a given sequence 
+match <- function(sequence,residue, position){
+	if(!is.na(sequence)){
+		seqarray <- unlist(strsplit(sequence, ""))
+		if(length(seqarray)>=as.numeric(position)){
+			if(seqarray[as.numeric(position)] == residue){
+				return(TRUE)
+			}else{
+				return(FALSE)
+			}
+		}else{
+			return(FALSE)
+		}
+	}else{
+		return(NA)
+	}
+}
+# Function to make it easier to query 
+query <- function(...) dbGetQuery(mychannel, ...)
+ 
+#Print statistics about the mapped residues
+printStatistics <- function(res){
+	total <- length(unique(res$index))
+	cat("# of ptms: ",total,"\n")
+	coverage <- unique(res[res$inparanoid == res$ensembl_id & (!is.na(res$inparanoid)), c("inparanoid", "sequence")])
+	row.names(coverage) <- coverage$inparanoid
+	# cat("# of inparanoid proteins covered by the study (considering correct id mapping)", nrow(coverage), "\n")
+	val <- length(which(tapply(res$ensembl_id, res$index, function(x) length(which(!is.na(x))) > 0)))
+	cat("# of identified ENSP ids: ",val," (",percentage(val,total),"%)\n", sep="")
+	val <- length(which(tapply(res$match, res$index, function(x) length(which(x)) > 0)))
+	cat("# of correctly mapped residues in at least 1 ENSP isoform of the inparanoid reference: ",val," (",percentage(val,total),"%)\n", sep="")
+	val <-  length(which(tapply(res$inparanoid, res$index, function(x) length(which(!is.na(x))) > 0)))
+	cat("# of identified Inparanoid ids within the family of isoforms: ",val," (",percentage(val,total),"%)\n", sep="")
+	matchInpara <- apply(res,1, function(x) match(coverage[x[6],"sequence"], x[3], x[4]))
+	val <- length(which(tapply(matchInpara, res$index, function(x) length(which(x)) > 0)))
+	cat("# of correctly mapped residues in the exact inparanoid reference: ",val," (",percentage(val,total),"%)\n", sep="")
+}
+ 
+############# 
+#MAIN
+############
+
+# Set up a connection to your database management system.
+# I'm using the public MySQL server for the UCSC genome browser (no password)
+mychannel <- dbConnect(MySQL(), user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE)
+
+ 
+ptms <- read.table(file=infile, sep=",", comment.char="",
+						quote="",header=FALSE, col.names=c("acc","residue", "position", "residueWindow"),
+						colClasses=c("character","character","numeric", "character"))
+
+#we add a index to keep track of the different reported modifications
+ptms <- cbind(1:nrow(ptms), ptms)
+names(ptms)[1] <- "index"
+
+#Database Table mapping uniprot 2 ensembl ids
+directMappingsQuery <- "SELECT uniens.uniprot_accession,uniens.ensembl_id,ensp.sequence FROM uniprot_ensembl AS uniens INNER JOIN ensp ON uniens.ensembl_id = ensp.id"
+directMapping <- query(directMappingsQuery)
+
+#We add available ensembl references
+res <- merge(ptms, unique(directMapping[ ,c("uniprot_accession", "ensembl_id", "sequence")]), all.x=TRUE, by.x="acc", by.y="uniprot_accession")
+
+#check if the residue matches in the exact position to the sequence and report it in "match" column
+res$match <- apply(res, 1, function(x) match(x[which(names(res) == "sequence")],x[which(names(res) == "residue")],x[which(names(res) == "position")]))
+
+#Print statistics about the data recovered
+# printStatistics(res)
+
+#Print output on file
+write.table(res[order(res$index), ], file="", sep="\t",row.names=FALSE,quote=FALSE)
