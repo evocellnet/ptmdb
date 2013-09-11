@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.12)
 # Database: ptmdb
-# Generation Time: 2013-09-10 15:10:41 +0000
+# Generation Time: 2013-09-11 10:59:41 +0000
 # ************************************************************
 
 
@@ -28,7 +28,7 @@ DROP TABLE IF EXISTS `condition`;
 CREATE TABLE `condition` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `description` varchar(40) NOT NULL DEFAULT '',
-  `time_hours` float DEFAULT NULL,
+  `time_min` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -182,22 +182,6 @@ CREATE TABLE `publication` (
 
 
 
-# Dump of table site_quantification
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `site_quantification`;
-
-CREATE TABLE `site_quantification` (
-  `id` int(11) unsigned NOT NULL,
-  `condition` int(11) unsigned NOT NULL,
-  `log2` float NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `condition` (`condition`),
-  CONSTRAINT `site_quantification_ibfk_1` FOREIGN KEY (`condition`) REFERENCES `condition` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
 # Dump of table site_evidence
 # ------------------------------------------------------------
 
@@ -215,6 +199,22 @@ CREATE TABLE `site_evidence` (
   KEY `quantitative_data` (`quantitative_data`),
   CONSTRAINT `site_evidence_ibfk_2` FOREIGN KEY (`quantitative_data`) REFERENCES `site_quantification` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `site_evidence_ibfk_1` FOREIGN KEY (`experiment`) REFERENCES `experiment` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table site_quantification
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `site_quantification`;
+
+CREATE TABLE `site_quantification` (
+  `id` int(11) unsigned NOT NULL,
+  `condition` int(11) unsigned NOT NULL,
+  `log2` float NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `condition` (`condition`),
+  CONSTRAINT `site_quantification_ibfk_1` FOREIGN KEY (`condition`) REFERENCES `condition` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
