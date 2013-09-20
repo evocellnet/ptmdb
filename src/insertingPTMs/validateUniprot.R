@@ -3,13 +3,32 @@ suppressMessages(library(RMySQL))
 
 args <- commandArgs(TRUE)
 
-configfile <- args[1]
-infile <- args[2]
-org <- args[3]
+configfile <- args[1]	#input file with the 
+infile <- args[2]	# input file with the PTMs
+colnum <- args[3]	# number of columns 
+org <- args[4]		#number of organisms
+fieldSeparator <- args[5]	#field separator for the columns
+headerBool <-args[6]	#contains header
+idCol <- args[7]	#Column containing the protein ids
+aaCol <- args[8]	#Column containing the aminoacids
+resnumCol <- args[9]	#Column containing the position in the sequence
+reswinCol <- args[10]	#Column containing the residue window
+reswinWil <- args[11]	#Character used to refer to non-present AAs on the sequence
 
 #PROJECT VARIABLES
 source(configfile)
 
+#Defining columns
+colnames <- list()
+colnames[[as.character(idCol)]] <- "acc"
+colnames[[as.character(aaCol)]] <- "residue"
+colnames[[as.character(resnumCol)]] <- "position"
+colnames[[as.character(reswinCol)]] <- "residueWindow"
+coltypes <- list()
+coltype[[as.character(idCol)]] <- "character"
+coltype[[as.character(aaCol)]] <- "character"
+coltype[[as.character(resnumCol)]] <- "numeric"
+coltype[[as.character(reswinCol)]] <- "character"
 
 #FUNCTIONS
 #calculates percentage
@@ -18,6 +37,9 @@ percentage <- function(value, total){
 }
 # Checks if a residue-position matches with a given sequence 
 match <- function(sequence,residue, position){
+	if(is.na(residue) | is.na(sequence) | is.na(position)){
+		return(FALSE)
+	}
 	if(!is.na(sequence)){
 		seqarray <- unlist(strsplit(sequence, ""))
 		if(length(seqarray)>=as.numeric(position)){
@@ -63,9 +85,9 @@ printStatistics <- function(res){
 mychannel <- dbConnect(MySQL(), user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE)
 
  
-ptms <- read.table(file=infile, sep=",", comment.char="",
-						quote="",header=FALSE, col.names=c("acc","residue", "position", "residueWindow"),
-						colClasses=c("character","character","numeric", "character"))
+ptms <- read.table(file=infile, sep=fieldSeparator, comment.char="",
+						quote="",header=headerBool, col.names=sapply(c(1:colnum), function(x) colnames[[as.character(x)]]),
+						colClasses=sapply(c(1:colnum), function(x) coltype[[as.character(x)]]))
 
 #we add a index to keep track of the different reported modifications
 ptms <- cbind(1:nrow(ptms), ptms)
