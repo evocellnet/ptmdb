@@ -7,7 +7,7 @@ set -e # Any subsequent commands which fail will cause the shell script to exit 
 echo -ne "Preparing dataset for insertion...\n"
 uniprotPtms="/Users/dochoa/Downloads/test.csv"
 #Mapping and validating the ids
-Rscript ./src/insertingPTMs/validateUniprot.R  ${uniprotPtms} ${TAXID} | perl ./src/insertingPTMs/windowParsing.pl > ${uniprotPtms/./_out.}
+Rscript ./src/insertingPTMs/validateUniprot.R ./config.sh ${uniprotPtms} ${TAXID}  | perl ./src/insertingPTMs/windowParsing.pl > ${uniprotPtms/./_out.}
 
 # #########################################################################################################
 # 
@@ -16,6 +16,6 @@ Rscript ./src/insertingPTMs/validateUniprot.R  ${uniprotPtms} ${TAXID} | perl ./
 echo -ne "Preparing dataset for insertion...\n"
 ipiPtms="/Users/dochoa/Downloads/testIPI.csv"
 #Mapping and validating the ids | mapping the residues to the correct place
-Rscript ./src/insertingPTMs/validateIPI.R  ${ipiPtms} ${TAXID} | perl ./src/insertingPTMs/windowParsing.pl > ${ipiPtms/./_out.}
+Rscript ./src/insertingPTMs/validateIPI.R ./config.sh ${ipiPtms} ${TAXID} | perl ./src/insertingPTMs/windowParsing.pl > ${ipiPtms/./_out.}
 
 ############################################################################################################

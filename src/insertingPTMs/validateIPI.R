@@ -1,13 +1,14 @@
 #PACKAGES
 suppressMessages(library(RMySQL))
 
-#PROJECT VARIABLES
-source("./config.sh")
-
 args <- commandArgs(TRUE)
 
-infile <- args[1]
-org <- args[2]
+configfile <- args[1]
+infile <- args[2]
+org <- args[3]
+
+#PROJECT VARIABLES
+source(configfile)
 
 fieldSeparator <- ","
 
