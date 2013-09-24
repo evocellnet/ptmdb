@@ -24,7 +24,7 @@ colnames[[as.character(idCol)]] <- "acc"
 colnames[[as.character(aaCol)]] <- "residue"
 colnames[[as.character(resnumCol)]] <- "position"
 colnames[[as.character(reswinCol)]] <- "residueWindow"
-coltypes <- list()
+coltype <- list()
 coltype[[as.character(idCol)]] <- "character"
 coltype[[as.character(aaCol)]] <- "character"
 coltype[[as.character(resnumCol)]] <- "numeric"
