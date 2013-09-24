@@ -67,5 +67,5 @@ if($success){
 }
 $totalCounter++;
 
-print STDERR "# % of ptms: ".$totalCounter."\n";
-print STDERR "# % of correctly mapped PTMS to at least one ENSP isoform: ".sprintf("%.2f",(($partialCounter/$totalCounter)*100))."\%\n";
+print STDERR "Number of reported ptms: ".$totalCounter."\n";
+print STDERR "% of correctly mapped PTMs to at least one Ensembl isoform: ".sprintf("%.2f",(($partialCounter/$totalCounter)*100))."\%\n";
