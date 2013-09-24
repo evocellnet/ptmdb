@@ -8,7 +8,7 @@ infile <- args[2]	# input file with the PTMs
 colnum <- args[3]	# number of columns 
 org <- args[4]		#number of organisms
 fieldSeparator <- args[5]	#field separator for the columns
-headerBool <-args[6]	#contains header
+headerBool <- as.logical(args[6])	#contains header
 idCol <- args[7]	#Column containing the protein ids
 aaCol <- args[8]	#Column containing the aminoacids
 resnumCol <- args[9]	#Column containing the position in the sequence
