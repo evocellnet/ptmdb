@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`site_evidence` (
   `residue` CHAR(1) NOT NULL DEFAULT '',
   `type` ENUM('P','U','A','G') NOT NULL DEFAULT 'P',
   `localization_confidence` FLOAT NOT NULL,
+  `spectral_count` INT UNSIGNED NOT NULL,
   `experiment` INT(11) UNSIGNED NOT NULL,
   `quantitative_data` INT(11) UNSIGNED NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
