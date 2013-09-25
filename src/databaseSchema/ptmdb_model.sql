@@ -18,14 +18,34 @@ DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
+-- Table `ptmdb`.`organism`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`organism` (
+  `taxid` INT UNSIGNED NOT NULL,
+  `common_name` VARCHAR(45) NULL,
+  `scientific_name` VARCHAR(45) NULL,
+  PRIMARY KEY (`taxid`),
+  UNIQUE INDEX `taxid_UNIQUE` (`taxid` ASC),
+  UNIQUE INDEX `common_name_UNIQUE` (`common_name` ASC),
+  UNIQUE INDEX `scientific_name_UNIQUE` (`scientific_name` ASC))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `ptmdb`.`ensp`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp` (
   `id` VARCHAR(30) NOT NULL DEFAULT '',
   `sequence` TEXT NOT NULL,
   `length` INT(11) NOT NULL,
-  `taxid` INT(11) NOT NULL,
-  PRIMARY KEY (`id`))
+  `taxid` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `org_key_idx` (`taxid` ASC),
+  CONSTRAINT `org_key`
+    FOREIGN KEY (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
@@ -37,8 +57,14 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ipi` (
   `id` CHAR(11) NOT NULL DEFAULT '',
   `sequence` TEXT NOT NULL,
   `length` INT(11) NOT NULL,
-  `taxid` INT(11) NOT NULL,
-  PRIMARY KEY (`id`))
+  `taxid` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `org_key_idx` (`taxid` ASC),
+  CONSTRAINT `org_key`
+    FOREIGN KEY (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
@@ -88,7 +114,7 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `organism` VARCHAR(20) NOT NULL DEFAULT '',
+  `organism` INT UNSIGNED NOT NULL DEFAULT '',
   `cell_line` VARCHAR(50) NULL DEFAULT '',
   `time` INT(11) NULL DEFAULT NULL,
   `description` VARCHAR(50) NOT NULL DEFAULT '',
@@ -99,7 +125,13 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `antibody` VARCHAR(11) NULL DEFAULT NULL,
   `identification_software` VARCHAR(20) NULL DEFAULT NULL,
   `quantification_software` VARCHAR(20) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`))
+  PRIMARY KEY (`id`),
+  INDEX `org_key_idx` (`organism` ASC),
+  CONSTRAINT `org_key`
+    FOREIGN KEY (`organism`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
@@ -112,6 +144,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`site_evidence` (
   `residue` CHAR(1) NOT NULL DEFAULT '',
   `type` ENUM('P','U','A','G') NOT NULL DEFAULT 'P',
   `localization_confidence` FLOAT NOT NULL,
+  `spectral_count` INT UNSIGNED NOT NULL,
   `experiment` INT(11) UNSIGNED NOT NULL,
   `quantitative_data` INT(11) UNSIGNED NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -236,8 +269,14 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_isoform` (
   `accession` VARCHAR(11) NOT NULL DEFAULT '',
   `sequence` TEXT NOT NULL,
   `length` INT(11) NOT NULL,
-  `taxid` INT(11) NOT NULL,
-  PRIMARY KEY (`accession`))
+  `taxid` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`accession`),
+  INDEX `org_key_idx` (`taxid` ASC),
+  CONSTRAINT `org_key`
+    FOREIGN KEY (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
