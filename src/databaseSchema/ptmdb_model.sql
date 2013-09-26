@@ -191,11 +191,7 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`inparanoid` (
   `id` VARCHAR(30) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`),
-  CONSTRAINT `inparanoid_ibfk_1`
-    FOREIGN KEY (`id`)
-    REFERENCES `ptmdb`.`ensp` (`id`)
-    ON DELETE CASCADE)
+  PRIMARY KEY (`id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
@@ -342,6 +338,85 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_ipi` (
     ON DELETE CASCADE)
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`ensg`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensg` (
+  `id` VARCHAR(30) NOT NULL,
+  `name` VARCHAR(30) NULL,
+  `description` VARCHAR(128) NULL,
+  `taxid` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC),
+  INDEX `tax_key_idx` (`taxid` ASC),
+  CONSTRAINT `tax_key`
+    FOREIGN KEY (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`table1`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`table1` (
+)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`ensg_ensp`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensg_ensp` (
+  `ensp` VARCHAR(30) NOT NULL,
+  `ensg` VARCHAR(30) NULL,
+  PRIMARY KEY (`ensp`),
+  UNIQUE INDEX `ensp_UNIQUE` (`ensp` ASC),
+  INDEX `ensg_key_idx` (`ensg` ASC),
+  CONSTRAINT `ensg_key`
+    FOREIGN KEY (`ensg`)
+    REFERENCES `ptmdb`.`ensg` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `ensp_key`
+    FOREIGN KEY (`ensp`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`table2`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`table2` (
+)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`ensp_inparanoid`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_inparanoid` (
+  `ensp` VARCHAR(30) NOT NULL,
+  `inparanoid_id` VARCHAR(30) NOT NULL,
+  PRIMARY KEY (`ensp`, `inparanoid_id`),
+  INDEX `inpara_key_idx` (`inparanoid_id` ASC),
+  CONSTRAINT `ensp_key`
+    FOREIGN KEY (`ensp`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `inpara_key`
+    FOREIGN KEY (`inparanoid_id`)
+    REFERENCES `ptmdb`.`inparanoid` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
