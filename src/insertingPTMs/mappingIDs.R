@@ -9,26 +9,29 @@ colnum <- args[3]	# number of columns
 org <- args[4]		#number of organisms
 fieldSeparator <- args[5]	#field separator for the columns
 headerBool <- as.logical(args[6])	#contains header
-idCol <- args[7]	#Column containing the protein ids
-aaCol <- args[8]	#Column containing the aminoacids
-resnumCol <- args[9]	#Column containing the position in the sequence
-reswinCol <- args[10]	#Column containing the residue window
-reswinWil <- args[11]	#Character used to refer to non-present AAs on the sequence
+idType <- args[7]	#idType: [ipi,uniprot]
+idCol <- args[8]	#Column containing the protein ids
+aaCol <- args[9]	#Column containing the aminoacids
+resnumCol <- args[10]	#Column containing the position in the sequence
+reswinCol <- args[11]	#Column containing the residue window
+reswinWil <- args[12]	#Character used to refer to non-present AAs on the sequence
 
 #PROJECT VARIABLES
 source(configfile)
 
 #Defining columns
 colnames <- list()
-colnames[[as.character(idCol)]] <- "acc"
+colnames[[as.character(idCol)]] <- "id"
 colnames[[as.character(aaCol)]] <- "residue"
-colnames[[as.character(resnumCol)]] <- "position"
+colnames[[as.character(resnumCol)]] <- "positions"
 colnames[[as.character(reswinCol)]] <- "residueWindow"
 coltype <- list()
 coltype[[as.character(idCol)]] <- "character"
 coltype[[as.character(aaCol)]] <- "character"
 coltype[[as.character(resnumCol)]] <- "numeric"
 coltype[[as.character(reswinCol)]] <- "character"
+#Columns that can not contain null values
+mandatoryColumns <- c("id", "residue", "positions", "type");
 
 #FUNCTIONS
 #calculates percentage
@@ -52,7 +55,7 @@ match <- function(sequence,residue, position){
 			return(FALSE)
 		}
 	}else{
-		return(NA)
+		return(FALSE)
 	}
 }
 # Function to make it easier to query 
@@ -83,7 +86,6 @@ printStatistics <- function(res){
 # Set up a connection to your database management system.
 # I'm using the public MySQL server for the UCSC genome browser (no password)
 mychannel <- dbConnect(MySQL(), user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE)
-
  
 ptms <- read.table(file=infile, sep=fieldSeparator, comment.char="",
 						quote="",header=headerBool, col.names=sapply(c(1:colnum), function(x) colnames[[as.character(x)]]),
@@ -94,14 +96,21 @@ ptms <- cbind(1:nrow(ptms), ptms)
 names(ptms)[1] <- "index"
 
 #Database Table mapping uniprot 2 ensembl ids
-directMappingsQuery <- "SELECT uniens.uniprot_accession,uniens.ensembl_id,ensp.sequence FROM uniprot_ensembl AS uniens INNER JOIN ensp ON uniens.ensembl_id = ensp.id"
-directMapping <- query(directMappingsQuery)
-
-#We add available ensembl references
-res <- merge(ptms, unique(directMapping[ ,c("uniprot_accession", "ensembl_id", "sequence")]), all.x=TRUE, by.x="acc", by.y="uniprot_accession")
+if(idType == "ipi"){
+	#Query database
+	directMappingsQuery <- "SELECT ipihis.all_ipi,ensipi.ensembl_id,ensp.sequence FROM ipi_history AS ipihis INNER JOIN ensembl_ipi AS ensipi ON ipihis.current_ipi = ensipi.ipi INNER JOIN ensp ON ensipi.ensembl_id = ensp.id"
+	directMapping <- query(directMappingsQuery)
+	#We add available ensembl references
+	res <- merge(ptms, unique(directMapping[ ,c("all_ipi", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="all_ipi")	
+}else if(idType == "uniprot"){
+	directMappingsQuery <- "SELECT uniens.uniprot_accession,uniens.ensembl_id,ensp.sequence FROM uniprot_ensembl AS uniens INNER JOIN ensp ON uniens.ensembl_id = ensp.id"
+	directMapping <- query(directMappingsQuery)
+	#We add available ensembl references
+	res <- merge(ptms, unique(directMapping[ ,c("uniprot_accession", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="uniprot_accession")
+}
 
 #check if the residue matches in the exact position to the sequence and report it in "match" column
-res$match <- apply(res, 1, function(x) match(x[which(names(res) == "sequence")],x[which(names(res) == "residue")],x[which(names(res) == "position")]))
+# res$match <- apply(res, 1, function(x) match(x[which(names(res) == "sequence")],x[which(names(res) == "residue")],x[which(names(res) == "position")]))
 
 #Print statistics about the data recovered
 # printStatistics(res)
