@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp` (
   `taxid` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `org_key_idx` (`taxid` ASC),
-  CONSTRAINT `org_key`
+  CONSTRAINT `org_key_ensp`
     FOREIGN KEY (`taxid`)
     REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ipi` (
   `taxid` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `org_key_idx` (`taxid` ASC),
-  CONSTRAINT `org_key`
+  CONSTRAINT `org_key_ipi`
     FOREIGN KEY (`taxid`)
     REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
@@ -114,7 +114,7 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `organism` INT UNSIGNED NOT NULL DEFAULT '',
+  `organism` INT UNSIGNED NOT NULL,
   `biological_sample` VARCHAR(50) NULL DEFAULT '',
   `comments` TINYTEXT NOT NULL DEFAULT '',
   `labelling_type` ENUM('free','metabolic','chemical') NULL DEFAULT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `quantification_software` VARCHAR(20) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `org_key_idx` (`organism` ASC),
-  CONSTRAINT `org_key`
+  CONSTRAINT `org_key_exp`
     FOREIGN KEY (`organism`)
     REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
@@ -269,7 +269,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_isoform` (
   `taxid` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`accession`),
   INDEX `org_key_idx` (`taxid` ASC),
-  CONSTRAINT `org_key`
+  CONSTRAINT `org_key_iso`
     FOREIGN KEY (`taxid`)
     REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
