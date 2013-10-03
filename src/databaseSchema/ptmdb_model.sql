@@ -22,8 +22,8 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`organism` (
   `taxid` INT UNSIGNED NOT NULL,
-  `common_name` VARCHAR(45) NULL,
-  `scientific_name` VARCHAR(45) NULL,
+  `common_name` VARCHAR(45) NULL DEFAULT NULL,
+  `scientific_name` VARCHAR(45) NULL DEFAULT NULL,
   PRIMARY KEY (`taxid`),
   UNIQUE INDEX `taxid_UNIQUE` (`taxid` ASC),
   UNIQUE INDEX `common_name_UNIQUE` (`common_name` ASC),
@@ -92,24 +92,6 @@ DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
--- Table `ptmdb`.`site_quantification`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptmdb`.`site_quantification` (
-  `id` INT(11) UNSIGNED NOT NULL,
-  `condition` INT(11) UNSIGNED NOT NULL,
-  `log2` FLOAT NOT NULL,
-  PRIMARY KEY (`id`),
-  INDEX `condition` (`condition` ASC),
-  CONSTRAINT `site_quantification_ibfk_1`
-    FOREIGN KEY (`condition`)
-    REFERENCES `ptmdb`.`condition` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
-
-
--- -----------------------------------------------------
 -- Table `ptmdb`.`experiment`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
@@ -136,26 +118,15 @@ DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
--- Table `ptmdb`.`site_evidence`
+-- Table `ptmdb`.`peptide`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptmdb`.`site_evidence` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `residue` CHAR(1) NOT NULL DEFAULT '',
-  `type` CHAR(1) NOT NULL DEFAULT 'P',
-  `localization_score` FLOAT NOT NULL,
-  `scoring_method` VARCHAR(25) NOT NULL,
   `spectral_count` INT UNSIGNED NOT NULL,
-  `peptide` VARCHAR(60) NOT NULL,
+  `peptide` VARCHAR(200) NOT NULL,
   `experiment` INT(11) UNSIGNED NOT NULL,
-  `quantitative_data` INT(11) UNSIGNED NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `experiment` (`experiment` ASC),
-  INDEX `quantitative_data` (`quantitative_data` ASC),
-  CONSTRAINT `site_evidence_ibfk_2`
-    FOREIGN KEY (`quantitative_data`)
-    REFERENCES `ptmdb`.`site_quantification` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
   CONSTRAINT `site_evidence_ibfk_1`
     FOREIGN KEY (`experiment`)
     REFERENCES `ptmdb`.`experiment` (`id`)
@@ -166,18 +137,41 @@ DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
--- Table `ptmdb`.`ensp_site`
+-- Table `ptmdb`.`peptide_quantification`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_site` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_quantification` (
+  `id` INT(11) UNSIGNED NOT NULL,
+  `condition` INT(11) UNSIGNED NOT NULL,
+  `log2` FLOAT NOT NULL,
+  `peptide` INT(11) UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `condition` (`condition` ASC),
+  INDEX `peptide_id_map_idx` (`peptide` ASC),
+  CONSTRAINT `site_quantification_ibfk_1`
+    FOREIGN KEY (`condition`)
+    REFERENCES `ptmdb`.`condition` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `peptide_id_map`
+    FOREIGN KEY (`peptide`)
+    REFERENCES `ptmdb`.`peptide` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`ensp_peptide`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_peptide` (
   `ensembl_id` VARCHAR(30) NOT NULL DEFAULT '',
-  `site` INT(11) UNSIGNED NOT NULL,
-  `res_number` INT(5) UNSIGNED NOT NULL,
-  `seq_window` CHAR(13) NOT NULL DEFAULT '',
-  PRIMARY KEY (`ensembl_id`, `site`),
-  INDEX `site` (`site` ASC),
+  `peptide_id` INT(11) UNSIGNED NOT NULL,
+  PRIMARY KEY (`ensembl_id`, `peptide_id`),
+  INDEX `site` (`peptide_id` ASC),
   CONSTRAINT `ensp_site_ibfk_2`
-    FOREIGN KEY (`site`)
-    REFERENCES `ptmdb`.`site_evidence` (`id`)
+    FOREIGN KEY (`peptide_id`)
+    REFERENCES `ptmdb`.`peptide` (`id`)
     ON DELETE CASCADE,
   CONSTRAINT `ensp_site_ibfk_1`
     FOREIGN KEY (`ensembl_id`)
@@ -346,8 +340,8 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`ensg` (
   `id` VARCHAR(30) NOT NULL,
-  `name` VARCHAR(30) NULL,
-  `description` VARCHAR(128) NULL,
+  `name` VARCHAR(30) NULL DEFAULT NULL,
+  `description` VARCHAR(128) NULL DEFAULT NULL,
   `taxid` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
@@ -362,19 +356,11 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `ptmdb`.`table1`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptmdb`.`table1` (
-)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `ptmdb`.`ensg_ensp`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`ensg_ensp` (
   `ensp` VARCHAR(30) NOT NULL,
-  `ensg` VARCHAR(30) NULL,
+  `ensg` VARCHAR(30) NULL DEFAULT NULL,
   PRIMARY KEY (`ensp`),
   UNIQUE INDEX `ensp_UNIQUE` (`ensp` ASC),
   INDEX `ensg_key_idx` (`ensg` ASC),
@@ -388,14 +374,6 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensg_ensp` (
     REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `ptmdb`.`table2`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptmdb`.`table2` (
-)
 ENGINE = InnoDB;
 
 
@@ -417,6 +395,61 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_inparanoid` (
     REFERENCES `ptmdb`.`inparanoid` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`site`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`site` (
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `residue` CHAR(1) NOT NULL,
+  `localization_score` FLOAT NULL,
+  `scoring_method` VARCHAR(30) NULL,
+  `modif_type` CHAR(1) NULL,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`peptide_site`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_site` (
+  `peptide_id` INT(11) UNSIGNED NOT NULL,
+  `site_id` INT(11) UNSIGNED NOT NULL,
+  PRIMARY KEY (`site_id`),
+  INDEX `pep_site_map_idx` (`peptide_id` ASC),
+  CONSTRAINT `pep_site_map`
+    FOREIGN KEY (`peptide_id`)
+    REFERENCES `ptmdb`.`peptide` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT,
+  CONSTRAINT `site_pep_map`
+    FOREIGN KEY (`site_id`)
+    REFERENCES `ptmdb`.`site` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`ensp_site`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_site` (
+  `ensp` VARCHAR(30) NOT NULL,
+  `site_id` INT(11) UNSIGNED NOT NULL,
+  PRIMARY KEY (`ensp`, `site_id`),
+  INDEX `map_sitekey_idx` (`site_id` ASC),
+  CONSTRAINT `map_enspkey`
+    FOREIGN KEY (`ensp`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `map_sitekey`
+    FOREIGN KEY (`site_id`)
+    REFERENCES `ptmdb`.`site` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT)
 ENGINE = InnoDB;
 
 
