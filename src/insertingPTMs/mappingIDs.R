@@ -13,8 +13,10 @@ idType <- args[7]	#idType: [ipi,uniprot]
 idCol <- args[8]	#Column containing the protein ids
 aaCol <- args[9]	#Column containing the aminoacids
 resnumCol <- args[10]	#Column containing the position in the sequence
-reswinCol <- args[11]	#Column containing the residue window
-reswinWil <- args[12]	#Character used to refer to non-present AAs on the sequence
+locScoreCol <- args[11] #Column containing the localization score
+peptideCol <- args[12]	#Column containing the peptide
+condRatioCol <- "NCM 30 min Normalized Ratio"
+condSpectralCol <- "NCM 30 min Ratio Count"
 
 #PROJECT VARIABLES
 source(configfile)
@@ -23,15 +25,12 @@ source(configfile)
 colnames <- list()
 colnames[[as.character(idCol)]] <- "id"
 colnames[[as.character(aaCol)]] <- "residue"
-colnames[[as.character(resnumCol)]] <- "positions"
-colnames[[as.character(reswinCol)]] <- "residueWindow"
-coltype <- list()
-coltype[[as.character(idCol)]] <- "character"
-coltype[[as.character(aaCol)]] <- "character"
-coltype[[as.character(resnumCol)]] <- "numeric"
-coltype[[as.character(reswinCol)]] <- "character"
-#Columns that can not contain null values
-mandatoryColumns <- c("id", "residue", "positions", "type");
+colnames[[as.character(resnumCol)]] <- "position"
+colnames[[as.character(locScoreCol)]] <- "localization_score"
+colnames[[as.character(peptideCol)]] <- "peptide"
+colnames[[as.character(condRatioCol)]] <- "cond1_ratio"
+colnames[[as.character(condSpectralCol)]] <- "cond1_spectra"
+
 
 #FUNCTIONS
 #calculates percentage
@@ -86,10 +85,16 @@ printStatistics <- function(res){
 # Set up a connection to your database management system.
 # I'm using the public MySQL server for the UCSC genome browser (no password)
 mychannel <- dbConnect(MySQL(), user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE)
- 
+
+#Reading PTM table
+sampleData <- read.csv(file=infile, sep=fieldSeparator, comment.char="",
+					quote="",header=headerBool, nrows=10)
+classes <- sapply(sampleData, class)	#Determining the columns classes
+previousNames <- apply((read.table(file=infile, nrow=1, sep=",")), 2, function(x) x)	#previous colnames
+
 ptms <- read.table(file=infile, sep=fieldSeparator, comment.char="",
-						quote="",header=headerBool, col.names=sapply(c(1:colnum), function(x) colnames[[as.character(x)]]),
-						colClasses=sapply(c(1:colnum), function(x) coltype[[as.character(x)]]))
+						quote="",header=headerBool, col.names=sapply(previousNames, function(x) colnames[[as.character(x)]]),
+						colClasses=classes)
 
 #we add a index to keep track of the different reported modifications
 ptms <- cbind(1:nrow(ptms), ptms)
