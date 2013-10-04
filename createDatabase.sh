@@ -119,8 +119,9 @@ for ((i=1; i<${#organism[@]}; i++))
 				# FORMATING AND INSERTING ##################################################################################
 			
 
-				echo -ne "Preformatting databases... "
-				if [ ! -e ${IPI_HISTORY/.history/_parsed.history} ] 
+				echo -ne "Preformatting databases... "	
+				
+				if [ ! -e ${IPI_HISTORY/.history/_parsed.history} ] && [[ ${ipi[i]} != "NA" ]]
 					then
 						perl ./src/databaseXreferences/preformat_IPIhistory.pl ${IPI_FASTA} ${IPI_HISTORY} > ${IPI_HISTORY/.history/_parsed.history}
 						echo -ne "\n"
