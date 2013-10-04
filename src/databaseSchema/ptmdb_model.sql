@@ -399,14 +399,13 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `ptmdb`.`site`
+-- Table `ptmdb`.`site_evidence`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptmdb`.`site` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`site_evidence` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `residue` CHAR(1) NOT NULL,
   `localization_score` FLOAT NULL,
   `scoring_method` VARCHAR(30) NULL,
-  `modif_type` CHAR(1) NULL,
+  `modif_type` CHAR(1) NOT NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -426,7 +425,24 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_site` (
     ON UPDATE RESTRICT,
   CONSTRAINT `site_pep_map`
     FOREIGN KEY (`site_id`)
-    REFERENCES `ptmdb`.`site` (`id`)
+    REFERENCES `ptmdb`.`site_evidence` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`modified_residue`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`modified_residue` (
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `evidence` INT(11) UNSIGNED NOT NULL,
+  `residue` CHAR(1) NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `map_res_evidence_idx` (`evidence` ASC),
+  CONSTRAINT `map_res_evidence`
+    FOREIGN KEY (`evidence`)
+    REFERENCES `ptmdb`.`site_evidence` (`id`)
     ON DELETE CASCADE
     ON UPDATE RESTRICT)
 ENGINE = InnoDB;
@@ -438,16 +454,16 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_site` (
   `ensp` VARCHAR(30) NOT NULL,
   `site_id` INT(11) UNSIGNED NOT NULL,
+  `position` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`ensp`, `site_id`),
-  INDEX `map_sitekey_idx` (`site_id` ASC),
   CONSTRAINT `map_enspkey`
     FOREIGN KEY (`ensp`)
     REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `map_sitekey`
-    FOREIGN KEY (`site_id`)
-    REFERENCES `ptmdb`.`site` (`id`)
+    FOREIGN KEY ()
+    REFERENCES `ptmdb`.`modified_residue` ()
     ON DELETE CASCADE
     ON UPDATE RESTRICT)
 ENGINE = InnoDB;
