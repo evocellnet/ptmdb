@@ -10,8 +10,9 @@ my $aaCol = $ARGV[5];
 my $resnumCol = $ARGV[6];
 my $locScoreCol = $ARGV[7];
 my $peptideCol = $ARGV[8];
-my $condRatioCol = $ARGV[9];
-my $condSpectralCol = $ARGV[10];
+my $peptideScoredCol = $ARGV[9];
+my $condRatioCol = $ARGV[10];
+my $condSpectralCol = $ARGV[11];
 
 my %colnames;
 $colnames{$idCol} = "id";
@@ -19,8 +20,9 @@ $colnames{$aaCol} = "residue";
 $colnames{$resnumCol} = "position";
 $colnames{$locScoreCol} = "localization_score";
 $colnames{$peptideCol} = "peptide";
-$colnames{$condRatioCol} = "cond1_ratio";
+$colnames{$peptideScoredCol} = "peptide_scored";
 $colnames{$condSpectralCol} = "cond1_spectra";
+$colnames{$condRatioCol} = "cond1_ratio";
 
 open(INFILE, $infile);
 my @inlines = <INFILE>;
@@ -85,7 +87,7 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 		#It checks if the id is working
 		if(defined($repeated{$fields[$column{"peptide"}]}{$fields[$column{"id"}]})){
 			# print $repeated{$fields[$column{"peptide"}]}{$fields[$column{"id"}]}."\n";
-			print $fields[$column{"id"}]."\t".$fields[$column{"position"}]."\t".$fields[$column{"peptide"}]."\n";
+			print $fields[$column{"id"}]."\t".$fields[$column{"position"}]."\t".$fields[$column{"localization_score"}]."\t".$fields[$column{"peptide"}]."\t".$fields[$column{"peptide_scored"}]."\n";
 		}else{
 			## If this peptide is not repeated is prints the peptide at it is 
 			#print $fields[$column{"id"}]."\t".$fields[$column{"position"}]."\t".$fields[$column{"peptide"}]."\n";
