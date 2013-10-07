@@ -1,0 +1,6 @@
+COMMON_NAME	SCIENTIFIC_NAME	TAXID	UNIPROT	INPARANOID	IPI	ENSEMBL
+human	homo_sapiens	9606	http://www.uniprot.org/uniprot/?query=taxonomy%3a9606&force=yes&format=txt	H.sapiens.fa	ipi.HUMAN	ftp://ftp.ensembl.org/pub/current_fasta/homo_sapiens/pep/Homo_sapiens.GRCh37.73.pep.all.fa.gz
+mouse	mus_musculus	10090	http://www.uniprot.org/uniprot/?query=taxonomy%3a10090&force=yes&format=txt	M.musculus.fa 	ipi.MOUSE	ftp://ftp.ensembl.org/pub/current_fasta/mus_musculus/pep/Mus_musculus.GRCm38.73.pep.all.fa.gz 
+arabidopsis	arabidopsis_thaliana	3702	http://www.uniprot.org/uniprot/?query=taxonomy%3a3702&force=yes&format=txt	A.thaliana.fa	ipi.ARATH	ftp://ftp.ensemblgenomes.org/pub/plants/current/fasta/arabidopsis_thaliana/pep/Arabidopsis_thaliana.TAIR10.20.pep.all.fa.gz
+saccharomyces	saccharomyces_cerevisiae	559292	http://www.uniprot.org/uniprot/?query=taxonomy%3a559292&force=yes&format=txt	S.cerevisiae.fa	NA	ftp://ftp.ensembl.org/pub/current_fasta/saccharomyces_cerevisiae/pep/Saccharomyces_cerevisiae.EF4.73.pep.all.fa.gz
+rat	rattus_norvegicus	10116	http://www.uniprot.org/uniprot/?query=taxonomy%3a10116&force=yes&format=txt	R.norvegicus.fa	ipi.RAT	ftp://ftp.ensembl.org/pub/release-73/fasta/rattus_norvegicus/pep/Rattus_norvegicus.Rnor_5.0.73.pep.all.fa.gz
