@@ -3,7 +3,7 @@
 
 # DATABASE
 #schema
-DATABASE_SCHEMA="src/databaseSchema/ptmdb_model3.sql"
+DATABASE_SCHEMA="src/databaseSchema/ptmdb_model.sql"
 #connection
 DBHOST="localhost"
 DATABASE="ptmdb2"

@@ -46,18 +46,18 @@ for ((i=1; i<${#organism[@]}; i++))
 				
 				echo -ne "\n\t* Insering new Organism\n\n"
 				
-					mkdir -p ./proteomes2/${organism[i]}
+					mkdir -p ./proteomes/${organism[i]}
 					
-					if [ ! -e ./proteomes2/${organism[i]}/uniprot_${organism[i]}.txt ]
+					if [ ! -e ./proteomes/${organism[i]}/uniprot_${organism[i]}.txt ]
 						then
-							wget -P ./proteomes2/${organism[i]} ${unip[i]} -O ./proteomes2/${organism[i]}/uniprot_${organism[i]}.txt
+							wget -P ./proteomes/${organism[i]} ${unip[i]} -O ./proteomes/${organism[i]}/uniprot_${organism[i]}.txt
 						else
 							echo "Uniprot download skipped. File already exists."
 					fi
 					
-					if [ ! -e ./proteomes2/${organism[i]}/${inpara[i]} ]
+					if [ ! -e ./proteomes/${organism[i]}/${inpara[i]} ]
 						then
-							wget -P ./proteomes2/${organism[i]} "http://inparanoid.sbc.su.se/download/7.0_current/sequences/processed/${inpara[i]}"
+							wget -P ./proteomes/${organism[i]} "http://inparanoid.sbc.su.se/download/7.0_current/sequences/processed/${inpara[i]}"
 						else
 							echo "Inparanoid download skipped. File already exists."
 					fi 
@@ -67,10 +67,10 @@ for ((i=1; i<${#organism[@]}; i++))
 						then
 							echo "There is no proteome for organism $SCIENTIFIC_NAME in the IPI database"
 						 			
-						else if [ ! -e ./proteomes2/${organism[i]}/${ipi[i]}.fasta ]
+						else if [ ! -e ./proteomes/${organism[i]}/${ipi[i]}.fasta ]
 							then
-								wget -P ./proteomes2/${organism[i]} ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current/${ipi[i]}.fasta.gz 
-								gunzip ./proteomes2/${organism[i]}/${ipi[i]}.fasta.gz
+								wget -P ./proteomes/${organism[i]} ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current/${ipi[i]}.fasta.gz 
+								gunzip ./proteomes/${organism[i]}/${ipi[i]}.fasta.gz
 							else
 								echo "IPI fasta download skipped. File already exists."
 						fi
@@ -81,29 +81,29 @@ for ((i=1; i<${#organism[@]}; i++))
 						then
 							echo "There is no history file for organism $SCIENTIFIC_NAME in the IPI database"	
 							
-						else if [ ! -e ./proteomes2/${organism[i]}/${ipi[i]}.history ]
+						else if [ ! -e ./proteomes/${organism[i]}/${ipi[i]}.history ]
 							then
-								wget -P ./proteomes2/${organism[i]} ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current/${ipi[i]}.history.gz
-								gunzip ./proteomes2/${organism[i]}/${ipi[i]}.history.gz
+								wget -P ./proteomes/${organism[i]} ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current/${ipi[i]}.history.gz
+								gunzip ./proteomes/${organism[i]}/${ipi[i]}.history.gz
 							else
 								echo "IPI history download skipped. File already exists."
 						fi 	
 					fi	
 							
 					
-					if [ ! -e ./proteomes2/${organism[i]}/ensembl_${organism[i]} ]
+					if [ ! -e ./proteomes/${organism[i]}/ensembl_${organism[i]} ]
 						then
-							wget -P ./proteomes2/${organism[i]} ${ens[i]} -O ./proteomes2/${organism[i]}/ensembl_${organism[i]}.gz
-							gunzip ./proteomes2/${organism[i]}/ensembl_${organism[i]}.gz
+							wget -P ./proteomes/${organism[i]} ${ens[i]} -O ./proteomes/${organism[i]}/ensembl_${organism[i]}.gz
+							gunzip ./proteomes/${organism[i]}/ensembl_${organism[i]}.gz
 						else
 							echo "Ensembl download skipped. File already exists."
 					fi
 					
-					UNIPROT="./proteomes2/${organism[i]}/uniprot_${organism[i]}.txt" 
-					INPARANNOID="./proteomes2/${organism[i]}/${inpara[i]}"
-					IPI_FASTA="./proteomes2/${organism[i]}/${ipi[i]}.fasta"
-					IPI_HISTORY="./proteomes2/${organism[i]}/${ipi[i]}.history"
-					ENSEMBL_FASTA="./proteomes2/${organism[i]}/ensembl_${organism[i]}"
+					UNIPROT="./proteomes/${organism[i]}/uniprot_${organism[i]}.txt" 
+					INPARANNOID="./proteomes/${organism[i]}/${inpara[i]}"
+					IPI_FASTA="./proteomes/${organism[i]}/${ipi[i]}.fasta"
+					IPI_HISTORY="./proteomes/${organism[i]}/${ipi[i]}.history"
+					ENSEMBL_FASTA="./proteomes/${organism[i]}/ensembl_${organism[i]}"
 			
 
 
