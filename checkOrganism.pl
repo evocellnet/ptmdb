@@ -27,7 +27,9 @@ if($field)
 	print 'TRUE';
 }
 else
-{print 'FALSE';}
+{
+	print 'FALSE';
+}
 
 
 
