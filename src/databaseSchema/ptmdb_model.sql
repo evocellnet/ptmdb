@@ -13,8 +13,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`condition` (
   `description` VARCHAR(40) NOT NULL DEFAULT '',
   `time_min` INT(11) NULL DEFAULT NULL,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -35,19 +34,19 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`ensp`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp` (
-  `id` VARCHAR(30) NOT NULL DEFAULT '',
+  `id` VARCHAR(30) NOT NULL,
   `sequence` TEXT NOT NULL,
   `length` INT(11) NOT NULL,
   `taxid` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `org_key_idx` (`taxid` ASC),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
   CONSTRAINT `org_key_ensp`
     FOREIGN KEY (`taxid`)
     REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -65,8 +64,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ipi` (
     REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -87,8 +85,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensembl_ipi` (
     REFERENCES `ptmdb`.`ipi` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -98,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `organism` INT UNSIGNED NOT NULL,
   `biological_sample` VARCHAR(50) NULL DEFAULT '',
-  `comments` TINYTEXT NOT NULL DEFAULT '',
+  `comments` TINYTEXT NOT NULL,
   `labelling_type` ENUM('free','metabolic','chemical') NULL DEFAULT NULL,
   `labelling_method` VARCHAR(11) NULL DEFAULT NULL,
   `spectrometer` VARCHAR(30) NOT NULL DEFAULT '',
@@ -113,8 +110,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
     REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -132,8 +128,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide` (
     REFERENCES `ptmdb`.`experiment` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -157,8 +152,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_quantification` (
     REFERENCES `ptmdb`.`peptide` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -177,8 +171,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_peptide` (
     FOREIGN KEY (`ensembl_id`)
     REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -187,8 +180,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE TABLE IF NOT EXISTS `ptmdb`.`inparanoid` (
   `id` VARCHAR(30) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -202,8 +194,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ipi_history` (
     FOREIGN KEY (`current_ipi`)
     REFERENCES `ptmdb`.`ipi` (`id`)
     ON DELETE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -218,8 +209,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`publication` (
   `title` TEXT NOT NULL,
   PRIMARY KEY (`pub_id`),
   UNIQUE INDEX `pubmed_id` (`pubmed_id` ASC))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -238,8 +228,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`pub_exp` (
     FOREIGN KEY (`experiment`)
     REFERENCES `ptmdb`.`experiment` (`id`)
     ON DELETE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -249,8 +238,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_entry` (
   `id` VARCHAR(15) NOT NULL DEFAULT '',
   `reviewed` TINYINT(1) NOT NULL,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -268,8 +256,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_isoform` (
     REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -290,8 +277,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_acc` (
     FOREIGN KEY (`reference_accession`)
     REFERENCES `ptmdb`.`uniprot_isoform` (`accession`)
     ON DELETE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -310,8 +296,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_ensembl` (
     FOREIGN KEY (`uniprot_accession`)
     REFERENCES `ptmdb`.`uniprot_acc` (`accession`)
     ON DELETE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -331,8 +316,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_ipi` (
     FOREIGN KEY (`accession`)
     REFERENCES `ptmdb`.`uniprot_acc` (`accession`)
     ON DELETE CASCADE)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -359,18 +343,17 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`ensg_ensp`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`ensg_ensp` (
-  `ensp` VARCHAR(30) NOT NULL,
-  `ensg` VARCHAR(30) NULL DEFAULT NULL,
-  PRIMARY KEY (`ensp`),
-  UNIQUE INDEX `ensp_UNIQUE` (`ensp` ASC),
-  INDEX `ensg_key_idx` (`ensg` ASC),
+  `ensp_id` VARCHAR(30) NOT NULL,
+  `ensg_id` VARCHAR(30) NOT NULL,
+  UNIQUE INDEX `ensp_UNIQUE` (`ensp_id` ASC),
+  INDEX `ensg_key_idx` (`ensg_id` ASC),
   CONSTRAINT `ensg_key`
-    FOREIGN KEY (`ensg`)
+    FOREIGN KEY (`ensg_id`)
     REFERENCES `ptmdb`.`ensg` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `ensp_key`
-    FOREIGN KEY (`ensp`)
+    FOREIGN KEY (`ensp_id`)
     REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
@@ -385,12 +368,12 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_inparanoid` (
   `inparanoid_id` VARCHAR(30) NOT NULL,
   PRIMARY KEY (`ensp`, `inparanoid_id`),
   INDEX `inpara_key_idx` (`inparanoid_id` ASC),
-  CONSTRAINT `ensp_key`
+  CONSTRAINT `ensp_inpara_key`
     FOREIGN KEY (`ensp`)
     REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
-  CONSTRAINT `inpara_key`
+  CONSTRAINT `inpara_ensp_key`
     FOREIGN KEY (`inparanoid_id`)
     REFERENCES `ptmdb`.`inparanoid` (`id`)
     ON DELETE CASCADE
@@ -456,14 +439,15 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_site` (
   `site_id` INT(11) UNSIGNED NOT NULL,
   `position` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`ensp`, `site_id`),
+  INDEX `map_sitekey_idx` (`site_id` ASC),
   CONSTRAINT `map_enspkey`
     FOREIGN KEY (`ensp`)
     REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `map_sitekey`
-    FOREIGN KEY ()
-    REFERENCES `ptmdb`.`modified_residue` ()
+    FOREIGN KEY (`site_id`)
+    REFERENCES `ptmdb`.`modified_residue` (`id`)
     ON DELETE CASCADE
     ON UPDATE RESTRICT)
 ENGINE = InnoDB;
