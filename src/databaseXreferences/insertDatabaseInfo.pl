@@ -9,14 +9,18 @@ my $dbuser=$ARGV[2];
 my $dbpass=$ARGV[3];
 
 #Input Databases
-my $UNIPROT = $ARGV[4];
-my $IPI_FASTA = $ARGV[5];
-my $IPI_HISTORY_PARSED = $ARGV[6];
-my $INPARANNOID_HUMAN = $ARGV[7];
-my $ENSEMBL_FASTA=$ARGV[8];
-my $TAXID = $ARGV[9];
-my $SCIENTIFIC_NAME = $ARGV[10];
-my $COMMON_NAME = $ARGV[11];
+my $ENSEMBL_FASTA=$ARGV[4];
+my $TAXID = $ARGV[5];
+my $SCIENTIFIC_NAME = $ARGV[6];
+my $COMMON_NAME = $ARGV[7];
+my $ENSEMBL_GENES = $ARGV[8];
+my $ENSEMBL_GEN_PEP = $ARGV[9];
+my $INPARA_CELEGANS = $ARGV[10];
+my $INPARANNOID = $ARGV[11];
+my $UNIENSP = $ARGV[12];
+my $UNIPROT = $ARGV[13];
+my $IPI_FASTA = $ARGV[14];
+my $IPI_HISTORY_PARSED = $ARGV[15];
 
 my $tolerance = 0.05;	# Tolerance in sequence length for two IDs to be considered the same (When evidences support it)
 my $relaxtolerance = 0.5;	# Tolerance in sequence length for two IDs to be considered the same (Stronger evidences support it)
@@ -24,7 +28,6 @@ my $relaxtolerance = 0.5;	# Tolerance in sequence length for two IDs to be consi
 #Connecting to the database
 my $dbh = DBI->connect('DBI:mysql:'.$database.";".$dbhost, $dbuser, $dbpass, {AutoCommit => 0}) || die "Could not connect to database: $DBI::errstr";
 my $errflag=0;
-
 
 #### ORGANISM #############################
 
@@ -82,35 +85,119 @@ if(scalar(@ensseqlines)){
 }
 close(INFILE);
 
+
+#### ENSEMBL GENES ##############################
+print "\t* Inserting Ensembl Genes...\n";
+#preparing Ensembl-related inserts
+my $ins_ensp_genes = $dbh->prepare('INSERT INTO ensg(id,name,description,taxid) VALUES (?,?,?,?)');
+
+
+open(INFILE, $ENSEMBL_GENES)    or die $!;
+while(<INFILE>){
+	my $line = $_;
+
+
+	if($line=~/^(\S+)\t(.*)\t(.*)$/){
+	
+	$ins_ensp_genes->execute($1,$2,$3,$TAXID);
+	#print "$1\n";
+	}
+}
+close(INFILE);
+
+#### ENSEMBL PROTEIN-GENES ##############################
+print "\t* Inserting indermediate...\n";
+my $ins_ensp_gen_pep = $dbh->prepare('INSERT INTO ensg_ensp(ensp_id,ensg_id) VALUES (?,?)');
+
+
+open(INFILE, $ENSEMBL_GEN_PEP)    or die $!;
+while(<INFILE>){
+	my $line = $_;
+
+
+	if($line=~/^(\S+)\t(\S+)/){
+		if ($allensembls{$2}){
+			$ins_ensp_gen_pep->execute($2,$1);
+			#print "$1\n";
+		}
+	}	
+}
+close(INFILE);
+
 #### INPARANOID ############################
 print "\t* Inserting Inparanoid...\n";
 #preparing Inparanoid-related inserts
 my $ins_inparanoid = $dbh->prepare('INSERT INTO inparanoid(id) VALUES (?)');
 
-my %inInpara;
-open(INFILE, $INPARANNOID_HUMAN)    or die $!;
+my $inpara_id="";
+my %inInpara=();
+
+open(INFILE, $INPARANNOID)    or die $!;
 while(<INFILE>){
 	my $line = $_;
 	if($line =~/^>(\S+)\n/){
 		if ($TAXID == 3702){
 			$up = uc $1;
-			#push(@inparanoid, $up);
-		
-		#for ($i=0; $i<=$#inparanoid; $i++){
-		#if($allensembls{$inparanoid[$i]}){
-			#$ins_inparanoid->execute($inparanoid[$i]);
+			$inpara_id = $up;
+		#if ($allensembls{$up}){
+			$ins_inparanoid->execute($inpara_id);
 			#}
+			$inInpara{$inpara_id}=1;
+		}
+		
+		#elsif ($TAXID == 6239){
+			#$ins_inparanoid->execute($1);
 		#}
-		if ($allensembls{$up}){
-			$ins_inparanoid->execute($up);
-			}
-		}	
-			elsif ($allensembls{$1}){
-			$ins_inparanoid->execute($1);
+			else{
+			$inpara_id = $1;
+			$ins_inparanoid->execute($inpara_id);
+			$inInpara{$inpara_id}=1;
 			}			
 	}	
 }
 
+#### INPARANOID-ENSEMBL ############################
+my $ins_inpara_ensembl = $dbh->prepare('INSERT INTO ensp_inparanoid(ensp,inparanoid_id) VALUES (?,?)');
+
+if ($TAXID == 6239)
+{
+    open(INFILE, $INPARA_CELEGANS)    or die $!;
+    while(<INFILE>){
+        my $line = $_;
+
+        if($line=~/^(\S+)\t(\S+)/){
+            if ($allensembls{$1}){
+				if ($inInpara{$2}){
+				$ins_inpara_ensembl->execute($1,$2);
+            #print "$1\n";
+				}
+            }
+        }
+    }
+}
+close(INFILE);
+
+####COMPLETING INPARANOID-ENSEMBL ############################
+my $thisensp;
+my $thisinpara;
+my %thisinpensp;
+
+   my $ensinparaQuery = "SELECT DISTINCT ensp.id, inparanoid.id FROM ensp INNER JOIN inparanoid ON ensp.id = inparanoid.id WHERE ensp.taxid='$TAXID'";   
+   my $ensinparaHandle = $dbh->prepare($ensinparaQuery) or die "Cannot prepare: " . $dbh->errstr();
+   $ensinparaHandle->execute() or die "Cannot execute: " . $ensinparaHandle->errstr();
+   $ensinparaHandle->bind_columns(\$thisensp, \$thisinpara);
+        
+    while($ensinparaHandle->fetch()){
+			#print "2";
+		
+		if(not defined($thisinpensp{$thisensp."-".$thisinpara})){
+			unless($ins_inpara_ensembl->execute($thisensp,$thisinpara)){
+				$errflag=1;
+			}
+			$thisinpensp{$thisensp."-".$thisinpara}=1;
+		}
+	}    
+     
 #### UNIPROT ##############################
 print "\t* Inserting Uniprot...\n";
 
@@ -574,6 +661,52 @@ if (-e $IPI_FASTA)
 
 }
 
+
+#### COMPLETE UNIPROT_ENSEMBL WITH POTENTIAL MISSING MAPPINGS USING BIOMART ##############################
+
+open(INFILE, $UNIENSP)    or die $!;
+while(<INFILE>){
+	my $line = $_;
+	if($line =~/^(\S+)\t(.*)\t(.*)/){
+
+	my $th = $dbh->prepare(qq{SELECT uniprot_accession FROM uniprot_ensembl WHERE uniprot_ensembl.uniprot_accession='$2'});
+	$th->execute() or die "Cannot execute: " . $th->errstr();
+	my $found = 0;
+	
+			while ($th->fetch()){
+					$found = 1;
+				}
+				if ($found!=1) 
+				{
+					if ($allensembls{$1}){
+						if ($insertedAcc{$2}){
+							$ins_uniport_ensembl->execute($2,$1);
+						}	
+					}
+				}	
+		
+	$th = $dbh->prepare(qq{SELECT uniprot_accession FROM uniprot_ensembl WHERE uniprot_ensembl.uniprot_accession='$3'});
+	$th->execute() or die "Cannot execute: " . $th->errstr();
+	$found = 0;
+	
+			while ($th->fetch()){
+					$found = 1;
+				}
+				if ($found!=1) 
+				{
+					if ($allensembls{$1}){
+						if ($insertedAcc{$3}){
+							$ins_uniport_ensembl->execute($3,$1);
+						}	
+					}
+				}		
+	
+	}   
+	
+}		
+close(INFILE);		
+
+
 ### FINISHING #################################
 
 if($errflag){
@@ -585,7 +718,6 @@ if($errflag){
 #$dbh->rollback();
 
 $dbh->commit();
-
 
 #FUNCTIONS
 #it gets an alternative splicing description from uniprot and returns the sequences. 
