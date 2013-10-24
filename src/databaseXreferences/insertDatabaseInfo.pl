@@ -13,14 +13,11 @@ my $ENSEMBL_FASTA=$ARGV[4];
 my $TAXID = $ARGV[5];
 my $SCIENTIFIC_NAME = $ARGV[6];
 my $COMMON_NAME = $ARGV[7];
-my $ENSEMBL_GENES = $ARGV[8];
-my $ENSEMBL_GEN_PEP = $ARGV[9];
-my $INPARA_CELEGANS = $ARGV[10];
-my $INPARANNOID = $ARGV[11];
-my $UNIENSP = $ARGV[12];
-my $UNIPROT = $ARGV[13];
-my $IPI_FASTA = $ARGV[14];
-my $IPI_HISTORY_PARSED = $ARGV[15];
+my $ENSNAME = $ARGV[8];
+my $INPARANNOID = $ARGV[9];
+my $UNIPROT = $ARGV[10];
+my $IPI_FASTA = $ARGV[11];
+my $IPI_HISTORY_PARSED = $ARGV[12];
 
 my $tolerance = 0.05;	# Tolerance in sequence length for two IDs to be considered the same (When evidences support it)
 my $relaxtolerance = 0.5;	# Tolerance in sequence length for two IDs to be considered the same (Stronger evidences support it)
@@ -92,37 +89,30 @@ print "\t* Inserting Ensembl Genes...\n";
 my $ins_ensp_genes = $dbh->prepare('INSERT INTO ensg(id,name,description,taxid) VALUES (?,?,?,?)');
 
 
-open(INFILE, $ENSEMBL_GENES)    or die $!;
-while(<INFILE>){
+open(PS,"perl ./biomart-perl/ensg.pl $ENSNAME |") || die "Failed: $!\n";
+while ( <PS> )
+{
 	my $line = $_;
-
-
 	if($line=~/^(\S+)\t(.*)\t(.*)$/){
-	
-	$ins_ensp_genes->execute($1,$2,$3,$TAXID);
-	#print "$1\n";
+		$ins_ensp_genes->execute($1,$2,$3,$TAXID);
 	}
-}
-close(INFILE);
+}	
 
 #### ENSEMBL PROTEIN-GENES ##############################
 print "\t* Inserting indermediate...\n";
 my $ins_ensp_gen_pep = $dbh->prepare('INSERT INTO ensg_ensp(ensp_id,ensg_id) VALUES (?,?)');
 
-
-open(INFILE, $ENSEMBL_GEN_PEP)    or die $!;
-while(<INFILE>){
+open(PS,"perl ./biomart-perl/ensg_ensp.pl $ENSNAME |") || die "Failed: $!\n";
+while ( <PS> )
+{
 	my $line = $_;
-
-
 	if($line=~/^(\S+)\t(\S+)/){
 		if ($allensembls{$2}){
 			$ins_ensp_gen_pep->execute($2,$1);
 			#print "$1\n";
 		}
 	}	
-}
-close(INFILE);
+}	
 
 #### INPARANOID ############################
 print "\t* Inserting Inparanoid...\n";
@@ -145,9 +135,6 @@ while(<INFILE>){
 			$inInpara{$inpara_id}=1;
 		}
 		
-		#elsif ($TAXID == 6239){
-			#$ins_inparanoid->execute($1);
-		#}
 			else{
 			$inpara_id = $1;
 			$ins_inparanoid->execute($inpara_id);
@@ -161,8 +148,8 @@ my $ins_inpara_ensembl = $dbh->prepare('INSERT INTO ensp_inparanoid(ensp,inparan
 
 if ($TAXID == 6239)
 {
-    open(INFILE, $INPARA_CELEGANS)    or die $!;
-    while(<INFILE>){
+    open(PS,"perl ./biomart-perl/inparanoid_ensp.pl |") || die "Failed: $!\n";
+    while(<PS>){
         my $line = $_;
 
         if($line=~/^(\S+)\t(\S+)/){
@@ -175,7 +162,6 @@ if ($TAXID == 6239)
         }
     }
 }
-close(INFILE);
 
 ####COMPLETING INPARANOID-ENSEMBL ############################
 my $thisensp;
@@ -490,11 +476,6 @@ if (-e $IPI_FASTA)
 {
 	open(INFILE, $IPI_FASTA)    or die $!;
 
-	#if (-e $IPI_FASTA)
-	#{
-	#} 
-	#unless (-e $filename)
-
 	while(<INFILE>){
 		my $line = $_;
 		my $generalpattern='^>IPI\:(\w+)(\.\d+)?[\|\s](SWISS\-PROT\:([\w\-;]+))?[\|\s]?(TREMBL\:([\w\-;]+))?[\|\s]?(ENSEMBL\:([\w\-;]+))?[\|\s]?';
@@ -664,8 +645,8 @@ if (-e $IPI_FASTA)
 
 #### COMPLETE UNIPROT_ENSEMBL WITH POTENTIAL MISSING MAPPINGS USING BIOMART ##############################
 
-open(INFILE, $UNIENSP)    or die $!;
-while(<INFILE>){
+open(PS,"perl ./biomart-perl/uniprot_ensp.pl ${ENSNAME} |") || die "Failed: $!\n";
+while(<PS>){
 	my $line = $_;
 	if($line =~/^(\S+)\t(.*)\t(.*)/){
 
@@ -704,8 +685,7 @@ while(<INFILE>){
 	}   
 	
 }		
-close(INFILE);		
-
+	
 
 ### FINISHING #################################
 
