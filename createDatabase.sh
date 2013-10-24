@@ -131,38 +131,9 @@ for ((i=1; i<${#organism[@]}; i++))
 					ENSNAME=${ENSEMBL_NAME}_eg_gene		
 				fi
 				
-
-
-				if [ ! -e ./EnsgData/${SCIENTIFIC_NAME}.res ]
-					then
-						perl registryGenerator.pl "${biomart[i]}" ${ENSNAME} ${REGISTRIES}	#Creates the registry file dynamically
-						perl ./biomart-perl/ensg.pl ${ENSNAME} >./EnsgData/${SCIENTIFIC_NAME}.res	#execute the query script with the dataset name argument and stores the output in a result file
-				fi
+				perl registryGenerator.pl "${biomart[i]}" ${ENSNAME} ${REGISTRIES}	#Creates the registry file dynamically
 				
-				if [ ! -e ./EnsgData/${SCIENTIFIC_NAME}genpep.res ]
-					then
-						perl registryGenerator.pl "${biomart[i]}" ${ENSNAME} ${REGISTRIES}	#Creates the registry file dynamically
-						perl ./biomart-perl/ensg_ensp.pl ${ENSNAME} >./EnsgData/${SCIENTIFIC_NAME}genpep.res	#execute the query script with the dataset name argument and stores the output in a result file
-				fi
 				
-				if [[ $TAXID = "6239" ]]
-					then
-					if [ ! -e ./EnsgData/${SCIENTIFIC_NAME}inpara.res ]
-					then
-					perl registryGenerator.pl "${biomart[i]}" ${ENSNAME} ${REGISTRIES}	#Creates the registry file dynamically
-					perl ./biomart-perl/inparanoid_ensp.pl >./EnsgData/${SCIENTIFIC_NAME}inpara.res	#execute the query script with the dataset name argument and stores the output in a result file
-					fi
-				fi	
-				
-				if [ ! -e ./EnsgData/UniEnsp/${SCIENTIFIC_NAME}uniensp.res ]
-					then
-						perl registryGenerator.pl "${biomart[i]}" ${ENSNAME} ${REGISTRIES}	#Creates the registry file dynamically
-						perl ./biomart-perl/uniprot_ensp.pl ${ENSNAME} >./EnsgData/UniEnsp/${SCIENTIFIC_NAME}uniensp.res	#execute the query script with the dataset name argument and stores the output in a result file
-				fi
-					
-				ENSEMBL_GENES="./EnsgData/${SCIENTIFIC_NAME}.res"
-				ENSEMBL_GEN_PEP="./EnsgData/${SCIENTIFIC_NAME}genpep.res"
-				UNIENSP="./EnsgData/UniEnsp/${SCIENTIFIC_NAME}uniensp.res"
 				
 				# BUILDING DATABASE SCHEMA ##################################################################################
 				echo -ne "Connecting to the database...\n"
@@ -185,7 +156,7 @@ for ((i=1; i<${#organism[@]}; i++))
 
 				echo -ne "Inserting databases information...\n"
 		
-				perl ./src/databaseXreferences/insertDatabaseInfo.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${ENSEMBL_FASTA} ${TAXID} ${SCIENTIFIC_NAME} ${COMMON_NAME} ${ENSEMBL_GENES} ${ENSEMBL_GEN_PEP} ${INPARA_CELEGANS} ${INPARANNOID} ${UNIENSP} ${UNIPROT} ${IPI_FASTA} ${IPI_HISTORY/.history/_parsed.history}
+				perl ./src/databaseXreferences/insertDatabaseInfo.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${ENSEMBL_FASTA} ${TAXID} ${SCIENTIFIC_NAME} ${COMMON_NAME} ${ENSNAME} ${INPARANNOID} ${UNIPROT} ${IPI_FASTA} ${IPI_HISTORY/.history/_parsed.history}
 		fi
 		
 		
