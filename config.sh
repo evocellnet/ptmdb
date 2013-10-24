@@ -6,8 +6,8 @@
 DATABASE_SCHEMA="src/databaseSchema/ptmdb_model.sql"
 #connection
 DBHOST="localhost"
-DATABASE="ptmdb2"
-DBUSER="vicky"
-DBPASS="vicky"
+DATABASE="ptmdb"
+DBUSER="webAdmin"
+DBPASS="webAdmin"
 
 input="organism.csv"
