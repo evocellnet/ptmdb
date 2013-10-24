@@ -41,15 +41,19 @@ my $peptideFormat = getPeptideFormat($firstEntryFields[$column{"peptide"}]);
 #It looks for the peptides that are repeated (it uses scored peptides in case they are available)
 my %repeated;
 my %repeatedPositions;
+my %excluded;
 if(defined($peptideScoredCol)){
-	my($repeated_ref,$repeatedPositions_ref) = getRepeatedPeptideScore(\@inlines,$startingRow,$fs,\%column);
+	my($repeated_ref,$repeatedPositions_ref, $excluded_ref) = getRepeatedPeptideScore(\@inlines,$startingRow,$fs,\%column);
 	%repeated = %{$repeated_ref};
 	%repeatedPositions = %{$repeatedPositions_ref};
+	%excluded = %{$excluded_ref};
 	
 }else{
-	my($repeated_ref,$repeatedPositions_ref) = getRepeatedPeptide(\@inlines,$startingRow,$fs,\%column);
+	my($repeated_ref,$repeatedPositions_ref, $excluded_ref) = getRepeatedPeptide(\@inlines,$startingRow,$fs,\%column);
 	%repeated = %{$repeated_ref};
 	%repeatedPositions = %{$repeatedPositions_ref};
+	%excluded = %{$excluded_ref};
+	
 }
 
 #TABLE BODY
@@ -62,12 +66,23 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 	if(defined($fields[$column{"id"}]) && ($fields[$column{"position"}] ne '')){
 		#It checks if we have columns for the scored peptides
 		if(defined($peptideScoredCol)){
-			#if there is an entry for each site on the peptide
-			if(getNumberOfSites($fields[$column{"peptide"}], $peptideFormat) == $repeated{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}){
-				printLine(\@fields, \%column);
-			}else{
-				# printLine(\@fields, \%column);
+			#check if the position is excluded because an ambiguity problem
+			if(!defined($excluded{$fields[$column{"id"}]}{$fields[$column{"position"}]})){
+				#if there is an entry for each site on the peptide and they match their relative positions
+				if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}}, \%{$excluded{$fields[$column{"id"}]}})){
+					#printLine(\@fields, \%column);
+				}else{
+					printLine(\@fields, \%column);
+				}			
 			}
+			# #if there is an entry for each site on the peptide and they match their relative positions
+			# if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}})){
+			# 	# printLine(\@fields, \%column);
+			# # if(getNumberOfSites($fields[$column{"peptide"}], $peptideFormat) == $repeated{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}){
+			# 	# printLine(\@fields, \%column);
+			# }else{
+			# 	printLine(\@fields, \%column);
+			# }
 			
 			
 			# #If the peptide appears more than once
@@ -93,7 +108,7 @@ sub printLine{
 	my @fields=@{$_[0]};
 	my %column=%{$_[1]};
 	
-	print $fields[$column{"id"}]."\t".$fields[$column{"position"}]."\t".$fields[$column{"localization_score"}]."\t".$fields[$column{"peptide"}]."\t".$fields[$column{"peptide_scored"}]."\t".$repeated{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}."\t".getNumberOfSites($fields[$column{"peptide"}], $peptideFormat)."\t".join(";", @{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}})."\t".simplifiedPeptide($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}},$fields[$column{"position"}])."\n";
+	print $fields[$column{"id"}]."\t".$fields[$column{"position"}]."\t".$fields[$column{"localization_score"}]."\t".$fields[$column{"peptide"}]."\t".$fields[$column{"peptide_scored"}]."\t".$repeated{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}."\t".getNumberOfSites($fields[$column{"peptide"}], $peptideFormat)."\t".join(";", @{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}})."\t".simplifiedPeptide($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}},$fields[$column{"position"}], \%{$excluded{$fields[$column{"id"}]}})."\n";
 	
 }
 
@@ -150,21 +165,49 @@ sub getRepeated{
 	my %checkrepeated;
 	my %repeatedPositions;
 	my %repeated;
+	#loops the file: LOOKING FOR REPEATED ENTRIES AND THEIR POSITIONS
 	for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 		my $line=$inlines[$i];
 		my @fields = split($fs, $line);
+		#if the id is defined
 		if(defined($fields[$column{"id"}])){
+			#if it's not already repeated
 			if(not defined($repeated{$fields[$column{"id"}]}{$fields[$column{$refColName}]})){
 				$repeated{$fields[$column{"id"}]}{$fields[$column{$refColName}]}=1;
 			}else{
 				$repeated{$fields[$column{"id"}]}{$fields[$column{$refColName}]}++;
 			}
+			#push the positions that are repeated
 			if(defined($fields[$column{"position"}])){
 				push(@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{$refColName}]}},$fields[$column{"position"}]);
 			}
 		}
 	}
-	return(\%repeated,\%repeatedPositions);
+	
+	#loops the file: LOOKING FOR AMBIGOUS POSITIONS TO BE EXCLUDED
+	my %excluded;
+	for (my $i=$startingRow;$i<scalar(@inlines);$i++){
+		my $line=$inlines[$i];
+		my @fields = split($fs, $line);
+		#if the id is defined
+		if(defined($fields[$column{"id"}]) && ($fields[$column{"position"}] ne '')){
+			my @repeated = sort {$a <=> $b} @{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{$refColName}]}};
+			my @relativeInEntries = @{relativePositionsInEntries(\@repeated, \%excluded)};
+			my @relativeInPeptide = @{relativePositionsInPeptide($fields[$column{"peptide"}])};
+			my %inPeptide;
+			foreach my $p (@relativeInPeptide){
+				$inPeptide{$p}=1;
+			}
+			for(my $i=0;$i<scalar(@relativeInEntries);$i++){
+				if(not defined($inPeptide{$relativeInEntries[$i]})){
+					my $ambigousPos = $repeated[$i];
+					$excluded{$fields[$column{"id"}]}{$ambigousPos}=1;
+				}
+			}
+		}
+	}
+	
+	return(\%repeated,\%repeatedPositions,\%excluded);
 }
 
 # GETS IN A HASH THE ENTRIES THAT HAVE REPEATED PEPTIDES
@@ -175,8 +218,8 @@ sub getRepeatedPeptide{
 	my %column = %{$_[3]};
 	my $refColName = "peptide";
 	
-	my ($peptideRepeatedRef, $repeatedPositionsRef) = getRepeated(\@inlines, $startingRow, $fs, \%column, $refColName);
-	return($peptideRepeatedRef, $repeatedPositionsRef); 
+	my ($peptideRepeatedRef, $repeatedPositionsRef, $excludedRef) = getRepeated(\@inlines, $startingRow, $fs, \%column, $refColName);
+	return($peptideRepeatedRef, $repeatedPositionsRef, $excludedRef); 
 }
 
 # GETS IN A HASH THE ENTRIES THAT HAVE REPEATED SCORED PEPTIDES
@@ -187,8 +230,8 @@ sub getRepeatedPeptideScore{
 	my %column = %{$_[3]};
 	my $refColName = "peptide_scored";
 	
-	my ($peptideRepeatedRef,$repeatedPositionsRef) = getRepeated(\@inlines, $startingRow, $fs, \%column, $refColName);
-	return($peptideRepeatedRef,$repeatedPositionsRef);
+	my ($peptideRepeatedRef,$repeatedPositionsRef, $excludedRef) = getRepeated(\@inlines, $startingRow, $fs, \%column, $refColName);
+	return($peptideRepeatedRef,$repeatedPositionsRef, $excludedRef);
 }
 
 sub getNumberOfSites{
@@ -202,7 +245,7 @@ sub getNumberOfSites{
 	return($c);
 }
 
-# How the residue is located within the peptide
+# What's the rank of the modification among the different observed modifications
 sub rankWithinPeptide{
 	my @positions = sort {$a <=> $b} @{$_[0]};
 	my $thispostion = $_[1];
@@ -216,30 +259,132 @@ sub rankWithinPeptide{
 
 #Returns a peptide containing only the specified modification
 sub simplifiedPeptide{
-	my $peptide = $_[0];
-	my @positions = @{$_[1]};
-	my $thispostion = $_[2];
+	my $peptide = $_[0];		#the peptide
+	my @positions = @{$_[1]};	#Positions with reported PTMs
+	my $thispostion = $_[2];	#Position under investigation
+	my %excludedForThisId = %{$_[3]};	#Positions excluded for being ambigous in this protein
 	
-	my $rank = rankWithinPeptide(\@positions,$thispostion);
-	my $currPosition;
+	my @validpositions;
+	foreach my $pos (@positions){
+		if(not defined($excludedForThisId{$pos})){
+			push(@validpositions, $pos);
+		}
+	}
+	my $rank = rankWithinPeptide(\@validpositions,$thispostion);
 	my $i=1;
-	my %toexclude;
+	my %toexcludeForPositionCounting;
 
-	while($peptide=~/\(ph\)/g){
-		if($i!=$rank){
-			$currPosition=$-[0];
+	while($peptide=~/\((\w+)\)/g){
+		if($1 eq "ph"){
+			if($i!=$rank){
+				for(my $j=$-[0];$j<$+[0];$j++){
+					$toexcludeForPositionCounting{$j}=1;
+				}
+			}
+			$i++;
+		}else{
 			for(my $j=$-[0];$j<$+[0];$j++){
-				$toexclude{$j}=1;
+				$toexcludeForPositionCounting{$j}=1;
 			}
 		}
-		$i++;
 	}
 	my @outchars;
 	my @chars=split('',$peptide);
 	for(my $x=0;$x<scalar@chars;$x++){
-		if(not defined($toexclude{$x})){
+		if(not defined($toexcludeForPositionCounting{$x})){
 			push(@outchars,$chars[$x]);
 		}
 	}
 	return(join("",@outchars));
+}
+
+# Checks if the  modified residues' relative positions within the peptide are equivalent to the positions in the different entries
+sub checkEntrySitePositionAgreement{
+	my $peptide = $_[0];				#the peptide
+	my @repeatedPositions = sort {$a <=> $b} @{$_[1]};	#the repeated entries positions
+	my %excluded = %{$_[2]};
+	
+	my @relativePositionsInEntries = @{relativePositionsInEntries(\@repeatedPositions, \%excluded)};
+	my @relativePositionsInPeptide = @{relativePositionsInPeptide($peptide)};
+	
+	print "\n".join(";",@relativePositionsInPeptide)."\t";
+	print join(";",@relativePositionsInEntries)."\n";
+	#Cross-check
+	my $agreement=1;
+	if(scalar(@relativePositionsInEntries) == scalar(@relativePositionsInPeptide)){
+		for(my $x=0;$x<scalar(@relativePositionsInEntries);$x++){
+			if($relativePositionsInPeptide[$x] != $relativePositionsInEntries[$x]){
+				$agreement=0;
+			}
+		}
+	}else{
+		$agreement=0;
+	}
+	return($agreement);
+}
+
+# It returns the relative positions of the modified residues within a given peptide
+sub relativePositionsInPeptide{
+	my $peptide = $_[0];				#the peptide
+	
+	#For the positions in the peptide
+	my @positionsInPeptide;
+	my %toexclude;
+	my %onsite;
+	while($peptide=~/\(\w+\)/g){
+		for(my $j=$-[0];$j<$+[0];$j++){
+			$toexclude{$j}=1;
+		}
+	}
+	while($peptide=~/\(ph\)/g){
+		for(my $j=$-[0];$j<$+[0];$j++){
+			$onsite{$j}=1;
+		}
+	}
+	my @res = split('', $peptide);
+	my $flag=0;
+	my $counter=1;
+	for(my $i=0;$i<scalar(@res);$i++){
+		if(defined($toexclude{$i})){
+			if(defined($onsite{$i})){
+				if($flag==0){
+					push(@positionsInPeptide, $counter);
+					$flag=1;
+				}
+			}else{
+				$flag=0;
+			}
+		}else{
+			$flag=0;
+			$counter++;
+		}
+	}
+	my @relativePositionsInPeptide=();
+	for(my $y=0;$y<scalar(@positionsInPeptide);$y++){
+		push(@relativePositionsInPeptide, (($positionsInPeptide[$y]-$positionsInPeptide[0] + 1)));
+	}
+	
+	return(\@relativePositionsInPeptide);
+}
+
+# It returns the relative positions of the modifications (rows) in a list of repeated peptides
+sub relativePositionsInEntries{
+	my @repeatedPositions = @{$_[0]};
+	my %excluded = %{$_[1]};
+	
+	#For the entries
+	my @relativeRepeated=();
+	for(my $z=0;$z<scalar(@repeatedPositions);$z++){
+		if(! defined($excluded{$repeatedPositions[$z]})){
+			push(@relativeRepeated, (($repeatedPositions[$z]-$repeatedPositions[0] + 1)));
+		}
+	}
+	return(\@relativeRepeated);
+}
+
+sub multiplyEntry{
+	my @fields = @{$_[0]};
+	
+	
+	#use scored peptide as reference
 }
