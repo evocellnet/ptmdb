@@ -56,6 +56,7 @@ if(defined($peptideScoredCol)){
 	
 }
 
+my %printedEntries;
 #TABLE BODY
 for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 	my $line=$inlines[$i];
@@ -70,27 +71,11 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 			if(!defined($excluded{$fields[$column{"id"}]}{$fields[$column{"position"}]})){
 				#if there is an entry for each site on the peptide and they match their relative positions
 				if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}}, \%{$excluded{$fields[$column{"id"}]}})){
-					#printLine(\@fields, \%column);
-				}else{
 					printLine(\@fields, \%column);
+				}else{
+					%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries)};
 				}			
 			}
-			# #if there is an entry for each site on the peptide and they match their relative positions
-			# if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}})){
-			# 	# printLine(\@fields, \%column);
-			# # if(getNumberOfSites($fields[$column{"peptide"}], $peptideFormat) == $repeated{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}){
-			# 	# printLine(\@fields, \%column);
-			# }else{
-			# 	printLine(\@fields, \%column);
-			# }
-			
-			
-			# #If the peptide appears more than once
-			# if($repeated{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]} > 1){
-			# 	printLine(\@fields, \%column);
-			# }else{
-			# 	printLine(\@fields, \%column);
-			# }
 		}
 	}
 }
@@ -107,8 +92,14 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 sub printLine{
 	my @fields=@{$_[0]};
 	my %column=%{$_[1]};
+	my $id=$fields[$column{"id"}];
+	my $position=$fields[$column{"position"}];
+	my $localization_score=$fields[$column{"localization_score"}];
+	my $peptide=$fields[$column{"peptide"}];
+	my $peptide_scored=$fields[$column{"peptide_scored"}];
+	my $simplifiedPeptide=simplifiedPeptideFromPosition($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}},$fields[$column{"position"}], \%{$excluded{$fields[$column{"id"}]}});
 	
-	print $fields[$column{"id"}]."\t".$fields[$column{"position"}]."\t".$fields[$column{"localization_score"}]."\t".$fields[$column{"peptide"}]."\t".$fields[$column{"peptide_scored"}]."\t".$repeated{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}."\t".getNumberOfSites($fields[$column{"peptide"}], $peptideFormat)."\t".join(";", @{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}})."\t".simplifiedPeptide($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}},$fields[$column{"position"}], \%{$excluded{$fields[$column{"id"}]}})."\n";
+	print $id."\t".$position."\t".$localization_score."\t".$peptide."\t".$peptide_scored."\t".$simplifiedPeptide."\n";
 	
 }
 
@@ -257,8 +248,9 @@ sub rankWithinPeptide{
 	}
 }
 
-#Returns a peptide containing only the specified modification
-sub simplifiedPeptide{
+# Returns a peptide containing only the specified modification
+# To get this protein  
+sub simplifiedPeptideFromPosition{
 	my $peptide = $_[0];		#the peptide
 	my @positions = @{$_[1]};	#Positions with reported PTMs
 	my $thispostion = $_[2];	#Position under investigation
@@ -298,6 +290,14 @@ sub simplifiedPeptide{
 	return(join("",@outchars));
 }
 
+sub simplifiedPeptideFromScores{
+	my $peptide = $_[0];
+	my $scoredpeptide = $_[1];
+	my $thisScore=$_[2];
+	
+	
+}
+
 # Checks if the  modified residues' relative positions within the peptide are equivalent to the positions in the different entries
 sub checkEntrySitePositionAgreement{
 	my $peptide = $_[0];				#the peptide
@@ -306,9 +306,12 @@ sub checkEntrySitePositionAgreement{
 	
 	my @relativePositionsInEntries = @{relativePositionsInEntries(\@repeatedPositions, \%excluded)};
 	my @relativePositionsInPeptide = @{relativePositionsInPeptide($peptide)};
+	my @exactPositionsInPeptide = @{exactPositionsInPeptide($peptide)};
 	
-	print "\n".join(";",@relativePositionsInPeptide)."\t";
-	print join(";",@relativePositionsInEntries)."\n";
+	# print "\n".join(";",@relativePositionsInPeptide)."\t";
+	# print join(";",@relativePositionsInEntries)."\n";
+	# print join(";",@exactPositionsInPeptide)."\n";
+	
 	#Cross-check
 	my $agreement=1;
 	if(scalar(@relativePositionsInEntries) == scalar(@relativePositionsInPeptide)){
@@ -323,8 +326,8 @@ sub checkEntrySitePositionAgreement{
 	return($agreement);
 }
 
-# It returns the relative positions of the modified residues within a given peptide
-sub relativePositionsInPeptide{
+#It gets the positions of the phosphosites within the peptide
+sub exactPositionsInPeptide{
 	my $peptide = $_[0];				#the peptide
 	
 	#For the positions in the peptide
@@ -343,12 +346,12 @@ sub relativePositionsInPeptide{
 	}
 	my @res = split('', $peptide);
 	my $flag=0;
-	my $counter=1;
+	my $counter=0;
 	for(my $i=0;$i<scalar(@res);$i++){
 		if(defined($toexclude{$i})){
 			if(defined($onsite{$i})){
 				if($flag==0){
-					push(@positionsInPeptide, $counter);
+					push(@positionsInPeptide, ($counter-1));
 					$flag=1;
 				}
 			}else{
@@ -359,6 +362,16 @@ sub relativePositionsInPeptide{
 			$counter++;
 		}
 	}
+	return(\@positionsInPeptide);
+}
+
+# It returns the relative positions of the modified residues within a given peptide
+sub relativePositionsInPeptide{
+	my $peptide = $_[0];				#the peptide
+	
+	#It gets the position of the modifications within the peptides
+	my @positionsInPeptide = @{exactPositionsInPeptide($_[0])};
+		
 	my @relativePositionsInPeptide=();
 	for(my $y=0;$y<scalar(@positionsInPeptide);$y++){
 		push(@relativePositionsInPeptide, (($positionsInPeptide[$y]-$positionsInPeptide[0] + 1)));
@@ -384,7 +397,118 @@ sub relativePositionsInEntries{
 
 sub multiplyEntry{
 	my @fields = @{$_[0]};
+	my %column = %{$_[1]};
+	my %visited = %{$_[2]};
 	
+	if(! defined($visited{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]})){
+		my $peptide = $fields[$column{"peptide"}];
+		my $scored_peptide= $fields[$column{"peptide_scored"}];
 	
+		my @modPositions = @{exactPositionsInPeptide($peptide)};
+		my @scores = @{getScoresForIndexes($scored_peptide, \@modPositions)};
+		my @simplifiedPeps = @{getSimplifiedPeptidesForIndexes($peptide,\@modPositions)};
+
+		for(my $i=0;$i<scalar(@modPositions);$i++){
+			my $id=$fields[$column{"id"}];
+			my $position="";
+			my $localization_score=$scores[$i];
+			my $peptide=$fields[$column{"peptide"}];
+			my $peptide_scored=$fields[$column{"peptide_scored"}];
+			my $simplifiedPeptide=$simplifiedPeps[$i];
+			print $id."\t".$position."\t".$localization_score."\t".$peptide."\t".$peptide_scored."\t".$simplifiedPeptide."\n";			
+		}
+		$visited{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}=1;
+	}
+	return(\%visited);
 	#use scored peptide as reference
+}
+
+sub getSimplifiedPeptidesForIndexes{
+	my $peptide=$_[0];
+	my @positionsToGet=@{$_[1]};
+	my @allSimplifiedPeptides;
+	
+	my %toexclude;
+	my %onsite;
+	while($peptide=~/\(\w+?\)/g){
+		for(my $j=$-[0];$j<$+[0];$j++){
+			$toexclude{$j}=1;
+		}
+	}
+	my @residues = split('',$peptide);
+	
+	foreach my $positionToGet (@positionsToGet){
+		my $counter=0;
+		my $scoreIndex=0;
+		my @resulting=();
+		my $flag=0;
+		my $finished=0;
+		for(my $i=0;$i<scalar(@residues);$i++){
+			#If this is a position marked to get marked as flagged
+
+			if($counter==($positionToGet+1)){
+				$flag=1;
+			}
+			# print $residues[$i]."\t".$counter."\t".$positionToGet."\t".$flag."\t".$finished."\n";
+			
+			if(not defined($toexclude{$i})){
+				$counter++;
+				push(@resulting, $residues[$i]);
+			}else{
+				if($flag && (!$finished)){
+					push(@resulting, $residues[$i]);
+				}
+			}
+			if($flag){
+				if($residues[$i]=~/\)/){
+					$finished=1;
+				}
+			}						
+		}
+		push(@allSimplifiedPeptides, join("",@resulting));
+	}	
+	return(\@allSimplifiedPeptides);
+}
+
+#It returns the scores of the sites in a peptide scored by asking their positions
+sub getScoresForIndexes{
+	my $scored_peptide=$_[0];
+	my @positionsToGet=@{$_[1]};
+	my @scores;
+	
+	my %toGet;
+	foreach my $pos (@positionsToGet){
+		$toGet{$pos}=1;
+	}
+	
+	my %toexclude;
+	my %onsite;
+	my @allscores;
+	while($scored_peptide=~/\((.+?)\)/g){
+		push(@allscores,$1);
+		for(my $j=$-[0];$j<$+[0];$j++){
+			$toexclude{$j}=1;
+		}
+	}
+	my @residues = split('',$scored_peptide);
+	my $flag=0;
+	my $counter=0;
+	my $scoreIndex=0;
+	for(my $i=0;$i<scalar(@residues);$i++){
+		if(defined($toexclude{$i})){
+			if($flag==0){
+				if(defined($toGet{$counter})){
+					push(@scores, $allscores[$scoreIndex]);
+					$scoreIndex++;
+				}else{
+					$scoreIndex++;
+				}
+				$flag=1;
+			}
+		}else{
+			$flag=0;
+			$counter++;
+		}
+	}
+	return(\@scores);
 }
