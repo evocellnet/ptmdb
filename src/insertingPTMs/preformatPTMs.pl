@@ -6,13 +6,14 @@ my $colnum = $ARGV[1];
 my $fs = $ARGV[2];
 my $headerBool = $ARGV[3];
 my $idCol = $ARGV[4];
-my $aaCol = $ARGV[5];
-my $resnumCol = $ARGV[6];
-my $locScoreCol = $ARGV[7];
-my $peptideCol = $ARGV[8];
-my $peptideScoredCol = $ARGV[9];
-my $condRatioCol = $ARGV[10];
-my $condSpectralCol = $ARGV[11];
+my $modificationType = $ARGV[5];
+my $aaCol = $ARGV[6];
+my $resnumCol = $ARGV[7];
+my $locScoreCol = $ARGV[8];
+my $peptideCol = $ARGV[9];
+my $peptideScoredCol = $ARGV[10];
+my $condRatioCol = $ARGV[11];
+my $condSpectralCol = $ARGV[12];
 
 #colnames that will be used in the output
 my %colnames;
@@ -31,29 +32,29 @@ my @inlines = <INFILE>;
 close(INFILE);
 
 #Parses the header
-my ($columnref, $startingRow) = headerParsing(\@inlines);
+my ($columnref, $startingRow) = headerParsing(\@inlines, \%colnames);
 my %column = %{$columnref};
 
 #Gets the format used for the peptide
 my @firstEntryFields = split($fs,$inlines[$startingRow]);
 my $peptideFormat = getPeptideFormat($firstEntryFields[$column{"peptide"}]);
+@inlines = @{standarizePeptides(\@inlines, \%column, $fs, $startingRow,$peptideFormat)};
+
 
 #It looks for the peptides that are repeated (it uses scored peptides in case they are available)
 my %repeated;
 my %repeatedPositions;
 my %excluded;
-if(defined($peptideScoredCol)){
+if($peptideScoredCol ne "NA"){
 	my($repeated_ref,$repeatedPositions_ref, $excluded_ref) = getRepeatedPeptideScore(\@inlines,$startingRow,$fs,\%column);
 	%repeated = %{$repeated_ref};
 	%repeatedPositions = %{$repeatedPositions_ref};
 	%excluded = %{$excluded_ref};
-	
 }else{
 	my($repeated_ref,$repeatedPositions_ref, $excluded_ref) = getRepeatedPeptide(\@inlines,$startingRow,$fs,\%column);
 	%repeated = %{$repeated_ref};
 	%repeatedPositions = %{$repeatedPositions_ref};
 	%excluded = %{$excluded_ref};
-	
 }
 
 my %printedEntries;
@@ -61,14 +62,14 @@ my %printedEntries;
 for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 	my $line=$inlines[$i];
 	chomp($line);
-	my @fields = split(",", $line);
+	my @fields = split($fs, $line);
 	
 	#It checks if the id is defined
-	if(defined($fields[$column{"id"}]) && ($fields[$column{"position"}] ne '')){
-		#It checks if we have columns for the scored peptides
-		if(defined($peptideScoredCol)){
-			#check if the position is excluded because an ambiguity problem
-			if(!defined($excluded{$fields[$column{"id"}]}{$fields[$column{"position"}]})){
+	if(defined($fields[$column{"id"}]) && ($fields[$column{"position"}] ne '')){			
+		#check if the position is excluded because an ambiguity problem
+		if(!defined($excluded{$fields[$column{"id"}]}{$fields[$column{"position"}]})){
+			#It checks if we have columns for the scored peptides
+			if($peptideScoredCol ne "NA"){
 				#if there is an entry for each site on the peptide and they match their relative positions
 				if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}}, \%{$excluded{$fields[$column{"id"}]}})){
 					printLine(\@fields, \%column);
@@ -81,6 +82,23 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 }
 
 
+sub standarizePeptides{
+	my @lines=@{$_[0]};
+	my %column=%{$_[1]};
+	my $fs=$_[2];
+	my $startingRow=$_[3];
+	my $peptideFormat=$_[4];
+	
+	for(my $i=$startingRow;$i<scalar(@lines);$i++){
+		my @fields=split($fs, $lines[$i]);
+		$fields[$column{"peptide"}]=~s/_//g;
+		if($peptideFormat eq "arginineAmp"){
+			$fields[$column{"peptide"}]=~s/#/\(ar\)/g;
+			$fields[$column{"peptide"}]="_".$fields[$column{"peptide"}]."_";
+		}
+	}
+	return(\@lines);
+}
 
 
 
@@ -99,7 +117,7 @@ sub printLine{
 	my $peptide_scored=$fields[$column{"peptide_scored"}];
 	my $simplifiedPeptide=simplifiedPeptideFromPosition($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}},$fields[$column{"position"}], \%{$excluded{$fields[$column{"id"}]}});
 	
-	print $id."\t".$position."\t".$localization_score."\t".$peptide."\t".$peptide_scored."\t".$simplifiedPeptide."\n";
+	print $id."\t".$position."\t".$modificationType."\t".$localization_score."\t".$peptide."\t".$peptide_scored."\t".$simplifiedPeptide."\n";
 	
 }
 
@@ -109,6 +127,8 @@ sub getPeptideFormat{
 	#Format containing the modifications within parenthesis
 	if($peptide=~/\(ph\)/){
 		$format="phospho_parenthesis";
+	}if($peptide=~/R#/){
+		$format="arginineAmp";
 	}elsif($peptide=~/A-Z+/){
 		$format="plain";
 	}
@@ -120,6 +140,7 @@ sub getPeptideFormat{
 # a set of standard labels for the headers 
 sub headerParsing{
 	my @inlines = @{$_[0]};
+	my %colnames = %{$_[1]};
 	my $startingRow;	#The line containing the first entry of the data
 	my @finalheaders=();	#headers that will be used on the output file
 	my %column;		#contains the column index
@@ -127,8 +148,10 @@ sub headerParsing{
 		chomp($inlines[0]);
 		my @headerFields = split($fs, $inlines[0]);
 		for(my $i=0;$i<scalar(@headerFields);$i++){
-			push(@finalheaders, $colnames{$headerFields[$i]});
-			$column{$colnames{$headerFields[$i]}}=$i;
+			if($headerFields[$i] ne "NA"){
+				push(@finalheaders, $colnames{$headerFields[$i]});
+				$column{$colnames{$headerFields[$i]}}=$i;
+			}
 		}
 		$startingRow=1;
 	}else{
@@ -415,7 +438,7 @@ sub multiplyEntry{
 			my $peptide=$fields[$column{"peptide"}];
 			my $peptide_scored=$fields[$column{"peptide_scored"}];
 			my $simplifiedPeptide=$simplifiedPeps[$i];
-			print $id."\t".$position."\t".$localization_score."\t".$peptide."\t".$peptide_scored."\t".$simplifiedPeptide."\n";			
+			print $id."\t".$position."\t".$modificationType."\t".$localization_score."\t".$peptide."\t".$peptide_scored."\t".$simplifiedPeptide."\n";			
 		}
 		$visited{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}=1;
 	}
