@@ -41,10 +41,9 @@ $colnames{$peptideScoredCol} = "peptide_scored";
 if($conditionalData eq "true"){
 	for (my $i=13;$i<scalar(@ARGV);$i++){
 		my $thiscolname =$ARGV[$i];
-		$thiscolname=~s/\s/_/g;
 		push(@conditionalHeaders, $thiscolname);
 		push(@defaultColumns, $thiscolname);
-		$colnames{$ARGV[$i]}=$thiscolname;
+		$colnames{$thiscolname}=$thiscolname;
 	}
 }else{
 	$spectralCountsCol = $ARGV[13];
@@ -165,7 +164,11 @@ sub printLine{
 	my @toprint;
 	foreach my $defaultCol (@defaultColumns){
 		if(defined($availableDefaults{$defaultCol})){
-			push(@toprint,$fields[$column{$defaultCol}]);
+			if(defined($fields[$column{$defaultCol}])){
+				push(@toprint,$fields[$column{$defaultCol}]);
+			}else{
+				push(@toprint,"NA");
+			}
 		}else{
 			if($defaultCol eq "modification_type"){
 				push(@toprint, $modificationType);
@@ -178,7 +181,6 @@ sub printLine{
 			}
 		}
 	}
-	
 	print(join("\t", @toprint)."\n");
 	
 }
@@ -249,6 +251,7 @@ sub headerParsing{
 		chomp($inlines[0]);
 		my @headerFields = split($fs, $inlines[0]);
 		for(my $i=0;$i<scalar(@headerFields);$i++){
+			my $thisheader = $headerFields[$i];
 			if($headerFields[$i] ne "NA"){
 				#Checks if the column is in the default set of headers
 				my $flag;
@@ -593,7 +596,7 @@ sub printMultipliedLines{
 	my @scores=();
 	if(defined($availableDefaults{"peptide_scored"})){
 		$scored_peptide=$fields[$column{"peptide_scored"}];
-		@scores = @{getScoresForIndexes($scored_peptide, \@modPositions)};		#This is only posible if you have the scores	
+		@scores = @{getScoresForIndexes($scored_peptide, \@modPositions)};		#This is only posible if you have the scores
 	}
 	
 	for(my $i=0;$i<scalar(@modPositions);$i++){
@@ -611,7 +614,11 @@ sub printMultipliedLines{
 				}elsif($defaultCol eq "residue"){
 					push(@toprint,$modifiedRes[$i]);
 				}else{
-					push(@toprint,$fields[$column{$defaultCol}]);
+					if(defined($fields[$column{$defaultCol}])){
+						push(@toprint,$fields[$column{$defaultCol}]);
+					}else{
+						push(@toprint,"NA");
+					}
 				}
 			}else{
 				if($defaultCol eq "modification_type"){
@@ -689,7 +696,6 @@ sub getScoresForIndexes{
 	my $scored_peptide=$_[0];
 	my @positionsToGet=@{$_[1]};
 	my @scores;
-	
 	my %toGet;
 	foreach my $pos (@positionsToGet){
 		$toGet{$pos}=1;
@@ -700,6 +706,8 @@ sub getScoresForIndexes{
 	my @allscores;
 	while($scored_peptide=~/\((.+?)\)/g){
 		push(@allscores,$1);
+		my $index=($-[0] - 1);
+		$onsite{$index}=1;
 		for(my $j=$-[0];$j<$+[0];$j++){
 			$toexclude{$j}=1;
 		}
@@ -709,20 +717,17 @@ sub getScoresForIndexes{
 	my $counter=0;
 	my $scoreIndex=0;
 	for(my $i=0;$i<scalar(@residues);$i++){
-		if(defined($toexclude{$i})){
-			if($flag==0){
-				if(defined($toGet{$counter})){
-					push(@scores, $allscores[$scoreIndex]);
-					$scoreIndex++;
-				}else{
-					$scoreIndex++;
-				}
-				$flag=1;
+		if(defined($onsite{$i})){
+			if(defined($toGet{$counter})){
+				push(@scores, $allscores[$scoreIndex]);
 			}
-		}else{
-			$flag=0;
-			$counter++;
+			$scoreIndex++;
 		}
+		if(!defined($toexclude{$i})){
+			$counter++;
+		}		
 	}
+	# print join(",", @positionsToGet)."\t".$scored_peptide."\t".join(",", @scores)."\t".join(",", @allscores)."\n";
+	
 	return(\@scores);
 }
