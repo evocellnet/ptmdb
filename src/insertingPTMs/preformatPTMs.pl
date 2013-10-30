@@ -17,7 +17,7 @@ my $condRatioCol = $ARGV[12];
 my $condSpectralCol = $ARGV[13];
 
 #The columns that will be printed on the default case (Some modifications will be applied if they are not present)
-my @defaultColumns = ("id", "residue", "modification_type", "position", "localization_score", "peptide", "peptide_scored");
+my @defaultColumns = ("id", "residue", "modification_type", "position", "localization_score", "peptide", "peptide_scored", "simplified_peptide");
 
 #colnames that will be used in the output
 my %colnames;
@@ -78,7 +78,6 @@ if($peptideScoredCol ne "NA"){
 }
 
 #TABLE BODY
-my %registry;	#Records that have been printed ID - Position
 my %printedEntries;	#If they have already been printed using multiplyEntry ID - PEPTIDE/SCOREDPEPTIDE
 for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 	my $line=$inlines[$i];
@@ -93,14 +92,14 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 			if($peptideScoredCol ne "NA"){
 				#if there is an entry for each site on the peptide and they match their relative positions
 				if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}}, \%{$excluded{$fields[$column{"id"}]}}, $ptmString)){
-					%registry = %{printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%registry)};
+					printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%repeatedPositions, $ptmString);
 				}else{
 					%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults)};
 				}			
 			}else{
 				#if there is an entry for each site on the peptide and they match their relative positions
 				if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide"}]}}, \%{$excluded{$fields[$column{"id"}]}}, $ptmString)){
-					%registry = %{printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%registry)};
+					printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%repeatedPositions, $ptmString);
 				}else{	#if not they are saved for later processing
 					%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults)};
 				}							
@@ -152,7 +151,13 @@ sub printLine{
 	my %column=%{$_[1]};
 	my @defaultColumns = @{$_[2]};
 	my %availableDefaults = %{$_[3]};
-	my %registry = %{$_[4]};	#This registry contains the information about wether the 
+	my %repeatedPositions = %{$_[4]};
+	my $ptmString=$_[5];
+	
+	my $refcolumn="peptide_scored";
+	if(! defined($column{"peptide_scored"})){
+		$refcolumn="peptide";
+	}
 	
 	my @toprint;
 	foreach my $defaultCol (@defaultColumns){
@@ -161,16 +166,16 @@ sub printLine{
 		}else{
 			if($defaultCol eq "modification_type"){
 				push(@toprint, $modificationType);
+			}elsif($defaultCol eq "simplified_peptide"){
+				push(@toprint, simplifiedPeptideFromPosition($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{$refcolumn}]}},$fields[$column{"position"}], \%{$excluded{$fields[$column{"id"}]}}, $ptmString))
 			}else{
 				push(@toprint,"NA");
 			}
 		}
 	}
 	
-	push(@{$registry{$fields[$column{"id"}]}}, $fields[$column{"position"}]);
 	print(join("\t", @toprint)."\n");
 	
-	return(\%registry);
 	# my $id=$fields[$column{"id"}];
 	# push(@toprint,$id);
 	# my $position=$fields[$column{"position"}];
@@ -372,6 +377,7 @@ sub simplifiedPeptideFromPosition{
 	my @positions = @{$_[1]};	#Positions with reported PTMs
 	my $thispostion = $_[2];	#Position under investigation
 	my %excludedForThisId = %{$_[3]};	#Positions excluded for being ambigous in this protein
+	my $ptmString = $_[4];
 	
 	my @validpositions;
 	foreach my $pos (@positions){
@@ -383,8 +389,8 @@ sub simplifiedPeptideFromPosition{
 	my $i=1;
 	my %toexcludeForPositionCounting;
 
-	while($peptide=~/\((\w+)\)/g){
-		if($1 eq "ph"){
+	while($peptide=~/(\(\w+?\))/g){
+		if($1 eq $ptmString){
 			if($i!=$rank){
 				for(my $j=$-[0];$j<$+[0];$j++){
 					$toexcludeForPositionCounting{$j}=1;
@@ -584,12 +590,16 @@ sub printMultipliedLines{
 					}else{
 						push(@toprint,"NA");
 					}
+				}elsif($defaultCol eq "position"){
+					push(@toprint,"NA");
 				}else{
 					push(@toprint,$fields[$column{$defaultCol}]);
 				}
 			}else{
 				if($defaultCol eq "modification_type"){
 					push(@toprint, $modificationType);
+				}elsif($defaultCol eq "simplified_peptide"){
+					push(@toprint,$simplifiedPeps[$i]);
 				}else{
 					push(@toprint,"NA");
 				}
@@ -657,7 +667,7 @@ sub getSimplifiedPeptidesForIndexes{
 				if($residues[$i]=~/\)/){
 					$finished=1;
 				}
-			}						
+			}
 		}
 		push(@allSimplifiedPeptides, join("",@resulting));
 	}	
