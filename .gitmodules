@@ -1,0 +1,3 @@
+[submodule "src/databaseXreferences/biomart-perl"]
+	path = src/databaseXreferences/biomart-perl
+	url = git@github.com:biomart/biomart-perl.git
