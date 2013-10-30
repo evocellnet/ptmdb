@@ -1,6 +1,9 @@
 use warnings;
 use strict;
 
+
+#### SETUP #####################
+
 my $infile = $ARGV[0];
 my $colnum = $ARGV[1];
 my $fs = $ARGV[2];
@@ -13,8 +16,14 @@ my $resnumCol = $ARGV[8];
 my $locScoreCol = $ARGV[9];
 my $peptideCol = $ARGV[10];
 my $peptideScoredCol = $ARGV[11];
-my $condRatioCol = $ARGV[12];
-my $condSpectralCol = $ARGV[13];
+my $conditionalData = $ARGV[12];
+#ARGS[13...] are described after
+
+#In case it's a non-quantitative experiment
+my $spectralCountsCol;
+
+#In case it's a conditional experiment
+my @conditionalHeaders;
 
 #The columns that will be printed on the default case (Some modifications will be applied if they are not present)
 my @defaultColumns = ("id", "residue", "modification_type", "position", "localization_score", "peptide", "peptide_scored", "simplified_peptide");
@@ -28,9 +37,20 @@ $colnames{$resnumCol} = "position";
 $colnames{$locScoreCol} = "localization_score";
 $colnames{$peptideCol} = "peptide";
 $colnames{$peptideScoredCol} = "peptide_scored";
-$colnames{$condSpectralCol} = "cond1_spectra";
-$colnames{$condRatioCol} = "cond1_ratio";
 
+if($conditionalData eq "true"){
+	for (my $i=13;$i<scalar(@ARGV);$i++){
+		my $thiscolname =$ARGV[$i];
+		$thiscolname=~s/\s/_/g;
+		push(@conditionalHeaders, $thiscolname);
+		push(@defaultColumns, $thiscolname);
+		$colnames{$ARGV[$i]}=$thiscolname;
+	}
+}else{
+	$spectralCountsCol = $ARGV[13];
+	push(@defaultColumns, "spectral_count");
+	$colnames{$spectralCountsCol}="spectral_count";
+}
 
 #Field separators
 if($fs eq "tab"){
@@ -42,6 +62,9 @@ my $modificationType;
 if($modificationTypeCol eq "NA"){
 	$modificationType=$modificationTypeAll;
 }
+
+
+#### STARTING THE PARSING ############
 
 #Opening input file
 open(INFILE, $infile);
@@ -108,38 +131,6 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 	}
 }
 
-sub standarizePeptides{
-	my @lines=@{$_[0]};
-	my %column=%{$_[1]};
-	my $fs=$_[2];
-	my $startingRow=$_[3];
-	my $peptideFormat=$_[4];
-	
-	my @newlines=();
-	my $ptmString;
-	#We add the header as it is
-	if($startingRow>0){
-		for(my $i=0;$i<$startingRow;$i++){
-			push(@newlines, $lines[$i]);
-		}
-	}
-	#We modify the peptide column
-	for(my $i=$startingRow;$i<scalar(@lines);$i++){
-		my @fields=split($fs, $lines[$i]);
-		$fields[$column{"peptide"}]=~s/_//g;
-		if($peptideFormat eq "phospho_parenthesis"){
-			#next
-			$ptmString="(ph)";
-		}
-		elsif($peptideFormat eq "arginineAmp"){
-			$ptmString="(ar)";
-			$fields[$column{"peptide"}]=~s/#/\(ar\)/g;
-			$fields[$column{"peptide"}]="_".$fields[$column{"peptide"}]."_";
-		}
-		push(@newlines, join($fs,@fields));
-	}
-	return(\@newlines, $ptmString);
-}
 
 ######################
 ### SUBROUTINES
@@ -190,23 +181,43 @@ sub printLine{
 	
 	print(join("\t", @toprint)."\n");
 	
-	# my $id=$fields[$column{"id"}];
-	# push(@toprint,$id);
-	# my $position=$fields[$column{"position"}];
-	# push(@toprint, $position);
-	# my $localization_score=$fields[$column{"localization_score"}];
-	# push(@toprint, $localization_score)
-	# my $peptide=$fields[$column{"peptide"}];
-	# if(defined($fields[$column{"peptide_scored"}])){
-	# 	push(@toprint,$fields[$column{"peptide_scored"}]);
-	# }
-	# my $peptide_scored=$fields[$column{"peptide_scored"}];
-	# my $simplifiedPeptide=simplifiedPeptideFromPosition($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}},$fields[$column{"position"}], \%{$excluded{$fields[$column{"id"}]}});
-	# 
-	# print $id."\t".$position."\t".$modificationType."\t".$localization_score."\t".$peptide."\t".$peptide_scored."\t".$simplifiedPeptide."\n";
-	
 }
 
+#Changes the original peptides to a more common format with the type of modification within parenthesis
+sub standarizePeptides{
+	my @lines=@{$_[0]};
+	my %column=%{$_[1]};
+	my $fs=$_[2];
+	my $startingRow=$_[3];
+	my $peptideFormat=$_[4];
+	
+	my @newlines=();
+	my $ptmString;
+	#We add the header as it is
+	if($startingRow>0){
+		for(my $i=0;$i<$startingRow;$i++){
+			push(@newlines, $lines[$i]);
+		}
+	}
+	#We modify the peptide column
+	for(my $i=$startingRow;$i<scalar(@lines);$i++){
+		my @fields=split($fs, $lines[$i]);
+		$fields[$column{"peptide"}]=~s/_//g;
+		if($peptideFormat eq "phospho_parenthesis"){
+			#next
+			$ptmString="(ph)";
+		}
+		elsif($peptideFormat eq "arginineAmp"){
+			$ptmString="(ar)";
+			$fields[$column{"peptide"}]=~s/#/\(ar\)/g;
+			$fields[$column{"peptide"}]="_".$fields[$column{"peptide"}]."_";
+		}
+		push(@newlines, join($fs,@fields));
+	}
+	return(\@newlines, $ptmString);
+}
+
+#Return the format of the peptide according to a list of predefined peptides
 sub getPeptideFormat{
 	my $peptide=$_[0];
 	my $format; 
@@ -617,24 +628,7 @@ sub printMultipliedLines{
 			}
 		}
 		print(join("\t", @toprint)."\n");
-	}
-	
-	
-	# my $id=$fields[$column{"id"}];
-	# push(@toprint,$id);
-	# my $position=$fields[$column{"position"}];
-	# push(@toprint, $position);
-	# my $localization_score=$fields[$column{"localization_score"}];
-	# push(@toprint, $localization_score)
-	# my $peptide=$fields[$column{"peptide"}];
-	# if(defined($fields[$column{"peptide_scored"}])){
-	# 	push(@toprint,$fields[$column{"peptide_scored"}]);
-	# }
-	# my $peptide_scored=$fields[$column{"peptide_scored"}];
-	# my $simplifiedPeptide=simplifiedPeptideFromPosition($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}},$fields[$column{"position"}], \%{$excluded{$fields[$column{"id"}]}});
-	# 
-	# print $id."\t".$position."\t".$modificationType."\t".$localization_score."\t".$peptide."\t".$peptide_scored."\t".$simplifiedPeptide."\n";
-	
+	}	
 }
 
 
