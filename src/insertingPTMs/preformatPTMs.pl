@@ -158,6 +158,18 @@ sub printLine{
 	if(! defined($column{"peptide_scored"})){
 		$refcolumn="peptide";
 	}
+	my $aa = "NA";
+	if(defined($availableDefaults{"residue"})){
+		$aa = $fields[$column{"residue"}];
+	}
+	
+	
+	my ($simplified, $validatedAa) = simplifiedPeptideFromPosition($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{$refcolumn}]}},$fields[$column{"position"}], \%{$excluded{$fields[$column{"id"}]}}, $ptmString, $aa);
+	
+	#Skips in case the modified aminoacid is not the same as the one detected in the peptide  
+	if($validatedAa eq "NA"){
+		return(); 
+	}
 	
 	my @toprint;
 	foreach my $defaultCol (@defaultColumns){
@@ -166,8 +178,10 @@ sub printLine{
 		}else{
 			if($defaultCol eq "modification_type"){
 				push(@toprint, $modificationType);
+			}elsif($defaultCol eq "residue"){
+				push(@toprint, $validatedAa)
 			}elsif($defaultCol eq "simplified_peptide"){
-				push(@toprint, simplifiedPeptideFromPosition($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{$refcolumn}]}},$fields[$column{"position"}], \%{$excluded{$fields[$column{"id"}]}}, $ptmString))
+				push(@toprint, $simplified)
 			}else{
 				push(@toprint,"NA");
 			}
@@ -371,13 +385,13 @@ sub rankWithinPeptide{
 }
 
 # Returns a peptide containing only the specified modification
-# To get this protein  
 sub simplifiedPeptideFromPosition{
 	my $peptide = $_[0];		#the peptide
 	my @positions = @{$_[1]};	#Positions with reported PTMs
 	my $thispostion = $_[2];	#Position under investigation
 	my %excludedForThisId = %{$_[3]};	#Positions excluded for being ambigous in this protein
 	my $ptmString = $_[4];
+	my $aa = $_[5];
 	
 	my @validpositions;
 	foreach my $pos (@positions){
@@ -410,16 +424,23 @@ sub simplifiedPeptideFromPosition{
 			push(@outchars,$chars[$x]);
 		}
 	}
-	return(join("",@outchars));
+	my $simplified = join("",@outchars);
+	
+	#checks if the modified residue is the same of the one the table is reporting
+	my @res = split('', $simplified);
+	my $modifiedResidue;
+	if($simplified=~/\(/){
+		$modifiedResidue=$res[($-[0]-1)];
+	}
+	if($aa ne "NA"){
+		if($aa ne $modifiedResidue){
+			$modifiedResidue="NA";
+		}
+	}
+	#returns the simplified peptide and the modified residue
+	return($simplified, $modifiedResidue);
 }
 
-sub simplifiedPeptideFromScores{
-	my $peptide = $_[0];
-	my $scoredpeptide = $_[1];
-	my $thisScore=$_[2];
-	
-	
-}
 
 # Checks if the  modified residues' relative positions within the peptide are equivalent to the positions in the different entries
 sub checkEntrySitePositionAgreement{
@@ -522,7 +543,8 @@ sub relativePositionsInEntries{
 }
 
 
-#The ptms that encode for multiple modifications not represented in the files are propagated as different entries
+#The ptms that encode for multiple modifications in the same peptide but not represented as mulitple entries are propagated
+# (scores are positions are not accurately defined if the scored peptide is not provided)
 sub multiplyEntry{
 	my @fields = @{$_[0]};
 	my %column = %{$_[1]};
@@ -540,26 +562,7 @@ sub multiplyEntry{
 		$visited{$fields[$column{"id"}]}{$fields[$column{$refcolumn}]}=1;
 	}
 		
-		# my $peptide = $fields[$column{"peptide"}];
-		# my $scored_peptide= $fields[$column{"peptide_scored"}];
-		# 
-		# my @modPositions = @{exactPositionsInPeptide($peptide,$ptmString)};
-		# my @scores = @{getScoresForIndexes($scored_peptide, \@modPositions)};
-		# my @simplifiedPeps = @{getSimplifiedPeptidesForIndexes($peptide,\@modPositions)};
-		# 
-		# for(my $i=0;$i<scalar(@modPositions);$i++){
-		# 	my $id=$fields[$column{"id"}];
-		# 	my $position="";
-		# 	my $localization_score=$scores[$i];
-		# 	my $peptide=$fields[$column{"peptide"}];
-		# 	my $peptide_scored=$fields[$column{"peptide_scored"}];
-		# 	my $simplifiedPeptide=$simplifiedPeps[$i];
-		# 	print $id."\t".$position."\t".$modificationType."\t".$localization_score."\t".$peptide."\t".$peptide_scored."\t".$simplifiedPeptide."\n";			
-		# }
-		# $visited{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}=1;
-	# }
 	return(\%visited);
-	#use scored peptide as reference
 }
 
 sub printMultipliedLines{
@@ -572,7 +575,9 @@ sub printMultipliedLines{
 	my $peptide = $fields[$column{"peptide"}];
 	my $scored_peptide;
 	my @modPositions = @{exactPositionsInPeptide($peptide,$ptmString)};
-	my @simplifiedPeps = @{getSimplifiedPeptidesForIndexes($peptide,\@modPositions)};
+	my ($simplifiedPepsRef, $modifiedResRef) = getSimplifiedPeptidesForIndexes($peptide,\@modPositions);
+	my @simplifiedPeps=@{$simplifiedPepsRef};
+	my @modifiedRes = @{$modifiedResRef};
 	
 	my @scores=();
 	if(defined($availableDefaults{"peptide_scored"})){
@@ -592,12 +597,18 @@ sub printMultipliedLines{
 					}
 				}elsif($defaultCol eq "position"){
 					push(@toprint,"NA");
+				}elsif($defaultCol eq "residue"){
+					push(@toprint,$modifiedRes[$i]);
 				}else{
 					push(@toprint,$fields[$column{$defaultCol}]);
 				}
 			}else{
 				if($defaultCol eq "modification_type"){
 					push(@toprint, $modificationType);
+				}elsif($defaultCol eq "position"){
+					push(@toprint,"NA");
+				}elsif($defaultCol eq "residue"){
+					push(@toprint,$modifiedRes[$i]);
 				}elsif($defaultCol eq "simplified_peptide"){
 					push(@toprint,$simplifiedPeps[$i]);
 				}else{
@@ -631,6 +642,7 @@ sub getSimplifiedPeptidesForIndexes{
 	my $peptide=$_[0];
 	my @positionsToGet=@{$_[1]};
 	my @allSimplifiedPeptides;
+	my @allModifiedResidues;
 	
 	my %toexclude;
 	my %onsite;
@@ -647,10 +659,14 @@ sub getSimplifiedPeptidesForIndexes{
 		my @resulting=();
 		my $flag=0;
 		my $finished=0;
+		
+		
 		for(my $i=0;$i<scalar(@residues);$i++){
 			#If this is a position marked to get marked as flagged
-
 			if($counter==($positionToGet+1)){
+				if($flag == 0){
+					push(@allModifiedResidues,$residues[$i-1]);
+				}
 				$flag=1;
 			}
 			# print $residues[$i]."\t".$counter."\t".$positionToGet."\t".$flag."\t".$finished."\n";
@@ -671,7 +687,7 @@ sub getSimplifiedPeptidesForIndexes{
 		}
 		push(@allSimplifiedPeptides, join("",@resulting));
 	}	
-	return(\@allSimplifiedPeptides);
+	return(\@allSimplifiedPeptides, \@allModifiedResidues);
 }
 
 #It returns the scores of the sites in a peptide scored by asking their positions
