@@ -114,11 +114,10 @@ for ((i=1; i<${#organism[@]}; i++))
 					IPI_FASTA="${PROTEOMES}/${organism[i]}/${ipi[i]}.fasta"
 					IPI_HISTORY="${PROTEOMES}/${organism[i]}/${ipi[i]}.history"
 					ENSEMBL_FASTA="${PROTEOMES}/${organism[i]}/ensembl_${organism[i]}"
-					
 				
-				SUB=`expr match "${SCIENTIFIC_NAME}" '.*\_\([a-z]*\)'`	#matches all characters after '_' in the scientific name field of csv file
+				SUB=$(echo ${SCIENTIFIC_NAME} | sed 's/[a-zA-Z]*_\([a-zA-Z]*\)/\1/')
+				# SUB=`expr match "${SCIENTIFIC_NAME}" '.*\_\([a-z]*\)'`	#matches all characters after '_' in the scientific name field of csv file				
 				ENSEMBL_NAME=${SCIENTIFIC_NAME:0:1}${SUB}	#concatenates the first character of scientific name field with the above
-				
 				if grep -q ${ENSEMBL_NAME} "${MARTS}/biomart_datasets.txt"
 				then
 					ENSNAME=${ENSEMBL_NAME}_gene_ensembl
