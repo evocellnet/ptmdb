@@ -12,8 +12,6 @@ DBPASS="webAdmin"
 
 # Biomart datasets
 MARTS="./src/databaseXreferences/biomart-perl"
-REGISTRIES="./src/databaseXreferences/biomart-perl"
-REGISTRY="./src/databaseXreferences/biomart-perl/conf"
 
 # Biomart scripts
 ENSG="./src/databaseXreferences/biomart_scripts/ensg.pl"
