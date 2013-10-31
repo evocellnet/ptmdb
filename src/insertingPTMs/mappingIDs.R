@@ -5,32 +5,11 @@ args <- commandArgs(TRUE)
 
 configfile <- args[1]	#input file with the 
 infile <- args[2]	# input file with the PTMs
-colnum <- args[3]	# number of columns 
+idType <- args[3]	#idType: [ipi,uniprot]
 org <- args[4]		#number of organisms
-fieldSeparator <- args[5]	#field separator for the columns
-headerBool <- as.logical(args[6])	#contains header
-idType <- args[7]	#idType: [ipi,uniprot]
-idCol <- args[8]	#Column containing the protein ids
-aaCol <- args[9]	#Column containing the aminoacids
-resnumCol <- args[10]	#Column containing the position in the sequence
-locScoreCol <- args[11] #Column containing the localization score
-peptideCol <- args[12]	#Column containing the peptide
-condRatioCol <- "NCM 30 min Normalized Ratio"
-condSpectralCol <- "NCM 30 min Ratio Count"
 
 #PROJECT VARIABLES
 source(configfile)
-
-#Defining columns
-colnames <- list()
-colnames[[as.character(idCol)]] <- "id"
-colnames[[as.character(aaCol)]] <- "residue"
-colnames[[as.character(resnumCol)]] <- "position"
-colnames[[as.character(locScoreCol)]] <- "localization_score"
-colnames[[as.character(peptideCol)]] <- "peptide"
-colnames[[as.character(condRatioCol)]] <- "cond1_ratio"
-colnames[[as.character(condSpectralCol)]] <- "cond1_spectra"
-
 
 #FUNCTIONS
 #calculates percentage
@@ -87,14 +66,8 @@ printStatistics <- function(res){
 mychannel <- dbConnect(MySQL(), user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE)
 
 #Reading PTM table
-sampleData <- read.csv(file=infile, sep=fieldSeparator, comment.char="",
-					quote="",header=headerBool, nrows=10)
-classes <- sapply(sampleData, class)	#Determining the columns classes
-previousNames <- apply((read.table(file=infile, nrow=1, sep=",")), 2, function(x) x)	#previous colnames
-
-ptms <- read.table(file=infile, sep=fieldSeparator, comment.char="",
-						quote="",header=headerBool, col.names=sapply(previousNames, function(x) colnames[[as.character(x)]]),
-						colClasses=classes)
+ptms <- read.table(file=infile, sep="\t", comment.char="",
+						quote="",header=TRUE)
 
 #we add a index to keep track of the different reported modifications
 ptms <- cbind(1:nrow(ptms), ptms)
@@ -105,17 +78,21 @@ if(idType == "ipi"){
 	#Query database
 	directMappingsQuery <- "SELECT ipihis.all_ipi,ensipi.ensembl_id,ensp.sequence FROM ipi_history AS ipihis INNER JOIN ensembl_ipi AS ensipi ON ipihis.current_ipi = ensipi.ipi INNER JOIN ensp ON ensipi.ensembl_id = ensp.id"
 	directMapping <- query(directMappingsQuery)
-	#We add available ensembl references
-	res <- merge(ptms, unique(directMapping[ ,c("all_ipi", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="all_ipi")	
+	if(length(directMapping)){
+		res <- merge(ptms, unique(directMapping[ ,c("all_ipi", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="all_ipi")
+	}else{
+		stop("No results returned from the database")
+	}
 }else if(idType == "uniprot"){
 	directMappingsQuery <- "SELECT uniens.uniprot_accession,uniens.ensembl_id,ensp.sequence FROM uniprot_ensembl AS uniens INNER JOIN ensp ON uniens.ensembl_id = ensp.id"
 	directMapping <- query(directMappingsQuery)
 	#We add available ensembl references
-	res <- merge(ptms, unique(directMapping[ ,c("uniprot_accession", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="uniprot_accession")
+	if(length(directMapping)){
+		res <- merge(ptms, unique(directMapping[ ,c("uniprot_accession", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="uniprot_accession")
+	}else{
+		stop("No results returned from the database")
+	}
 }
-
-#check if the residue matches in the exact position to the sequence and report it in "match" column
-# res$match <- apply(res, 1, function(x) match(x[which(names(res) == "sequence")],x[which(names(res) == "residue")],x[which(names(res) == "position")]))
 
 #Print statistics about the data recovered
 # printStatistics(res)
