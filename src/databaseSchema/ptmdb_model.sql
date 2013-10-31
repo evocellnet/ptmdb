@@ -118,7 +118,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `spectral_count` INT UNSIGNED NOT NULL,
+  `spectral_count` INT UNSIGNED NULL,
   `peptide` VARCHAR(200) NOT NULL,
   `experiment` INT(11) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
@@ -382,13 +382,14 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `ptmdb`.`site_evidence`
+-- Table `ptmdb`.`site`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptmdb`.`site_evidence` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`site` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `localization_score` FLOAT NULL,
   `scoring_method` VARCHAR(30) NULL,
   `modif_type` CHAR(1) NOT NULL,
+  `residue` CHAR(1) NOT NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -408,24 +409,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_site` (
     ON UPDATE RESTRICT,
   CONSTRAINT `site_pep_map`
     FOREIGN KEY (`site_id`)
-    REFERENCES `ptmdb`.`site_evidence` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE RESTRICT)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `ptmdb`.`modified_residue`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptmdb`.`modified_residue` (
-  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `evidence` INT(11) UNSIGNED NOT NULL,
-  `residue` CHAR(1) NOT NULL,
-  PRIMARY KEY (`id`),
-  INDEX `map_res_evidence_idx` (`evidence` ASC),
-  CONSTRAINT `map_res_evidence`
-    FOREIGN KEY (`evidence`)
-    REFERENCES `ptmdb`.`site_evidence` (`id`)
+    REFERENCES `ptmdb`.`site` (`id`)
     ON DELETE CASCADE
     ON UPDATE RESTRICT)
 ENGINE = InnoDB;
@@ -447,9 +431,47 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_site` (
     ON UPDATE CASCADE,
   CONSTRAINT `map_sitekey`
     FOREIGN KEY (`site_id`)
-    REFERENCES `ptmdb`.`modified_residue` (`id`)
+    REFERENCES `ptmdb`.`site` (`id`)
     ON DELETE CASCADE
     ON UPDATE RESTRICT)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`refseq_protein`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`refseq_protein` (
+  `id` VARCHAR(30) NOT NULL,
+  `organism` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+  INDEX `refseq_organism_idx` (`organism` ASC),
+  CONSTRAINT `refseq_organism`
+    FOREIGN KEY (`organism`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`ensp_refseq`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_refseq` (
+  `ensp_id` VARCHAR(30) NOT NULL,
+  `refseq_id` VARCHAR(30) NOT NULL,
+  PRIMARY KEY (`ensp_id`, `refseq_id`),
+  INDEX `ensp_refseq2refseq_idx` (`refseq_id` ASC),
+  CONSTRAINT `ensp_refseq2ensp`
+    FOREIGN KEY (`ensp_id`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `ensp_refseq2refseq`
+    FOREIGN KEY (`refseq_id`)
+    REFERENCES `ptmdb`.`refseq_protein` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
