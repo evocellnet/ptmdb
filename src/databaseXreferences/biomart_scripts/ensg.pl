@@ -2,13 +2,13 @@
 # An example script demonstrating the use of BioMart API.
 # This perl API representation is only available for configuration versions >=  0.5 
 use strict;
-use lib './biomart-perl/lib';
+use lib $ARGV[1];
 use BioMart::Initializer;
 use BioMart::Query;
 use BioMart::QueryRunner;
 
 
-my $confFile = "./biomart-perl/conf/registry.xml";
+my $confFile = $ARGV[2];
 
 #
 # NB: change action to 'clean' if you wish to start a fresh configuration  

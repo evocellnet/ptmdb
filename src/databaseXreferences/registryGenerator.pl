@@ -6,10 +6,10 @@ use warnings;
 my $biomart_database=$ARGV[0];
 my $dataset=$ARGV[1];
 my $registry = $ARGV[2];
-
+my $dyn_registry = $ARGV[3];
 
 open(INFILE, $registry)    or die $!;
-open(OUTFILE, ">./biomart-perl/conf/registry.xml")  or die $!;
+open(OUTFILE, ">$dyn_registry/registry.xml")  or die $!;
 while(<INFILE>){
 	
 	if($_=~/.*displayName\=\"$biomart_database.*/)	

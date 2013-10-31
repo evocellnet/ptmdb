@@ -30,12 +30,11 @@ done < "$input"
 # DOWNLOAD NECESSARY BIOMART DATA ##################################################################################
 
 echo -ne "Downloading datasets from Biomart...\n "	
-wget -P ./biomart-perl "http://www.biomart.org/biomart/martservice?type=datasets&mart=ensembl" -O ./biomart-perl/biomart_datasets.txt
+wget -P ${MARTS} "http://www.biomart.org/biomart/martservice?type=datasets&mart=ensembl" -O ${MARTS}/biomart_datasets.txt
 
 echo -ne "Downloading registries from Biomart...\n "	
-wget -P ./biomart-perl "http://www.biomart.org/biomart/martservice?type=registry" -O ./biomart-perl/allRegistries.txt
+wget -P ${REGISTRIES} "http://www.biomart.org/biomart/martservice?type=registry" -O ${REGISTRIES}/allRegistries.txt
 
-REGISTRIES="./biomart-perl/allRegistries.txt"
 
 for ((i=1; i<${#organism[@]}; i++))
 
@@ -47,7 +46,7 @@ for ((i=1; i<${#organism[@]}; i++))
 	
 	#CHECKING IF AN ORGANISM EXISTS IN THE DATABASE
 	
-	EXIST=`perl ./checkOrganism.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${TAXID}`
+	EXIST=`perl ./src/databaseXreferences/checkOrganism.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${TAXID}`
 	
 		if [[ $EXIST = "TRUE" ]]
 			then
@@ -57,18 +56,18 @@ for ((i=1; i<${#organism[@]}; i++))
 				
 				echo -ne "\n\t* Inserting new Organism ${scientific[i]}\n\n"
 				
-					mkdir -p ./proteomes2/${organism[i]}
+					mkdir -p ${PROTEOMES}/${organism[i]}
 					
-					if [ ! -e ./proteomes2/${organism[i]}/uniprot_${organism[i]}.txt ]
+					if [ ! -e ${PROTEOMES}/${organism[i]}/uniprot_${organism[i]}.txt ]
 						then
-							wget -P ./proteomes2/${organism[i]} ${unip[i]} -O ./proteomes2/${organism[i]}/uniprot_${organism[i]}.txt
+							wget -P ${PROTEOMES}/${organism[i]} ${unip[i]} -O ${PROTEOMES}/${organism[i]}/uniprot_${organism[i]}.txt
 						else
 							echo "Uniprot download skipped. File already exists."
 					fi
 					
-					if [ ! -e ./proteomes2/${organism[i]}/${inpara[i]} ]
+					if [ ! -e ${PROTEOMES}/${organism[i]}/${inpara[i]} ]
 						then
-							wget -P ./proteomes2/${organism[i]} "http://inparanoid.sbc.su.se/download/7.0_current/sequences/processed/${inpara[i]}"
+							wget -P ${PROTEOMES}/${organism[i]} ${INPARAFTP}/${inpara[i]}
 						else
 							echo "Inparanoid download skipped. File already exists."
 					fi 
@@ -78,10 +77,10 @@ for ((i=1; i<${#organism[@]}; i++))
 						then
 							echo "There is no proteome for organism $SCIENTIFIC_NAME in the IPI database"
 						 			
-						else if [ ! -e ./proteomes2/${organism[i]}/${ipi[i]}.fasta ]
+						else if [ ! -e ${PROTEOMES}/${organism[i]}/${ipi[i]}.fasta ]
 							then
-								wget -P ./proteomes2/${organism[i]} ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current/${ipi[i]}.fasta.gz 
-								gunzip ./proteomes2/${organism[i]}/${ipi[i]}.fasta.gz
+								wget -P ${PROTEOMES}/${organism[i]} ${IPIFTP}/${ipi[i]}.fasta.gz 
+								gunzip ${PROTEOMES}/${organism[i]}/${ipi[i]}.fasta.gz
 							else
 								echo "IPI fasta download skipped. File already exists."
 						fi
@@ -92,46 +91,42 @@ for ((i=1; i<${#organism[@]}; i++))
 						then
 							echo "There is no history file for organism $SCIENTIFIC_NAME in the IPI database"	
 							
-						else if [ ! -e ./proteomes2/${organism[i]}/${ipi[i]}.history ]
+						else if [ ! -e ${PROTEOMES}/${organism[i]}/${ipi[i]}.history ]
 							then
-								wget -P ./proteomes2/${organism[i]} ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current/${ipi[i]}.history.gz
-								gunzip ./proteomes2/${organism[i]}/${ipi[i]}.history.gz
+								wget -P ${PROTEOMES}/${organism[i]} ${IPIFTP}/${ipi[i]}.history.gz
+								gunzip ${PROTEOMES}/${organism[i]}/${ipi[i]}.history.gz
 							else
 								echo "IPI history download skipped. File already exists."
 						fi 	
 					fi	
 							
 					
-					if [ ! -e ./proteomes2/${organism[i]}/ensembl_${organism[i]} ]
+					if [ ! -e ${PROTEOMES}/${organism[i]}/ensembl_${organism[i]} ]
 						then
-							wget -P ./proteomes2/${organism[i]} ${ens[i]} -O ./proteomes2/${organism[i]}/ensembl_${organism[i]}.gz
-							gunzip ./proteomes2/${organism[i]}/ensembl_${organism[i]}.gz
+							wget -P ${PROTEOMES}/${organism[i]} ${ens[i]} -O ${PROTEOMES}/${organism[i]}/ensembl_${organism[i]}.gz
+							gunzip ${PROTEOMES}/${organism[i]}/ensembl_${organism[i]}.gz
 						else
 							echo "Ensembl download skipped. File already exists."
 					fi
 					
-					UNIPROT="./proteomes2/${organism[i]}/uniprot_${organism[i]}.txt" 
-					INPARANNOID="./proteomes2/${organism[i]}/${inpara[i]}"
-					IPI_FASTA="./proteomes2/${organism[i]}/${ipi[i]}.fasta"
-					IPI_HISTORY="./proteomes2/${organism[i]}/${ipi[i]}.history"
-					ENSEMBL_FASTA="./proteomes2/${organism[i]}/ensembl_${organism[i]}"
+					UNIPROT="${PROTEOMES}/${organism[i]}/uniprot_${organism[i]}.txt" 
+					INPARANNOID="${PROTEOMES}/${organism[i]}/${inpara[i]}"
+					IPI_FASTA="${PROTEOMES}/${organism[i]}/${ipi[i]}.fasta"
+					IPI_HISTORY="${PROTEOMES}/${organism[i]}/${ipi[i]}.history"
+					ENSEMBL_FASTA="${PROTEOMES}/${organism[i]}/ensembl_${organism[i]}"
 					
-									
-				mkdir -p ./EnsgData
-				
-				#perl ./biomart-perl/bin/configure.pl -r conf/apiExampleRegistry.xml
 				
 				SUB=`expr match "${SCIENTIFIC_NAME}" '.*\_\([a-z]*\)'`	#matches all characters after '_' in the scientific name field of csv file
 				ENSEMBL_NAME=${SCIENTIFIC_NAME:0:1}${SUB}	#concatenates the first character of scientific name field with the above
 				
-				if grep -q ${ENSEMBL_NAME} "./biomart-perl/biomart_datasets.txt"
+				if grep -q ${ENSEMBL_NAME} "${MARTS}/biomart_datasets.txt"
 				then
 					ENSNAME=${ENSEMBL_NAME}_gene_ensembl
 				else	
 					ENSNAME=${ENSEMBL_NAME}_eg_gene		
 				fi
 				
-				perl registryGenerator.pl "${biomart[i]}" ${ENSNAME} ${REGISTRIES}	#Creates the registry file dynamically
+				perl ./src/databaseXreferences/registryGenerator.pl "${biomart[i]}" ${ENSNAME} "${REGISTRIES}/allRegistries.txt" ${REGISTRY}	#Creates the registry file dynamically
 				
 				
 
@@ -149,7 +144,7 @@ for ((i=1; i<${#organism[@]}; i++))
 
 				echo -ne "Inserting databases information...\n"
 		
-				perl ./src/databaseXreferences/insertDatabaseInfo.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${ENSEMBL_FASTA} ${TAXID} ${SCIENTIFIC_NAME} ${COMMON_NAME} ${ENSNAME} ${INPARANNOID} ${UNIPROT} ${IPI_FASTA} ${IPI_HISTORY/.history/_parsed.history}
+				perl ./src/databaseXreferences/insertDatabaseInfo.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${ENSEMBL_FASTA} ${TAXID} ${SCIENTIFIC_NAME} ${COMMON_NAME} ${ENSNAME} ${INPARANNOID} ${UNIPROT} ${IPI_FASTA} ${IPI_HISTORY/.history/_parsed.history} ${ENSG} ${ENSG_ENSP} ${INPARA_ENSP} ${UNI_ENSP} ${LIB_PATH} ${CONF_FILE}
 		fi
 		
 		
