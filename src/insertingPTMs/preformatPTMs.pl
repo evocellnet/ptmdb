@@ -1,6 +1,7 @@
 use warnings;
 use strict;
 
+my $outfs="\t";
 
 #### SETUP #####################
 
@@ -181,7 +182,7 @@ sub printLine{
 			}
 		}
 	}
-	print(join("\t", @toprint)."\n");
+	print(join($outfs, @toprint)."\n");
 	
 }
 
@@ -286,7 +287,10 @@ sub headerParsing{
 		$startingRow=0;
 	}
 	#Prints the new header
-	print(join($fs, @defaultColumns)."\n");
+	foreach my $col (@defaultColumns){
+		$col=~s/\s/_/g;
+	}
+	print(join($outfs, @defaultColumns)."\n");
 	
 	return(\%column, $startingRow, \%availableHeaders);
 }
@@ -634,7 +638,7 @@ sub printMultipliedLines{
 				}
 			}
 		}
-		print(join("\t", @toprint)."\n");
+		print(join($outfs, @toprint)."\n");
 	}	
 }
 
