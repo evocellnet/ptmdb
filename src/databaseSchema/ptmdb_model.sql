@@ -329,7 +329,6 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensg` (
   `taxid` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
-  UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   INDEX `tax_key_idx` (`taxid` ASC),
   CONSTRAINT `tax_key`
     FOREIGN KEY (`taxid`)
