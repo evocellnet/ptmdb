@@ -18,12 +18,8 @@ my $INPARANNOID = $ARGV[9];
 my $UNIPROT = $ARGV[10];
 my $IPI_FASTA = $ARGV[11];
 my $IPI_HISTORY_PARSED = $ARGV[12];
-my $ENSG = $ARGV[13];
-my $ENSG_ENSP = $ARGV[14];
-my $INPARA_ENSP = $ARGV[15];
-my $UNI_ENSP = $ARGV[16];
-my $LIB = $ARGV[17];
-my $CONF = $ARGV[18];
+my $BIOMARTLWP = $ARGV[13];
+my $XML_PATH = $ARGV[14];
 
 my $tolerance = 0.05;	# Tolerance in sequence length for two IDs to be considered the same (When evidences support it)
 my $relaxtolerance = 0.5;	# Tolerance in sequence length for two IDs to be considered the same (Stronger evidences support it)
@@ -95,7 +91,7 @@ print "\t* Inserting Ensembl Genes...\n";
 my $ins_ensp_genes = $dbh->prepare('INSERT INTO ensg(id,name,description,taxid) VALUES (?,?,?,?)');
 
 
-open(PS,"perl $ENSG $ENSNAME $LIB $CONF |") || die "Failed: $!\n";
+open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/ensg.xml |") || die "Failed: $!\n";
 while ( <PS> )
 {
 	my $line = $_;
@@ -108,7 +104,7 @@ while ( <PS> )
 print "\t* Inserting indermediate...\n";
 my $ins_ensp_gen_pep = $dbh->prepare('INSERT INTO ensg_ensp(ensp_id,ensg_id) VALUES (?,?)');
 
-open(PS,"perl $ENSG_ENSP $ENSNAME $LIB $CONF |") || die "Failed: $!\n";
+open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/ensg_ensp.xml |") || die "Failed: $!\n";
 while ( <PS> )
 {
 	my $line = $_;
@@ -154,7 +150,7 @@ my $ins_inpara_ensembl = $dbh->prepare('INSERT INTO ensp_inparanoid(ensp,inparan
 
 if ($TAXID == 6239)
 {
-    open(PS,"perl $INPARA_ENSP $LIB $CONF |") || die "Failed: $!\n";
+    open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/inparanoid_ensp.xml |") || die "Failed: $!\n";
     while(<PS>){
         my $line = $_;
 
@@ -651,7 +647,7 @@ if (-e $IPI_FASTA)
 
 #### COMPLETE UNIPROT_ENSEMBL WITH POTENTIAL MISSING MAPPINGS USING BIOMART ##############################
 
-open(PS,"perl $UNI_ENSP $ENSNAME $LIB $CONF |") || die "Failed: $!\n";
+open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/uniprot_ensp.xml |") || die "Failed: $!\n";
 while(<PS>){
 	my $line = $_;
 	if($line =~/^(\S+)\t(.*)\t(.*)/){

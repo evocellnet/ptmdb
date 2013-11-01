@@ -32,9 +32,6 @@ done < "$input"
 echo -ne "Downloading datasets from Biomart...\n "	
 wget -P ${MARTS} "http://www.biomart.org/biomart/martservice?type=datasets&mart=ensembl" -O ${MARTS}/biomart_datasets.txt
 
-echo -ne "Downloading registries from Biomart...\n "	
-wget -P ${REGISTRIES} "http://www.biomart.org/biomart/martservice?type=registry" -O ${REGISTRIES}/allRegistries.txt
-
 
 for ((i=1; i<${#organism[@]}; i++))
 
@@ -125,7 +122,7 @@ for ((i=1; i<${#organism[@]}; i++))
 					ENSNAME=${ENSEMBL_NAME}_eg_gene		
 				fi
 				
-				perl ./src/databaseXreferences/registryGenerator.pl "${biomart[i]}" ${ENSNAME} "${REGISTRIES}/allRegistries.txt" ${REGISTRY}	#Creates the registry file dynamically
+				perl ./src/databaseXreferences/xmlQueryGenerator.pl ${ENSNAME} ${XML_PATH} ${TAXID}	#Creates the xml file dynamically
 				
 				
 
@@ -143,7 +140,7 @@ for ((i=1; i<${#organism[@]}; i++))
 
 				echo -ne "Inserting databases information...\n"
 		
-				perl ./src/databaseXreferences/insertDatabaseInfo.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${ENSEMBL_FASTA} ${TAXID} ${SCIENTIFIC_NAME} ${COMMON_NAME} ${ENSNAME} ${INPARANNOID} ${UNIPROT} ${IPI_FASTA} ${IPI_HISTORY/.history/_parsed.history} ${ENSG} ${ENSG_ENSP} ${INPARA_ENSP} ${UNI_ENSP} ${LIB_PATH} ${CONF_FILE}
+				perl ./src/databaseXreferences/insertDatabaseInfo.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${ENSEMBL_FASTA} ${TAXID} ${SCIENTIFIC_NAME} ${COMMON_NAME} ${ENSNAME} ${INPARANNOID} ${UNIPROT} ${IPI_FASTA} ${IPI_HISTORY/.history/_parsed.history} ${BIOMARTLWP} ${XML_PATH}
 		fi
 		
 		
