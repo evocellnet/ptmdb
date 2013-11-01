@@ -43,18 +43,18 @@ query <- function(...) dbGetQuery(mychannel, ...)
 printStatistics <- function(res){
 	total <- length(unique(res$index))
 	cat("# of ptms: ",total,"\n")
-	coverage <- unique(res[res$inparanoid == res$ensembl_id & (!is.na(res$inparanoid)), c("inparanoid", "sequence")])
-	row.names(coverage) <- coverage$inparanoid
+	# coverage <- unique(res[res$inparanoid == res$ensembl_id & (!is.na(res$inparanoid)), c("inparanoid", "sequence")])
+	# row.names(coverage) <- coverage$inparanoid
 	# cat("# of inparanoid proteins covered by the study (considering correct id mapping)", nrow(coverage), "\n")
 	val <- length(which(tapply(res$ensembl_id, res$index, function(x) length(which(!is.na(x))) > 0)))
 	cat("# of identified ENSP ids: ",val," (",percentage(val,total),"%)\n", sep="")
-	val <- length(which(tapply(res$match, res$index, function(x) length(which(x)) > 0)))
-	cat("# of correctly mapped residues in at least 1 ENSP isoform of the inparanoid reference: ",val," (",percentage(val,total),"%)\n", sep="")
-	val <-  length(which(tapply(res$inparanoid, res$index, function(x) length(which(!is.na(x))) > 0)))
-	cat("# of identified Inparanoid ids within the family of isoforms: ",val," (",percentage(val,total),"%)\n", sep="")
-	matchInpara <- apply(res,1, function(x) match(coverage[x[6],"sequence"], x[3], x[4]))
-	val <- length(which(tapply(matchInpara, res$index, function(x) length(which(x)) > 0)))
-	cat("# of correctly mapped residues in the exact inparanoid reference: ",val," (",percentage(val,total),"%)\n", sep="")
+	# val <- length(which(tapply(res$match, res$index, function(x) length(which(x)) > 0)))
+	# cat("# of correctly mapped residues in at least 1 ENSP isoform of the inparanoid reference: ",val," (",percentage(val,total),"%)\n", sep="")
+	# val <-  length(which(tapply(res$inparanoid, res$index, function(x) length(which(!is.na(x))) > 0)))
+	# cat("# of identified Inparanoid ids within the family of isoforms: ",val," (",percentage(val,total),"%)\n", sep="")
+	# matchInpara <- apply(res,1, function(x) match(coverage[x[6],"sequence"], x[3], x[4]))
+	# val <- length(which(tapply(matchInpara, res$index, function(x) length(which(x)) > 0)))
+	# cat("# of correctly mapped residues in the exact inparanoid reference: ",val," (",percentage(val,total),"%)\n", sep="")
 }
  
 ############# 
@@ -77,6 +77,7 @@ names(ptms)[1] <- "index"
 if(idType == "ipi"){
 	#Query database
 	directMappingsQuery <- "SELECT ipihis.all_ipi,ensipi.ensembl_id,ensp.sequence FROM ipi_history AS ipihis INNER JOIN ensembl_ipi AS ensipi ON ipihis.current_ipi = ensipi.ipi INNER JOIN ensp ON ensipi.ensembl_id = ensp.id"
+	# directMappingsQuery <- paste("SELECT ipihis.all_ipi, ensipi.ensembl_id, ensporg.sequence FROM ipi_history AS ipihis INNER JOIN (SELECT id FROM IPI WHERE taxid = \'",org,"\') AS ipiorg ON ipihis.current_ipi = ipiorg.id INNER JOIN ensembl_ipi AS ensipi ON ipiorg.id = ensipi.ipi INNER JOIN (SELECT id,sequence FROM ensp WHERE taxid=\'", org, "\') AS ensporg ON ensipi.ensembl_id = ensporg.id;", sep="")
 	directMapping <- query(directMappingsQuery)
 	if(length(directMapping)){
 		res <- merge(ptms, unique(directMapping[ ,c("all_ipi", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="all_ipi")
