@@ -101,7 +101,6 @@ while ( <PS> )
 }	
 
 #### ENSEMBL PROTEIN-GENES ##############################
-print "\t* Inserting indermediate...\n";
 my $ins_ensp_gen_pep = $dbh->prepare('INSERT INTO ensg_ensp(ensp_id,ensg_id) VALUES (?,?)');
 
 open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/ensg_ensp.xml |") || die "Failed: $!\n";
