@@ -78,3 +78,20 @@ print OUTFILE '<?xml version="1.0" encoding="UTF-8"?>
 close(OUTFILE);
 
 }
+
+open(OUTFILE, ">$xml_path/refseq.xml")  or die $!;
+
+print OUTFILE '<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Query>
+<Query  virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "1" count = "" datasetConfigVersion = "0.6" >
+			
+	<Dataset name = "';
+	print OUTFILE "$dataset";
+	print OUTFILE '" interface = "default" >
+		<Attribute name = "ensembl_peptide_id" />
+		<Attribute name = "refseq_peptide" />
+		<Attribute name = "refseq_peptide_predicted" />
+	</Dataset>
+</Query>';
+
+close(OUTFILE);
