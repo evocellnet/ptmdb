@@ -122,6 +122,7 @@ for ((i=1; i<${#organism[@]}; i++))
 					ENSNAME=${ENSEMBL_NAME}_eg_gene		
 				fi
 				
+				mkdir -p ./src/databaseXreferences/xmlTemplates
 				perl ./src/databaseXreferences/xmlQueryGenerator.pl ${ENSNAME} ${XML_PATH} ${TAXID}	#Creates the xml file dynamically
 				
 				
