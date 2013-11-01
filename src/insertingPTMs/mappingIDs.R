@@ -4,9 +4,9 @@ suppressMessages(library(RMySQL))
 args <- commandArgs(TRUE)
 
 configfile <- args[1]	#input file with the 
-infile <- args[2]	# input file with the PTMs
-idType <- args[3]	#idType: [ipi,uniprot]
-org <- args[4]		#number of organisms
+# infile <- args[2]	# input file with the PTMs
+idType <- args[2]	#idType: [ipi,uniprot]
+org <- args[3]		#number of organisms
 
 #PROJECT VARIABLES
 source(configfile)
@@ -66,7 +66,7 @@ printStatistics <- function(res){
 mychannel <- dbConnect(MySQL(), user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE)
 
 #Reading PTM table
-ptms <- read.table(file=infile, sep="\t", comment.char="",
+ptms <- read.table(file=pipe('cat /dev/stdin'), sep="\t", comment.char="",
 						quote="",header=TRUE)
 
 #we add a index to keep track of the different reported modifications

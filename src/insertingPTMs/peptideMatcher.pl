@@ -1,11 +1,7 @@
 use warnings;
 use strict;
 
-my $inputfile = $ARGV[0];
-
-open(INFILE, $inputfile);
-my @inlines = <INFILE>;
-close(INFILE);
+my @inlines = <STDIN>;
 
 my $colsRef = parseHeader($inlines[0]);
 my %cols = %{$colsRef};
