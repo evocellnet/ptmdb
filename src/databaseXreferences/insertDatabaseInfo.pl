@@ -9,12 +9,17 @@ my $dbuser=$ARGV[2];
 my $dbpass=$ARGV[3];
 
 #Input Databases
-my $UNIPROT_HUMAN = $ARGV[4];
-my $IPI_FASTA = $ARGV[5];
-my $IPI_HISTORY_PARSED = $ARGV[6];
-my $INPARANNOID_HUMAN = $ARGV[7];
-my $ENSEMBL_FASTA=$ARGV[8];
-my $TAXID = $ARGV[9];
+my $ENSEMBL_FASTA=$ARGV[4];
+my $TAXID = $ARGV[5];
+my $SCIENTIFIC_NAME = $ARGV[6];
+my $COMMON_NAME = $ARGV[7];
+my $ENSNAME = $ARGV[8];
+my $INPARANNOID = $ARGV[9];
+my $UNIPROT = $ARGV[10];
+my $IPI_FASTA = $ARGV[11];
+my $IPI_HISTORY_PARSED = $ARGV[12];
+my $BIOMARTLWP = $ARGV[13];
+my $XML_PATH = $ARGV[14];
 
 my $tolerance = 0.05;	# Tolerance in sequence length for two IDs to be considered the same (When evidences support it)
 my $relaxtolerance = 0.5;	# Tolerance in sequence length for two IDs to be considered the same (Stronger evidences support it)
@@ -22,6 +27,13 @@ my $relaxtolerance = 0.5;	# Tolerance in sequence length for two IDs to be consi
 #Connecting to the database
 my $dbh = DBI->connect('DBI:mysql:'.$database.";".$dbhost, $dbuser, $dbpass, {AutoCommit => 0}) || die "Could not connect to database: $DBI::errstr";
 my $errflag=0;
+
+#### ORGANISM #############################
+
+print "\t* Inserting Organism Details...\n";
+#preparing Ensembl-related inserts
+my $ins_org = $dbh->prepare('INSERT INTO organism(taxid,common_name,scientific_name) VALUES (?,?,?)');
+$ins_org->execute($TAXID,$COMMON_NAME,$SCIENTIFIC_NAME);
 
 #### ENSEMBL ##############################
 print "\t* Inserting Ensembl...\n";
@@ -32,15 +44,20 @@ my $ensembl_id="";
 my @ensseqlines=();
 my %allensembls=();
 my %ensp2length;
+#my $i;
+my $up;
+#my @inparanoid;
 
-open(INFILE, $ENSEMBL_FASTA);
+open(INFILE, $ENSEMBL_FASTA)    or die $!;
 while(<INFILE>){
 	my $line = $_;
-	if($line=~/^>(ENSP\d+)\s/){
+	#print $line;
+	if($line=~/^>(\S+)\s/){
 		if(scalar(@ensseqlines)){
 			my $resultseq=join("",@ensseqlines);
 			my $seqlength=scalar(split("",$resultseq));
 			$ensp2length{$ensembl_id}=$seqlength;
+				#print "$ensembl_id\n";
 			unless($ins_ensp->execute($ensembl_id,$resultseq,$seqlength,$TAXID)){
 				$errflag=1;
 			}
@@ -60,28 +77,114 @@ if(scalar(@ensseqlines)){
 	my $resultseq=join("",@ensseqlines);
 	my $seqlength=scalar(split("",$resultseq));
 	$ensp2length{$ensembl_id}=$seqlength;
+	#print $ensembl_id;
 	unless($ins_ensp->execute($ensembl_id,$resultseq,$seqlength,$TAXID)){
 		$errflag=1;
 	}
 }
 close(INFILE);
 
+
+#### ENSEMBL GENES ##############################
+print "\t* Inserting Ensembl Genes...\n";
+#preparing Ensembl-related inserts
+my $ins_ensp_genes = $dbh->prepare('INSERT INTO ensg(id,name,description,taxid) VALUES (?,?,?,?)');
+
+
+open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/ensg.xml |") || die "Failed: $!\n";
+while ( <PS> )
+{
+	my $line = $_;
+	if($line=~/^(\S+)\t(.*)\t(.*)$/){
+		$ins_ensp_genes->execute($1,$2,$3,$TAXID);
+	}
+}	
+
+#### ENSEMBL PROTEIN-GENES ##############################
+my $ins_ensp_gen_pep = $dbh->prepare('INSERT INTO ensg_ensp(ensp_id,ensg_id) VALUES (?,?)');
+
+open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/ensg_ensp.xml |") || die "Failed: $!\n";
+while ( <PS> )
+{
+	my $line = $_;
+	if($line=~/^(\S+)\t(\S+)/){
+		if ($allensembls{$2}){
+			$ins_ensp_gen_pep->execute($2,$1);
+			#print "$1\n";
+		}
+	}	
+}	
+
 #### INPARANOID ############################
 print "\t* Inserting Inparanoid...\n";
 #preparing Inparanoid-related inserts
 my $ins_inparanoid = $dbh->prepare('INSERT INTO inparanoid(id) VALUES (?)');
 
-my %inInpara;
-open(INFILE, $INPARANNOID_HUMAN);
+my $inpara_id="";
+my %inInpara=();
+
+open(INFILE, $INPARANNOID)    or die $!;
 while(<INFILE>){
 	my $line = $_;
-	if($line =~/^>(ENSP\d{11})/){
-		if($allensembls{$1}){
-			$ins_inparanoid->execute($1);
+	if($line =~/^>(\S+)\n/){
+		if ($TAXID == 3702){
+			$up = uc $1;
+			$inpara_id = $up;
+		#if ($allensembls{$up}){
+			$ins_inparanoid->execute($inpara_id);
+			#}
+			$inInpara{$inpara_id}=1;
 		}
+		
+			else{
+			$inpara_id = $1;
+			$ins_inparanoid->execute($inpara_id);
+			$inInpara{$inpara_id}=1;
+			}			
 	}	
 }
 
+#### INPARANOID-ENSEMBL ############################
+my $ins_inpara_ensembl = $dbh->prepare('INSERT INTO ensp_inparanoid(ensp,inparanoid_id) VALUES (?,?)');
+
+if ($TAXID == 6239)
+{
+    open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/inparanoid_ensp.xml |") || die "Failed: $!\n";
+    while(<PS>){
+        my $line = $_;
+
+        if($line=~/^(\S+)\t(\S+)/){
+            if ($allensembls{$1}){
+				if ($inInpara{$2}){
+				$ins_inpara_ensembl->execute($1,$2);
+            #print "$1\n";
+				}
+            }
+        }
+    }
+}
+
+####COMPLETING INPARANOID-ENSEMBL ############################
+my $thisensp;
+my $thisinpara;
+my %thisinpensp;
+
+   my $ensinparaQuery = "SELECT DISTINCT ensp.id, inparanoid.id FROM ensp INNER JOIN inparanoid ON ensp.id = inparanoid.id WHERE ensp.taxid='$TAXID'";   
+   my $ensinparaHandle = $dbh->prepare($ensinparaQuery) or die "Cannot prepare: " . $dbh->errstr();
+   $ensinparaHandle->execute() or die "Cannot execute: " . $ensinparaHandle->errstr();
+   $ensinparaHandle->bind_columns(\$thisensp, \$thisinpara);
+        
+    while($ensinparaHandle->fetch()){
+			#print "2";
+		
+		if(not defined($thisinpensp{$thisensp."-".$thisinpara})){
+			unless($ins_inpara_ensembl->execute($thisensp,$thisinpara)){
+				$errflag=1;
+			}
+			$thisinpensp{$thisensp."-".$thisinpara}=1;
+		}
+	}    
+     
 #### UNIPROT ##############################
 print "\t* Inserting Uniprot...\n";
 
@@ -98,7 +201,7 @@ my %thisENSPinserted=();
 
 
 #about the sequences
-open(INFILE, $UNIPROT_HUMAN);
+open(INFILE, $UNIPROT)    or die $!;
 while(<INFILE>){
 	my $line = $_;
 	my $thislength="";
@@ -198,7 +301,7 @@ while(<INFILE>){
 						}
 					}
 				}
-			}elsif($line=~/^DR\s+Ensembl; (.+)/){
+			}elsif($line=~/^DR\s+Ensembl\S*; (.+)/){
 				my @ensemblEntries=split(/;\s/, $1);
 				push(@thisEnsps, $ensemblEntries[1]);
 			}elsif($line=~/^FT\s{3}(.+)/){
@@ -368,148 +471,222 @@ my $ipi="";
 my @seqlines=();
 my $uniprot = "";
 my $ensembl = "";
-open(INFILE, $IPI_FASTA);
-while(<INFILE>){
-	my $line = $_;
-	if($line=~/^>IPI\:(\w+)(\.\d+)?[\|\s](SWISS\-PROT\:([\w\-;]+))?[\|\s]?(TREMBL\:([\w\-;]+))?[\|\s]?(ENSEMBL\:([\w\-;]+))?[\|\s]?/){				
-		if(scalar(@seqlines)){
-			my $resultseq=join("",@seqlines);
-			unless($ins_ipi->execute($ipi,$resultseq,scalar(split("",$resultseq)),$TAXID)){
-				$errflag=1;
-			}
-			if(defined($uniprot)){
-				my @uniprots = split(";", $uniprot);
-				foreach my $uni (@uniprots){
-					if($insertedAcc{$uni}){
-						unless($ins_uniprot_ipi -> execute($ipi, $uni)){
-							$errflag=1;
-						}
-					}
-				}
-			}
-			if(defined($ensembl)){
-				my @ensembls = split(";", $ensembl);
-				foreach my $ensembl (@ensembls){
-					if($allensembls{$ensembl}){
-						unless($ins_ensembl_ipi->execute($ipi,$ensembl)){
-							$errflag=1;
-						}
-					}
-					$thisIPIENSPinserted{$ipi."-".$ensembl}=1;
-				}
-			}
-			# print $ipi."\t".$resultseq."\t".scalar(split("",$resultseq))."\t".$TAXID."\n";
-		}
-		#empty previous
-		@seqlines=();
-		$ipi="";
-		$uniprot="";
-		$ensembl="";
+
+
+if (-e $IPI_FASTA)
+{
+	open(INFILE, $IPI_FASTA)    or die $!;
+
+	while(<INFILE>){
+		my $line = $_;
+		my $generalpattern='^>IPI\:(\w+)(\.\d+)?[\|\s](SWISS\-PROT\:([\w\-;]+))?[\|\s]?(TREMBL\:([\w\-;]+))?[\|\s]?(ENSEMBL\:([\w\-;]+))?[\|\s]?';
+		my $arabidopsispattern='^>IPI\:(\w+)(\.\d+)?[\|\s](SWISS\-PROT\:([\w\-;]+))?[\|\s]?(TREMBL\:([\w\-;]+))?[\|\s]?[REFSEQ\:[\w\;]+]?[\|\s]?(TAIR\:([\w\.\-;]+))?[\|\s]?';
+		my $pattern="";
 		
-		#ipi
-		$ipi=$1;
-		push(@currentIPIs, $ipi);
-		
-		#ensembl
-		$ensembl=$8;
-		
-		#uniprot
-		my $swissprot = $4;
-		my $trembl = $6;
-		my $ensembl;
-		if(defined($swissprot)&&defined($trembl)){
-			$uniprot = $swissprot.";".$trembl;
-		}elsif(defined($trembl)){
-			$uniprot=$trembl;
-		}elsif(defined($swissprot)){
-			$uniprot=$swissprot;
+		if ($TAXID == 3702)
+		{
+			$pattern = $arabidopsispattern;
 		}
 		
-	}else{
-		chomp($line);
-		push(@seqlines, $line);
-	}	
-}
-if(scalar(@seqlines)){
-	my $resultseq=join("",@seqlines);
-	unless($ins_ipi->execute($ipi,$resultseq,scalar(split("",$resultseq)),$TAXID)){
-		$errflag=1;
-	}
-	if(defined($uniprot)){
-		my @uniprots = split(";", $uniprot);
-		foreach my $uni (@uniprots){
-			unless($ins_uniprot_ipi -> execute($ipi, $uni)){
-				$errflag=1;
-			}
+		else
+		{
+			$pattern = $generalpattern;
 		}
-	}
-	if(defined($ensembl)){
-		my @ensembls = split(";", $ensembl);
-		foreach my $ensembl (@ensembls){
-			if($allensembls{$ensembl}){
-				unless($ins_ensembl_ipi->execute($ipi,$ensembl)){
+		
+		if($line=~/$pattern/){				
+			if(scalar(@seqlines)){
+				my $resultseq=join("",@seqlines);
+				unless($ins_ipi->execute($ipi,$resultseq,scalar(split("",$resultseq)),$TAXID)){
 					$errflag=1;
 				}
-				$thisIPIENSPinserted{$ipi."-".$ensembl}=1;
-			}	
-		}
+				if(defined($uniprot)){
+					my @uniprots = split(";", $uniprot);
+					foreach my $uni (@uniprots){
+						if($insertedAcc{$uni}){
+							unless($ins_uniprot_ipi -> execute($ipi, $uni)){
+								$errflag=1;
+							}
+						}
+					}
+				}
+				if(defined($ensembl)){
+					my @ensembls = split(";", $ensembl);
+					foreach my $ensembl (@ensembls){
+						if($allensembls{$ensembl}){
+							unless($ins_ensembl_ipi->execute($ipi,$ensembl)){
+								$errflag=1;
+							}
+						}
+						$thisIPIENSPinserted{$ipi."-".$ensembl}=1;
+					}
+				}
+				#print $ipi."\t".$resultseq."\t".scalar(split("",$resultseq))."\t".$TAXID."\n";
+			}
+			#empty previous
+			@seqlines=();
+			$ipi="";
+			$uniprot="";
+			$ensembl="";
+			
+			#ipi
+			$ipi=$1;
+			push(@currentIPIs, $ipi);
+			
+			#ensembl
+			$ensembl=$8;
+			
+			#uniprot
+			my $swissprot = $4;
+			my $trembl = $6;
+			my $ensembl;
+			if(defined($swissprot)&&defined($trembl)){
+				$uniprot = $swissprot.";".$trembl;
+			}elsif(defined($trembl)){
+				$uniprot=$trembl;
+			}elsif(defined($swissprot)){
+				$uniprot=$swissprot;
+			}
+			
+		}else{
+			chomp($line);
+			push(@seqlines, $line);
+		}	
 	}
-	# print $ipi."\t".$resultseq."\t".scalar(split("",$resultseq))."\t".$TAXID."\n";
-}
-close(INFILE);
-
-
-#We keep track of the historic IPI ids
-my $ins_ipi_history = $dbh->prepare('INSERT INTO ipi_history(current_ipi,all_ipi) VALUES (?,?)');
-
-open(INFILE, $IPI_HISTORY_PARSED);
-my @ipiHistoryLines=<INFILE>;
-close(INFILE);
-
-foreach my $history_line (@ipiHistoryLines){
-	chomp($history_line);
-	my @fields=split(/\t/,$history_line);
-	unless($ins_ipi_history->execute($fields[0], $fields[1])){
-		$errflag=1;
-	}
-}
-
-#### REFERENCES THAT CAN BE EXPLAINED USING OTHER DATABASES ##############################
-print "\t* Inserting Cross-references...\n";
-#Complete the uniprot_ensembl mapped through IPI
-my $thisensp;
-my $thisacc;
-my $thisipi;
-my $ens2uniprotQuery = "SELECT DISTINCT T.id, UACC.accession FROM (SELECT DISTINCT ensp.id, ensipi.ipi, uniacc.reference_accession, uniso.length FROM ensp INNER JOIN ensembl_ipi AS ensipi ON ensp.id = ensipi.ensembl_id INNER JOIN ipi ON ensipi.ipi = ipi.id INNER JOIN uniprot_ipi AS unipi ON ipi.id = unipi.ipi_id INNER JOIN uniprot_acc AS uniacc ON unipi.accession = uniacc.accession INNER JOIN uniprot_isoform AS uniso ON uniacc.reference_accession = uniso.accession) AS T INNER JOIN uniprot_acc AS UACC ON T.reference_accession = UACC.reference_accession";
-# my $ens2uniprotQuery = "SELECT DISTINCT T.id, UACC.accession FROM (SELECT DISTINCT ensp.id, ensipi.ipi, uniacc.reference_accession, uniso.length FROM ensp INNER JOIN ensembl_ipi AS ensipi ON ensp.id = ensipi.ensembl_id INNER JOIN ipi ON ensipi.ipi = ipi.id INNER JOIN uniprot_ipi AS unipi ON ipi.id = unipi.ipi_id INNER JOIN uniprot_acc AS uniacc ON unipi.accession = uniacc.accession INNER JOIN uniprot_isoform AS uniso ON uniacc.reference_accession = uniso.accession WHERE ensp.length / ipi.length BETWEEN (1-$relaxtolerance) AND (1+$relaxtolerance) AND ipi.length / uniso.length BETWEEN 1-$tolerance AND 1+$tolerance) AS T INNER JOIN uniprot_acc AS UACC ON T.reference_accession = UACC.reference_accession";
-my $ens2uniprotHandle = $dbh->prepare($ens2uniprotQuery) or die "Cannot prepare: " . $dbh->errstr();
-$ens2uniprotHandle->execute() or die "Cannot execute: " . $ens2uniprotHandle->errstr();
-$ens2uniprotHandle->bind_columns(\$thisensp, \$thisacc);
-
-while($ens2uniprotHandle->fetch()){
-	if(not defined($thisENSPinserted{$thisacc."-".$thisensp})){
-		unless($ins_uniport_ensembl->execute($thisacc,$thisensp)){
+	if(scalar(@seqlines)){
+		my $resultseq=join("",@seqlines);
+		unless($ins_ipi->execute($ipi,$resultseq,scalar(split("",$resultseq)),$TAXID)){
 			$errflag=1;
 		}
-		$thisENSPinserted{$thisacc."-".$thisensp}=1;
+		
+		if(defined($uniprot)){
+			my @uniprots = split(";", $uniprot);
+			foreach my $uni (@uniprots){
+				if($insertedAcc{$uni}){
+					unless($ins_uniprot_ipi -> execute($ipi, $uni)){
+						$errflag=1;
+					}
+				}
+			}
+		}
+		if(defined($ensembl)){
+			my @ensembls = split(";", $ensembl);
+			foreach my $ensembl (@ensembls){
+				if($allensembls{$ensembl}){
+					unless($ins_ensembl_ipi->execute($ipi,$ensembl)){
+						$errflag=1;
+					}
+					$thisIPIENSPinserted{$ipi."-".$ensembl}=1;
+				}	
+			}
+		}
+		#print $ipi."\t".$resultseq."\t".scalar(split("",$resultseq))."\t".$TAXID."\n";
 	}
-}
+	close(INFILE);
 
-#Complete the ipi_ensembl mapped through Uniprot
-my $ens2ipiQuery = "SELECT DISTINCT ipi.id,T.ensembl_id FROM ipi INNER JOIN uniprot_ipi AS unipi ON ipi.id = unipi.ipi_id INNER JOIN uniprot_acc AS uniacc ON unipi.accession = uniacc.accession INNER JOIN (SELECT accession,reference_accession,uniens.ensembl_id FROM uniprot_acc AS uniacc INNER JOIN uniprot_ensembl AS uniens ON uniacc.accession = uniens.uniprot_accession) AS T ON uniacc.reference_accession = T.reference_accession";
-my $ens2ipiHandle = $dbh->prepare($ens2ipiQuery) or die "Cannot prepare: " . $dbh->errstr();
-$ens2ipiHandle->execute() or die "Cannot execute: " . $ens2ipiHandle->errstr();
-$ens2ipiHandle->bind_columns(\$thisipi, \$thisensp);
 
-while($ens2ipiHandle->fetch()){	
-	if(not defined($thisIPIENSPinserted{$thisipi."-".$thisensp})){
-		unless($ins_ensembl_ipi->execute($thisipi,$thisensp)){
+	#We keep track of the historic IPI ids
+	my $ins_ipi_history = $dbh->prepare('INSERT INTO ipi_history(current_ipi,all_ipi) VALUES (?,?)');
+
+	open(INFILE, $IPI_HISTORY_PARSED);
+	my @ipiHistoryLines=<INFILE>;
+	close(INFILE);
+
+	foreach my $history_line (@ipiHistoryLines){
+		chomp($history_line);
+		my @fields=split(/\t/,$history_line);
+		unless($ins_ipi_history->execute($fields[0], $fields[1])){
 			$errflag=1;
 		}
-		$thisIPIENSPinserted{$thisipi."-".$thisensp}=1;
 	}
+
+	#### REFERENCES THAT CAN BE EXPLAINED USING OTHER DATABASES ##############################
+	print "\t* Inserting Cross-references...\n";
+	#Complete the uniprot_ensembl mapped through IPI
+	my $thisensp;
+	my $thisacc;
+	my $thisipi;
+
+
+
+	my $ens2uniprotQuery = "SELECT DISTINCT T.id, UACC.accession FROM (SELECT DISTINCT ensp.id, ensipi.ipi, uniacc.reference_accession, uniso.length FROM ensp INNER JOIN ensembl_ipi AS ensipi ON ensp.id = ensipi.ensembl_id INNER JOIN ipi ON ensipi.ipi = ipi.id INNER JOIN uniprot_ipi AS unipi ON ipi.id = unipi.ipi_id INNER JOIN uniprot_acc AS uniacc ON unipi.accession = uniacc.accession INNER JOIN uniprot_isoform AS uniso ON uniacc.reference_accession = uniso.accession WHERE ensp.taxid = \'$TAXID\' AND uniso.taxid = \'$TAXID\' AND ipi.taxid = \'$TAXID\') AS T INNER JOIN uniprot_acc AS UACC ON T.reference_accession = UACC.reference_accession";
+	# my $ens2uniprotQuery = "SELECT DISTINCT T.id, UACC.accession FROM (SELECT DISTINCT ensp.id, ensipi.ipi, uniacc.reference_accession, uniso.length FROM ensp INNER JOIN ensembl_ipi AS ensipi ON ensp.id = ensipi.ensembl_id INNER JOIN ipi ON ensipi.ipi = ipi.id INNER JOIN uniprot_ipi AS unipi ON ipi.id = unipi.ipi_id INNER JOIN uniprot_acc AS uniacc ON unipi.accession = uniacc.accession INNER JOIN uniprot_isoform AS uniso ON uniacc.reference_accession = uniso.accession WHERE ensp.length / ipi.length BETWEEN (1-$relaxtolerance) AND (1+$relaxtolerance) AND ipi.length / uniso.length BETWEEN 1-$tolerance AND 1+$tolerance) AS T INNER JOIN uniprot_acc AS UACC ON T.reference_accession = UACC.reference_accession";
+	my $ens2uniprotHandle = $dbh->prepare($ens2uniprotQuery) or die "Cannot prepare: " . $dbh->errstr();
+	$ens2uniprotHandle->execute() or die "Cannot execute: " . $ens2uniprotHandle->errstr();
+	$ens2uniprotHandle->bind_columns(\$thisensp, \$thisacc);
+
+	while($ens2uniprotHandle->fetch()){
+		#print "1";
+		if(not defined($thisENSPinserted{$thisacc."-".$thisensp})){
+			unless($ins_uniport_ensembl->execute($thisacc,$thisensp)){
+				$errflag=1;
+			}
+			$thisENSPinserted{$thisacc."-".$thisensp}=1;
+		}
+	}
+
+	#Complete the ipi_ensembl mapped through Uniprot
+	my $ens2ipiQuery = "SELECT DISTINCT ipi.id,T.ensembl_id FROM ipi INNER JOIN uniprot_ipi AS unipi ON ipi.id = unipi.ipi_id INNER JOIN uniprot_acc AS uniacc ON unipi.accession = uniacc.accession INNER JOIN (SELECT accession,reference_accession,uniens.ensembl_id FROM uniprot_acc AS uniacc INNER JOIN uniprot_ensembl AS uniens ON uniacc.accession = uniens.uniprot_accession) AS T ON uniacc.reference_accession = T.reference_accession WHERE ipi.taxid = '$TAXID'";
+	my $ens2ipiHandle = $dbh->prepare($ens2ipiQuery) or die "Cannot prepare: " . $dbh->errstr();
+	$ens2ipiHandle->execute() or die "Cannot execute: " . $ens2ipiHandle->errstr();
+	$ens2ipiHandle->bind_columns(\$thisipi, \$thisensp);
+
+	while($ens2ipiHandle->fetch()){
+			#print "2";
+		
+		if(not defined($thisIPIENSPinserted{$thisipi."-".$thisensp})){
+			unless($ins_ensembl_ipi->execute($thisipi,$thisensp)){
+				$errflag=1;
+			}
+			$thisIPIENSPinserted{$thisipi."-".$thisensp}=1;
+		}
+	}
+
 }
 
+
+#### COMPLETE UNIPROT_ENSEMBL WITH POTENTIAL MISSING MAPPINGS USING BIOMART ##############################
+
+open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/uniprot_ensp.xml |") || die "Failed: $!\n";
+while(<PS>){
+	my $line = $_;
+	if($line =~/^(\S+)\t(.*)\t(.*)/){
+
+	my $th = $dbh->prepare(qq{SELECT uniprot_accession FROM uniprot_ensembl WHERE uniprot_ensembl.uniprot_accession='$2'});
+	$th->execute() or die "Cannot execute: " . $th->errstr();
+	my $found = 0;
+	
+			while ($th->fetch()){
+					$found = 1;
+				}
+				if ($found!=1) 
+				{
+					if ($allensembls{$1}){
+						if ($insertedAcc{$2}){
+							$ins_uniport_ensembl->execute($2,$1);
+						}	
+					}
+				}	
+		
+	$th = $dbh->prepare(qq{SELECT uniprot_accession FROM uniprot_ensembl WHERE uniprot_ensembl.uniprot_accession='$3'});
+	$th->execute() or die "Cannot execute: " . $th->errstr();
+	$found = 0;
+	
+			while ($th->fetch()){
+					$found = 1;
+				}
+				if ($found!=1) 
+				{
+					if ($allensembls{$1}){
+						if ($insertedAcc{$3}){
+							$ins_uniport_ensembl->execute($3,$1);
+						}	
+					}
+				}		
+	
+	}   
+	
+}		
+	
 
 ### FINISHING #################################
 
@@ -519,10 +696,9 @@ if($errflag){
 	$dbh->disconnect();
     die "could not insert rows: $error\n";
 }
-# $dbh->rollback();
+#$dbh->rollback();
 
 $dbh->commit();
-
 
 #FUNCTIONS
 #it gets an alternative splicing description from uniprot and returns the sequences. 
