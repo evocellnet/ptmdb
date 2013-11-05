@@ -89,11 +89,28 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `ptmdb`.`publication`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`publication` (
+  `pub_id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `pubmed_id` INT(11) NOT NULL,
+  `fauthor` VARCHAR(50) NOT NULL DEFAULT '',
+  `publication_date` DATE NOT NULL,
+  `journal` VARCHAR(100) NOT NULL DEFAULT '',
+  `title` TEXT NOT NULL,
+  PRIMARY KEY (`pub_id`),
+  UNIQUE INDEX `pubmed_id` (`pubmed_id` ASC))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `ptmdb`.`experiment`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `publication` INT(11) UNSIGNED NULL,
   `organism` INT UNSIGNED NOT NULL,
+  `scoring_method` VARCHAR(30) NULL,
   `biological_sample` VARCHAR(50) NULL DEFAULT '',
   `comments` TINYTEXT NOT NULL,
   `labelling_type` ENUM('free','metabolic','chemical') NULL DEFAULT NULL,
@@ -105,9 +122,15 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `quantification_software` VARCHAR(20) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `org_key_idx` (`organism` ASC),
+  INDEX `key_publication_idx` (`publication` ASC),
   CONSTRAINT `org_key_exp`
     FOREIGN KEY (`organism`)
     REFERENCES `ptmdb`.`organism` (`taxid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `key_publication`
+    FOREIGN KEY (`publication`)
+    REFERENCES `ptmdb`.`publication` (`pub_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
@@ -120,6 +143,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `spectral_count` INT UNSIGNED NULL,
   `peptide` VARCHAR(200) NOT NULL,
+  `scored_peptide` VARCHAR(300) NULL,
   `experiment` INT(11) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `experiment` (`experiment` ASC),
@@ -193,40 +217,6 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ipi_history` (
   CONSTRAINT `ipi_history_ibfk_1`
     FOREIGN KEY (`current_ipi`)
     REFERENCES `ptmdb`.`ipi` (`id`)
-    ON DELETE CASCADE)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `ptmdb`.`publication`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptmdb`.`publication` (
-  `pub_id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `pubmed_id` INT(11) NOT NULL,
-  `fauthor` VARCHAR(50) NOT NULL DEFAULT '',
-  `publication_date` DATE NOT NULL,
-  `journal` VARCHAR(100) NOT NULL DEFAULT '',
-  `title` TEXT NOT NULL,
-  PRIMARY KEY (`pub_id`),
-  UNIQUE INDEX `pubmed_id` (`pubmed_id` ASC))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `ptmdb`.`pub_exp`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ptmdb`.`pub_exp` (
-  `experiment` INT(11) UNSIGNED NOT NULL,
-  `pub_id` INT(11) UNSIGNED NOT NULL,
-  PRIMARY KEY (`experiment`),
-  INDEX `pub_id` (`pub_id` ASC),
-  CONSTRAINT `pub_exp_ibfk_2`
-    FOREIGN KEY (`pub_id`)
-    REFERENCES `ptmdb`.`publication` (`pub_id`)
-    ON DELETE CASCADE,
-  CONSTRAINT `pub_exp_ibfk_1`
-    FOREIGN KEY (`experiment`)
-    REFERENCES `ptmdb`.`experiment` (`id`)
     ON DELETE CASCADE)
 ENGINE = InnoDB;
 
@@ -386,10 +376,16 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `ptmdb`.`site` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `localization_score` FLOAT NULL,
-  `scoring_method` VARCHAR(30) NULL,
   `modif_type` CHAR(1) NOT NULL,
   `residue` CHAR(1) NOT NULL,
-  PRIMARY KEY (`id`))
+  `experiment` INT(11) UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  INDEX `key_site_experiment_idx` (`experiment` ASC),
+  CONSTRAINT `key_site_experiment`
+    FOREIGN KEY (`experiment`)
+    REFERENCES `ptmdb`.`experiment` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -405,12 +401,12 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_site` (
     FOREIGN KEY (`peptide_id`)
     REFERENCES `ptmdb`.`peptide` (`id`)
     ON DELETE CASCADE
-    ON UPDATE RESTRICT,
+    ON UPDATE CASCADE,
   CONSTRAINT `site_pep_map`
     FOREIGN KEY (`site_id`)
     REFERENCES `ptmdb`.`site` (`id`)
     ON DELETE CASCADE
-    ON UPDATE RESTRICT)
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -432,7 +428,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_site` (
     FOREIGN KEY (`site_id`)
     REFERENCES `ptmdb`.`site` (`id`)
     ON DELETE CASCADE
-    ON UPDATE RESTRICT)
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
