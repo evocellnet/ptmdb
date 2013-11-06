@@ -53,17 +53,31 @@ for (my $i=1;$i<scalar(@inlines);$i++){
 		}
 	}
 	
-	#Inserting the peptide and ensp_peptide relationship
+	#Inserting the peptide
 	if(! defined($peptideRegistry{$fields[$cols{"id"}]}{$fields[$cols{$pepRefColumn}]})){
 		if($quantitativeStudy){
-			$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide) VALUES (?,?)');
-			unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}])){
-				$errflag=1;
+			if($pepRefColumn eq "peptide"){
+				$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide) VALUES (?,?)');
+				unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}])){
+					$errflag=1;
+				}
+			}else{
+				$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, scored_peptide) VALUES (?,?,?)');
+				unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"peptide_scored"}])){
+					$errflag=1;
+				}
 			}
 		}else{
-			$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, spectral_count) VALUES (?,?,?)');
-			unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"spectral_count"}])){
-				$errflag=1;
+			if($pepRefColumn eq "peptide"){			
+				$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, spectral_count) VALUES (?,?,?)');
+				unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"spectral_count"}])){
+					$errflag=1;
+				}
+			}else{
+				$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, spectral_count, scored_peptide) VALUES (?,?,?,?)');
+				unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"spectral_count"}],$fields[$cols{"peptide_scored"}])){
+					$errflag=1;
+				}
 			}
 		}
 		
