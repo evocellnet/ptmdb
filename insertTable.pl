@@ -81,14 +81,14 @@ for (my $i=1;$i<scalar(@inlines);$i++){
 	#Inserting the site and peptide_site relationship
 	if(!defined($siteRegistry{$fields[$cols{"index"}]})){
 		if($fields[$cols{"localization_score"}] ne "NA"){
-			$ins_site=$dbh->prepare('INSERT INTO site(localization_score,modif_type,residue) VALUES (?,?,?)');
-			unless($ins_site->execute($fields[$cols{"localization_score"}],$fields[$cols{"modification_type"}],$fields[$cols{"residue"}])){
+			$ins_site=$dbh->prepare('INSERT INTO site(experiment,localization_score,modif_type,residue) VALUES (?,?,?,?)');
+			unless($ins_site->execute($experiment, $fields[$cols{"localization_score"}],$fields[$cols{"modification_type"}],$fields[$cols{"residue"}])){
 				$errflag=1;
 			}
 			
 		}else{
-			$ins_site=$dbh->prepare('INSERT INTO site(modif_type,residue) VALUES (?,?)');
-			unless($ins_site->execute($fields[$cols{"localization_score"}],$fields[$cols{"modification_type"}],$fields[$cols{"residue"}])){
+			$ins_site=$dbh->prepare('INSERT INTO site(experiment, modif_type,residue) VALUES (?,?,?)');
+			unless($ins_site->execute($experiment, $fields[$cols{"localization_score"}],$fields[$cols{"modification_type"}],$fields[$cols{"residue"}])){
 				$errflag=1;
 			}
 		}
