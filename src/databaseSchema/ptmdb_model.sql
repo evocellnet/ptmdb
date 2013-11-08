@@ -10,8 +10,9 @@ USE `ptmdb` ;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`condition` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `description` VARCHAR(40) NOT NULL DEFAULT '',
-  `time_min` INT(11) NULL DEFAULT NULL,
+  `description` VARCHAR(45) NOT NULL,
+  `time_min` INT(11) NULL,
+  `control_description` VARCHAR(45) NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -21,8 +22,8 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`organism` (
   `taxid` INT UNSIGNED NOT NULL,
-  `common_name` VARCHAR(45) NULL DEFAULT NULL,
-  `scientific_name` VARCHAR(45) NULL DEFAULT NULL,
+  `common_name` VARCHAR(45) NULL,
+  `scientific_name` VARCHAR(45) NULL,
   PRIMARY KEY (`taxid`),
   UNIQUE INDEX `taxid_UNIQUE` (`taxid` ASC),
   UNIQUE INDEX `common_name_UNIQUE` (`common_name` ASC),
@@ -53,7 +54,7 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`ipi`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`ipi` (
-  `id` CHAR(11) NOT NULL DEFAULT '',
+  `id` CHAR(11) NOT NULL,
   `sequence` TEXT NOT NULL,
   `length` INT(11) NOT NULL,
   `taxid` INT UNSIGNED NOT NULL,
@@ -94,9 +95,9 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `ptmdb`.`publication` (
   `pub_id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `pubmed_id` INT(11) NOT NULL,
-  `fauthor` VARCHAR(50) NOT NULL DEFAULT '',
+  `fauthor` VARCHAR(50) NOT NULL,
   `publication_date` DATE NOT NULL,
-  `journal` VARCHAR(100) NOT NULL DEFAULT '',
+  `journal` VARCHAR(100) NOT NULL,
   `title` TEXT NOT NULL,
   PRIMARY KEY (`pub_id`),
   UNIQUE INDEX `pubmed_id` (`pubmed_id` ASC))
@@ -111,15 +112,15 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `publication` INT(11) UNSIGNED NULL,
   `organism` INT UNSIGNED NOT NULL,
   `scoring_method` VARCHAR(30) NULL,
-  `biological_sample` VARCHAR(50) NULL DEFAULT '',
+  `biological_sample` VARCHAR(50) NULL,
   `comments` TINYTEXT NOT NULL,
-  `labelling_type` ENUM('free','metabolic','chemical') NULL DEFAULT NULL,
-  `labelling_method` VARCHAR(11) NULL DEFAULT NULL,
-  `spectrometer` VARCHAR(30) NOT NULL DEFAULT '',
-  `enrichment_method` ENUM('TiO2','Antibody') NULL DEFAULT NULL,
-  `antibody` VARCHAR(11) NULL DEFAULT NULL,
-  `identification_software` VARCHAR(20) NULL DEFAULT NULL,
-  `quantification_software` VARCHAR(20) NULL DEFAULT NULL,
+  `labelling_type` ENUM('free','metabolic','chemical') NULL,
+  `labelling_method` VARCHAR(11) NULL,
+  `spectrometer` VARCHAR(30) NOT NULL,
+  `enrichment_method` ENUM('TiO2','Antibody') NULL,
+  `antibody` VARCHAR(11) NULL,
+  `identification_software` VARCHAR(20) NULL,
+  `quantification_software` VARCHAR(20) NULL,
   PRIMARY KEY (`id`),
   INDEX `org_key_idx` (`organism` ASC),
   INDEX `key_publication_idx` (`publication` ASC),
@@ -174,8 +175,8 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_quantification` (
   CONSTRAINT `peptide_id_map`
     FOREIGN KEY (`peptide`)
     REFERENCES `ptmdb`.`peptide` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -183,7 +184,7 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`ensp_peptide`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_peptide` (
-  `ensembl_id` VARCHAR(30) NOT NULL DEFAULT '',
+  `ensembl_id` VARCHAR(30) NOT NULL,
   `peptide_id` INT(11) UNSIGNED NOT NULL,
   PRIMARY KEY (`ensembl_id`, `peptide_id`),
   INDEX `site` (`peptide_id` ASC),
@@ -202,7 +203,7 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`inparanoid`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`inparanoid` (
-  `id` VARCHAR(30) NOT NULL DEFAULT '',
+  `id` VARCHAR(30) NOT NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -211,8 +212,8 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`ipi_history`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`ipi_history` (
-  `current_ipi` CHAR(11) NOT NULL DEFAULT '',
-  `all_ipi` CHAR(11) NOT NULL DEFAULT '',
+  `current_ipi` CHAR(11) NOT NULL,
+  `all_ipi` CHAR(11) NOT NULL,
   PRIMARY KEY (`current_ipi`, `all_ipi`),
   CONSTRAINT `ipi_history_ibfk_1`
     FOREIGN KEY (`current_ipi`)
@@ -253,9 +254,9 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`uniprot_acc`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_acc` (
-  `accession` VARCHAR(15) NOT NULL DEFAULT '',
-  `id` VARCHAR(30) NOT NULL DEFAULT '',
-  `reference_accession` VARCHAR(15) NOT NULL DEFAULT '',
+  `accession` VARCHAR(15) NOT NULL,
+  `id` VARCHAR(30) NOT NULL,
+  `reference_accession` VARCHAR(15) NOT NULL,
   PRIMARY KEY (`accession`, `reference_accession`),
   INDEX `id` (`id` ASC),
   INDEX `reference_accession` (`reference_accession` ASC),
@@ -274,8 +275,8 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`uniprot_ensembl`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_ensembl` (
-  `uniprot_accession` VARCHAR(11) NOT NULL DEFAULT '',
-  `ensembl_id` VARCHAR(30) NOT NULL DEFAULT '',
+  `uniprot_accession` VARCHAR(11) NOT NULL,
+  `ensembl_id` VARCHAR(30) NOT NULL,
   PRIMARY KEY (`uniprot_accession`, `ensembl_id`),
   INDEX `ensembl_id` (`ensembl_id` ASC),
   CONSTRAINT `uniprot_ensembl_ibfk_3`
@@ -293,8 +294,8 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`uniprot_ipi`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_ipi` (
-  `ipi_id` CHAR(11) NOT NULL DEFAULT '',
-  `accession` VARCHAR(11) NOT NULL DEFAULT '',
+  `ipi_id` CHAR(11) NOT NULL,
+  `accession` VARCHAR(11) NOT NULL,
   PRIMARY KEY (`accession`),
   INDEX `ipi_id` (`ipi_id` ASC),
   CONSTRAINT `uniprot_ipi_ibfk_3`
@@ -314,8 +315,8 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`ensg` (
   `id` VARCHAR(30) NOT NULL,
-  `name` VARCHAR(30) NULL DEFAULT NULL,
-  `description` VARCHAR(1000) NULL DEFAULT NULL,
+  `name` VARCHAR(30) NULL,
+  `description` VARCHAR(1000) NULL,
   `taxid` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
