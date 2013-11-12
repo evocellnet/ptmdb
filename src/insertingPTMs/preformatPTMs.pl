@@ -18,16 +18,14 @@ my $locScoreCol = $ARGV[9];
 my $peptideCol = $ARGV[10];
 my $peptideScoredCol = $ARGV[11];
 my $conditionalData = $ARGV[12];
-#ARGS[13...] are described after
-
-#In case it's a non-quantitative experiment
-my $spectralCountsCol;
+my $spectralCountsCol = $ARGV[13];
+#ARGS[14...] are described after
 
 #In case it's a conditional experiment
 my @conditionalHeaders;
 
 #The columns that will be printed on the default case (Some modifications will be applied if they are not present)
-my @defaultColumns = ("id", "residue", "modification_type", "position", "localization_score", "peptide", "peptide_scored", "simplified_peptide");
+my @defaultColumns = ("id", "residue", "modification_type", "position", "localization_score", "peptide", "peptide_scored", "simplified_peptide", "spectral_count");
 
 #colnames that will be used in the output
 my %colnames;
@@ -38,18 +36,15 @@ $colnames{$resnumCol} = "position";
 $colnames{$locScoreCol} = "localization_score";
 $colnames{$peptideCol} = "peptide";
 $colnames{$peptideScoredCol} = "peptide_scored";
+$colnames{$spectralCountsCol}="spectral_count";
 
 if($conditionalData eq "true"){
-	for (my $i=13;$i<scalar(@ARGV);$i++){
+	for (my $i=14;$i<scalar(@ARGV);$i++){
 		my $thiscolname =$ARGV[$i];
 		push(@conditionalHeaders, $thiscolname);
 		push(@defaultColumns, $thiscolname);
 		$colnames{$thiscolname}=$thiscolname;
 	}
-}else{
-	$spectralCountsCol = $ARGV[13];
-	push(@defaultColumns, "spectral_count");
-	$colnames{$spectralCountsCol}="spectral_count";
 }
 
 #Field separators

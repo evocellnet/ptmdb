@@ -18,10 +18,7 @@ my $locScoreCol = $ARGV[13];
 my $peptideCol = $ARGV[14];
 my $peptideScoredCol = $ARGV[15];
 my $conditionalData = $ARGV[16];
-my $spectralCount = $ARGV[17];
-
-#In case it's a non-quantitative experiment
-my $spectralCountsCol;
+my $spectralCountsCol = $ARGV[17];
 
 #In case it's a conditional experiment
 my @conditionalHeaders;
@@ -31,8 +28,6 @@ if($conditionalData eq "true"){
 		my $thiscolname =$ARGV[$i];
 		push(@conditionalHeaders, $thiscolname);
 	}
-}else{
-	$spectralCountsCol = $ARGV[18];
 }
 
 #PREFORMATING 
