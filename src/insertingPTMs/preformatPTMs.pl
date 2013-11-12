@@ -19,7 +19,11 @@ my $peptideCol = $ARGV[10];
 my $peptideScoredCol = $ARGV[11];
 my $conditionalData = $ARGV[12];
 my $spectralCountsCol = $ARGV[13];
+
 #ARGS[14...] are described after
+
+my $numConditons;
+my $conditionScale;
 
 #In case it's a conditional experiment
 my @conditionalHeaders;
@@ -39,9 +43,11 @@ $colnames{$peptideScoredCol} = "peptide_scored";
 $colnames{$spectralCountsCol}="spectral_count";
 
 if($conditionalData eq "true"){
+	$numConditons = $ARGV[14];
+	$conditionScale = $ARGV[15];
+	
 	for (my $i=14;$i<scalar(@ARGV);$i++){
 		my $thiscolname =$ARGV[$i];
-		push(@conditionalHeaders, $thiscolname);
 		push(@defaultColumns, $thiscolname);
 		$colnames{$thiscolname}=$thiscolname;
 	}
