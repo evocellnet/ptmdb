@@ -46,7 +46,7 @@ if($conditionalData eq "true"){
 	$numConditons = $ARGV[14];
 	$conditionScale = $ARGV[15];
 	
-	for (my $i=14;$i<scalar(@ARGV);$i++){
+	for (my $i=16;$i<scalar(@ARGV);$i++){
 		my $thiscolname =$ARGV[$i];
 		push(@defaultColumns, $thiscolname);
 		$colnames{$thiscolname}=$thiscolname;
@@ -56,6 +56,8 @@ if($conditionalData eq "true"){
 #Field separators
 if($fs eq "tab"){
 	$fs = "\t";
+}elsif($fs eq "comma"){
+	$fs = ",";
 }
 
 #Modification type
