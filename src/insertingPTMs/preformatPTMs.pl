@@ -58,6 +58,10 @@ if($fs eq "tab"){
 	$fs = "\t";
 }elsif($fs eq "comma"){
 	$fs = ",";
+}elsif($fs eq "semicolon"){
+	$fs = ";";
+}elsif($fs eq "space"){
+	$fs = " ";
 }
 
 #Modification type
