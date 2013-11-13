@@ -260,15 +260,21 @@ sub headerParsing{
 				#Checks if the column is in the default set of headers
 				my $flag;
 				foreach (my $x=0;$x<scalar(@defaultColumns);$x++){
-					if($colnames{$headerFields[$i]} eq $defaultColumns[$x]){
-						$flag=$x;
+					#check if the column is cited on the arguments of the script (for unused columns)
+					if(defined($colnames{$headerFields[$i]})){
+						if($colnames{$headerFields[$i]} eq $defaultColumns[$x]){
+							$flag=$x;
+						}
 					}
 				}
 				if(defined($flag)){
 					$availableHeaders{$defaultColumns[$flag]}=1;
 				}
-				#Saves the position of the interesting column
-				$column{$colnames{$headerFields[$i]}}=$i;
+				#check if the column is cited on the arguments of the script (for unused columns)
+				if(defined($colnames{$headerFields[$i]})){
+					#Saves the position of the interesting column
+					$column{$colnames{$headerFields[$i]}}=$i;
+				}
 			}
 		}
 		$startingRow=1;
