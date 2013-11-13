@@ -21,7 +21,7 @@ my $dbh = DBI->connect('DBI:mysql:'.$database.";".$dbhost, $dbuser, $dbpass, {Au
 my $errflag=0;
 
 my $quantitativeStudy;
-if(!defined($cols{"spectral_count"})){
+if(scalar(keys %cols) > 12){
 	$quantitativeStudy=1;
 }else{
 	$quantitativeStudy=0;
@@ -118,7 +118,6 @@ for (my $i=1;$i<scalar(@inlines);$i++){
 	unless($ins_ensp_site->execute($fields[$cols{"ensembl_id"}],$siteRegistry{$fields[$cols{"index"}]}, $fields[$cols{"position"}])){
 		$errflag=1;
 	}
-	
 }
 
 
