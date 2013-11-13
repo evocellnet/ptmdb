@@ -9,12 +9,11 @@ my $dbhost=$ARGV[0];
 my $database=$ARGV[1];
 my $dbuser=$ARGV[2];
 my $dbpass=$ARGV[3];
+my $experiment=$ARGV[4];	# EXPERIMENT ID to be linked to
+
 
 my $colsRef = parseHeader($inlines[0]);
 my %cols = %{$colsRef};
-
-# TODO CHANGE EXPERIMENT
-my $experiment="1";
 
 #Connecting to the database
 my $dbh = DBI->connect('DBI:mysql:'.$database.";".$dbhost, $dbuser, $dbpass, {AutoCommit => 0}) || die "Could not connect to database: $DBI::errstr";
