@@ -162,7 +162,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_quantification` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `condition` INT(11) UNSIGNED NOT NULL,
-  `log2` FLOAT NOT NULL,
+  `log2` FLOAT NULL,
   `peptide` INT(11) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `condition` (`condition` ASC),
