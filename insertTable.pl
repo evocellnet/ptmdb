@@ -10,10 +10,15 @@ my $database=$ARGV[1];
 my $dbuser=$ARGV[2];
 my $dbpass=$ARGV[3];
 my $experiment=$ARGV[4];	# EXPERIMENT ID to be linked to
-
+my $conditionsNamesString=$ARGV[5];	#semi-colon separated conditions names
+my $conditionsIdsString=$ARGV[6]; #semi-colon separated conditions strings
 
 my $colsRef = parseHeader($inlines[0]);
 my %cols = %{$colsRef};
+
+#Arrays containing the conditions names and ids
+my @conditionsNames = split(";", $conditionsNamesString);
+my @conditionsIdsString = split(";", $conditionsIdsString)
 
 #Connecting to the database
 my $dbh = DBI->connect('DBI:mysql:'.$database.";".$dbhost, $dbuser, $dbpass, {AutoCommit => 0}) || die "Could not connect to database: $DBI::errstr";
@@ -63,6 +68,14 @@ for (my $i=1;$i<scalar(@inlines);$i++){
 			}else{
 				$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, scored_peptide) VALUES (?,?,?)');
 				unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"peptide_scored"}])){
+					$errflag=1;
+				}
+			}
+			#Inserting the peptide quantifications
+			my $pepId = $ins_peptide->{mysql_insertid};
+			for(my $j=0;$j<scalar(@conditionsNames);$j++){
+				$ins_peptide_quantification= $dbh->prepare('INSERT INTO peptide_quantification(condition, log2, peptide) VALUES (?,?,?)');
+				unless($ins_peptide_quantification->execute($conditionsIdsString[$j],$fields[$cols{$conditionsNames[$j]}],$pepId)){
 					$errflag=1;
 				}
 			}
@@ -117,6 +130,8 @@ for (my $i=1;$i<scalar(@inlines);$i++){
 	unless($ins_ensp_site->execute($fields[$cols{"ensembl_id"}],$siteRegistry{$fields[$cols{"index"}]}, $fields[$cols{"position"}])){
 		$errflag=1;
 	}
+	
+	
 }
 
 
