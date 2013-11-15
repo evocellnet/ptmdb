@@ -42,7 +42,7 @@ my $ins_ensp_peptide=$dbh->prepare('INSERT INTO ensp_peptide(ensembl_id, peptide
 my $ins_site;
 my $ins_peptide_site=$dbh->prepare('INSERT INTO peptide_site(peptide_id, site_id) VALUES (?,?)');
 my $ins_ensp_site=$dbh->prepare('INSERT INTO ensp_site(ensp, site_id, position) VALUES (?,?,?)');
-my $ins_peptide_quantification=$dbh->prepare('INSERT INTO peptide_quantification(peptide_quantification.condition, log2, peptide) VALUES (?,?,?)');
+my $ins_peptide_quantification;
 
 #reading the table content
 for (my $i=1;$i<scalar(@inlines);$i++){
@@ -78,12 +78,15 @@ for (my $i=1;$i<scalar(@inlines);$i++){
 			for(my $j=0;$j<scalar(@conditionsNames);$j++){
 				my $logvalue;
 				if($fields[$cols{$conditionsNames[$j]}] eq "NA"){
-					$logvalue='';
+					$ins_peptide_quantification=$dbh->prepare('INSERT INTO peptide_quantification(peptide_quantification.condition, peptide) VALUES (?,?)');
+					unless($ins_peptide_quantification->execute($conditionsIdsString[$j],$pepId)){
+						$errflag=1;
+					}
 				}else{
-					$logvalue=$fields[$cols{$conditionsNames[$j]}];
-				}
-				unless($ins_peptide_quantification->execute($conditionsIdsString[$j],$logvalue,$pepId)){
-					$errflag=1;
+					$ins_peptide_quantification=$dbh->prepare('INSERT INTO peptide_quantification(peptide_quantification.condition, log2, peptide) VALUES (?,?,?)');
+					unless($ins_peptide_quantification->execute($conditionsIdsString[$j],$fields[$cols{$conditionsNames[$j]}],$pepId)){
+						$errflag=1;
+					}
 				}
 			}
 		}else{
