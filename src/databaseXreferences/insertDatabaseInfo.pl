@@ -20,6 +20,7 @@ my $IPI_FASTA = $ARGV[11];
 my $IPI_HISTORY_PARSED = $ARGV[12];
 my $BIOMARTLWP = $ARGV[13];
 my $XML_PATH = $ARGV[14];
+my $MODIFICATIONS_FILE = $ARGV[15];
 
 my $tolerance = 0.05;	# Tolerance in sequence length for two IDs to be considered the same (When evidences support it)
 my $relaxtolerance = 0.5;	# Tolerance in sequence length for two IDs to be considered the same (Stronger evidences support it)
@@ -687,6 +688,19 @@ while(<PS>){
 	
 }		
 	
+### INSERTING MODIFICATION TYPES #################################################################################
+
+open(MODFILE, $MODIFICATIONS_FILE);
+my @modfilelines = <MODFILE>;
+close(MODFILE);
+
+foreach my $line (@modfilelines){
+	my @fields = split("/\t/", $line);
+	my $insModificationsStatement =  $dbh->prepare('INSERT INTO modification(id,description) VALUES (?,?)');
+	unless($insModificationsStatement->execute($fields[0], $fields[1])){
+		$errflag=1;
+	}
+}
 
 ### FINISHING #################################
 
