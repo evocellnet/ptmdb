@@ -9,8 +9,8 @@ Check out the config.sh file to be sure of the external databases necessary to f
 
 * Dependencies:
 
-	* perl - (DBI)
+	* perl - *packages:* DBI, DBD::MySQL, LWP
 
-	* R - (RMySQL)
+	* R - *packages:* RMySQL
 
 This repository can act also as a submodule of other projects intended to use the ptmdb.
