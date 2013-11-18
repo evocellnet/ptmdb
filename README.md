@@ -1,7 +1,7 @@
-ptmdb
-=====
+# ptmdb
 
-This project contains all the necessary code to create and fill the database of post-translational modifications. The database will contain the quantitative and non-quatitative ptms available as well as the necessary information to map it through different IDs.
+
+This project contains all the necessary code to create and fill a database of post-translational modifications. The database will contain the quantitative and non-quatitative ptms available as well as the necessary information to map it through different IDs.
 
 * Requirements:
 
