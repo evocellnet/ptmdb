@@ -23,7 +23,6 @@ foreach my $line (@modfilelines){
 	chomp($line);
 	my @fields = split("\t", $line);
 	my $insModificationsStatement =  $dbh->prepare('INSERT INTO modification(id,description) VALUES (?,?)');
-	print $fields[0]."\n";
 	unless($insModificationsStatement->execute($fields[0], $fields[1])){
 		$errflag=1;
 	}
