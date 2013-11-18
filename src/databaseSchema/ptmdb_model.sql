@@ -372,6 +372,18 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `ptmdb`.`modification`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`modification` (
+  `id` CHAR(1) NOT NULL,
+  `description` VARCHAR(85) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
+  UNIQUE INDEX `description_UNIQUE` (`description` ASC))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `ptmdb`.`site`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`site` (
@@ -382,10 +394,16 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`site` (
   `experiment` INT(11) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `key_site_experiment_idx` (`experiment` ASC),
+  INDEX `key_modif_type_idx` (`modif_type` ASC),
   CONSTRAINT `key_site_experiment`
     FOREIGN KEY (`experiment`)
     REFERENCES `ptmdb`.`experiment` (`id`)
     ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `key_modif_type`
+    FOREIGN KEY (`modif_type`)
+    REFERENCES `ptmdb`.`modification` (`id`)
+    ON DELETE RESTRICT
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 

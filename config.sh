@@ -22,5 +22,8 @@ IPIFTP="ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current"
 #Proteomes folder
 PROTEOMES="./proteomes"
 
-
+# Organisms table
 input="organism.csv"
+
+# Modification types
+MODTYPESFILE="modifications.csv"
