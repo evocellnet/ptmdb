@@ -23,7 +23,7 @@ IPIFTP="ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current"
 PROTEOMES="./proteomes"
 
 # Organisms table
-input="organism.csv"
+ORGANISMSFILE="organism.csv"
 
 # Modification types
 MODTYPESFILE="modifications.csv"

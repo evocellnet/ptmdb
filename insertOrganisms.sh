@@ -24,7 +24,7 @@ do
 	ens+=("$f7")
 	biomart+=("$f8")
 	
-done < "$input"
+done < "$ORGANISMSFILE"
 
 
 # DOWNLOAD NECESSARY BIOMART DATA ##################################################################################
