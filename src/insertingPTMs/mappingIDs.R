@@ -76,8 +76,7 @@ names(ptms)[1] <- "index"
 #Database Table mapping uniprot 2 ensembl ids
 if(idType == "ipi"){
 	#Query database
-	directMappingsQuery <- "SELECT ipihis.all_ipi,ensipi.ensembl_id,ensp.sequence FROM ipi_history AS ipihis INNER JOIN ensembl_ipi AS ensipi ON ipihis.current_ipi = ensipi.ipi INNER JOIN ensp ON ensipi.ensembl_id = ensp.id"
-	# directMappingsQuery <- paste("SELECT ipihis.all_ipi, ensipi.ensembl_id, ensporg.sequence FROM ipi_history AS ipihis INNER JOIN (SELECT id FROM IPI WHERE taxid = \'",org,"\') AS ipiorg ON ipihis.current_ipi = ipiorg.id INNER JOIN ensembl_ipi AS ensipi ON ipiorg.id = ensipi.ipi INNER JOIN (SELECT id,sequence FROM ensp WHERE taxid=\'", org, "\') AS ensporg ON ensipi.ensembl_id = ensporg.id;", sep="")
+	directMappingsQuery <- paste("SELECT ipihis.all_ipi,ensipi.ensembl_id,ensp.sequence FROM ipi_history AS ipihis INNER JOIN ensembl_ipi AS ensipi ON ipihis.current_ipi = ensipi.ipi INNER JOIN ensp ON ensipi.ensembl_id = ensp.id WHERE ensp.id=\'",org,"\')",sep="")
 	directMapping <- query(directMappingsQuery)
 	if(length(directMapping)){
 		res <- merge(ptms, unique(directMapping[ ,c("all_ipi", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="all_ipi")
@@ -85,11 +84,38 @@ if(idType == "ipi"){
 		stop("No results returned from the database")
 	}
 }else if(idType == "uniprot"){
-	directMappingsQuery <- "SELECT uniens.uniprot_accession,uniens.ensembl_id,ensp.sequence FROM uniprot_ensembl AS uniens INNER JOIN ensp ON uniens.ensembl_id = ensp.id"
+	directMappingsQuery <- paste("SELECT uniens.uniprot_accession,uniens.ensembl_id,ensp.sequence FROM uniprot_ensembl AS uniens INNER JOIN ensp ON uniens.ensembl_id = ensp.id WHERE ensp.id=\'",org,"\'",sep="")
 	directMapping <- query(directMappingsQuery)
 	#We add available ensembl references
 	if(length(directMapping)){
 		res <- merge(ptms, unique(directMapping[ ,c("uniprot_accession", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="uniprot_accession")
+	}else{
+		stop("No results returned from the database")
+	}
+}else if(idType == "ensp"){
+	directMappingsQuery <- paste("SELECT ensp.id,ensp.sequence FROM ensp WHERE ensp.taxid=\'", org, "\'", sep="")
+	directMapping <- query(directMappingsQuery)
+	#We add available ensembl references
+	if(length(directMapping)){
+		res <- merge(ptms, unique(directMapping[ ,c("id", "sequence")]), all.x=TRUE, by.x="id", by.y="id")
+	}else{
+		stop("No results returned from the database")
+	}
+}else if(idType == "gene_name"){
+	directMappingsQuery <- paste("SELECT ensg.name,ensp.id,sequence FROM ensg INNER JOIN ensg_ensp ON ensg.id=ensg_ensp.ensg_id INNER JOIN ensp ON ensg_ensp.ensp_id = ensp.id WHERE ensp.taxid=\'", org, "\'", sep="")
+	directMapping <- query(directMappingsQuery)
+	#We add available ensembl references
+	if(length(directMapping)){
+		res <- merge(ptms, unique(directMapping[ ,c("name","id", "sequence")]), all.x=TRUE, by.x="id", by.y="name")
+	}else{
+		stop("No results returned from the database")
+	}
+}else if(idType == "ensg"){
+	directMappingsQuery <- paste("SELECT ensg_ensp.ensg_id,ensp.id,sequence FROM ensg INNER JOIN ensg_ensp ON ensg.id=ensg_ensp.ensg_id INNER JOIN ensp ON ensg_ensp.ensp_id = ensp.id WHERE ensp.taxid=\'", org, "\'", sep="")
+	directMapping <- query(directMappingsQuery)
+	#We add available ensembl references
+	if(length(directMapping)){
+		res <- merge(ptms, unique(directMapping[ ,c("name","id", "sequence")]), all.x=TRUE, by.x="id", by.y="ensg_id")
 	}else{
 		stop("No results returned from the database")
 	}
