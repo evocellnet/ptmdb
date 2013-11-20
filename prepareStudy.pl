@@ -16,15 +16,16 @@ my $aaCol = $ARGV[11];
 my $resnumCol = $ARGV[12];
 my $locScoreCol = $ARGV[13];
 my $peptideCol = $ARGV[14];
-my $peptideScoredCol = $ARGV[15];
-my $conditionalData = $ARGV[16];
-my $spectralCountsCol = $ARGV[17];
+my $peptideFormat = $ARGV[15];
+my $peptideScoredCol = $ARGV[16];
+my $conditionalData = $ARGV[17];
+my $spectralCountsCol = $ARGV[18];
 
 #In case it's a conditional experiment
 my @conditionalHeaders;
 
 if($conditionalData eq "true"){
-	for (my $i=18;$i<scalar(@ARGV);$i++){
+	for (my $i=19;$i<scalar(@ARGV);$i++){
 		my $thiscolname =$ARGV[$i];
 		push(@conditionalHeaders, $thiscolname);
 	}
