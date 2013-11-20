@@ -26,8 +26,7 @@ my $spectralCountsCol = $ARGV[14];
 my $numConditons;
 my $conditionScale;
 
-#In case it's a conditional experiment
-my @conditionalHeaders;
+my %conditionalColumns;	# In case they exist this hash contains 1 if the given column is a conditional column 
 
 #The columns that will be printed on the default case (Some modifications will be applied if they are not present)
 my @defaultColumns = ("id", "residue", "modification_type", "position", "localization_score", "peptide", "peptide_scored", "simplified_peptide", "spectral_count");
@@ -51,6 +50,7 @@ if($conditionalData eq "true"){
 		my $thiscolname =$ARGV[$i];
 		push(@defaultColumns, $thiscolname);
 		$colnames{$thiscolname}=$thiscolname;
+		$conditionalColumns{$thiscolname}=1;
 	}
 }
 
@@ -128,17 +128,17 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 			if($peptideScoredCol ne "NA"){
 				#if there is an entry for each site on the peptide and they match their relative positions
 				if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}}, \%{$excluded{$fields[$column{"id"}]}}, $ptmString)){
-					printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%repeatedPositions, $ptmString);
+					printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%repeatedPositions, $ptmString, \%conditionalColumns, $conditionScale);
 				}else{
-					%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults)};
+					%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults,  \%conditionalColumns, $conditionScale)};
 				}			
 			}else{
 				#if there is an entry for each site on the peptide and they match their relative positions
 				if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide"}]}}, \%{$excluded{$fields[$column{"id"}]}}, $ptmString)){
-					printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%repeatedPositions, $ptmString);
+					printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%repeatedPositions, $ptmString,  \%conditionalColumns, $conditionScale);
 				}else{	#if not they are saved for later processing
-					%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults)};
-				}							
+					%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults, \%conditionalColumns, $conditionScale)};
+				}
 			}
 		}
 	}
@@ -151,12 +151,16 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 
 #PRINTS AN ENTRY LINE
 sub printLine{
-	my @fields=@{$_[0]};
-	my %column=%{$_[1]};
-	my @defaultColumns = @{$_[2]};
-	my %availableDefaults = %{$_[3]};
-	my %repeatedPositions = %{$_[4]};
-	my $ptmString=$_[5];
+	my @fields=@{$_[0]};	#Contains the fields of the column
+	my %column=%{$_[1]};	#Hash containing the column headers
+	my @defaultColumns = @{$_[2]};	# Columns printed by default (including all the conditional columns)
+	my %availableDefaults = %{$_[3]};	# Those of the headers in the default set that have been found on this table
+	my %repeatedPositions = %{$_[4]};	# Hash containing information on wether this is a repeated peptide or not
+	my $ptmString=$_[5];	#String representing the ptm on the peptide
+	my %conditionalColumns=%{$_[6]};	#Hash containing the header names that are conditional 
+	my $conditionScale =$_[7];	#how the conditional data is represented (log10, log2, ratio)
+	
+	my $refScale = "log2";
 	
 	my $refcolumn="peptide_scored";
 	if(! defined($column{"peptide_scored"})){
@@ -167,7 +171,6 @@ sub printLine{
 		$aa = $fields[$column{"residue"}];
 	}
 	
-	
 	my ($simplified, $validatedAa) = simplifiedPeptideFromPosition($fields[$column{"peptide"}],\@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{$refcolumn}]}},$fields[$column{"position"}], \%{$excluded{$fields[$column{"id"}]}}, $ptmString, $aa);
 	
 	#Skips in case the modified aminoacid is not the same as the one detected in the peptide  
@@ -177,11 +180,43 @@ sub printLine{
 	
 	my @toprint;
 	foreach my $defaultCol (@defaultColumns){
+		# it checks if the column is available on the table
 		if(defined($availableDefaults{$defaultCol})){
-			if(defined($fields[$column{$defaultCol}])){
-				push(@toprint,$fields[$column{$defaultCol}]);
+			# if this is a conditional column
+			if(defined($conditionalColumns{$defaultCol})){
+				# If the scale is the one by default (log2)
+				if($conditionScale eq $refScale){
+					# if the data is present (if not 'NA')
+					if(defined($fields[$column{$defaultCol}])){
+						push(@toprint, $fields[$column{$defaultCol}]);
+					}else{
+						push(@toprint, "NA");
+					}
+				}else{
+					my $rounded;
+					if(defined($fields[$column{$defaultCol}])){
+						if($conditionScale eq "ratio"){
+							# if the ratio is greater than 0
+							if($fields[$column{$defaultCol}] > 0){
+								$rounded = sprintf("%.4f", log_N($fields[$column{$defaultCol}],2));
+								push(@toprint, $rounded);
+							}else{
+								push(@toprint, "NA");
+							}
+						}elsif($conditionScale eq "log10"){
+							$rounded = sprintf("%.4f", log_N(10 ** $fields[$column{$defaultCol}], 2));
+							push(@toprint, $rounded);
+						}
+					}else{
+						push(@toprint, "NA");
+					}
+				}
 			}else{
-				push(@toprint,"NA");
+				if(defined($fields[$column{$defaultCol}])){
+					push(@toprint,$fields[$column{$defaultCol}]);
+				}else{
+					push(@toprint,"NA");
+				}
 			}
 		}else{
 			if($defaultCol eq "modification_type"){
@@ -196,7 +231,6 @@ sub printLine{
 		}
 	}
 	print(join($outfs, @toprint)."\n");
-	
 }
 
 #Changes the original peptides to a more common format with the type of modification within parenthesis
@@ -588,6 +622,8 @@ sub multiplyEntry{
 	my %visited = %{$_[2]};
 	my $ptmString = $_[3];
 	my %availableDefaults = %{$_[4]};
+	my %conditionalColumns = %{$_[5]};
+	my $conditionScale=$_[6];
 	
 	my $refcolumn="peptide";	#Column that will be used as reference 
 	if(defined($availableDefaults{"peptide_scored"})){
@@ -595,7 +631,7 @@ sub multiplyEntry{
 	}
 	
 	if(! defined($visited{$fields[$column{"id"}]}{$fields[$column{$refcolumn}]})){
-		printMultipliedLines(\@fields, \%column, \@defaultColumns, \%availableDefaults,$ptmString);
+		printMultipliedLines(\@fields, \%column, \@defaultColumns, \%availableDefaults,$ptmString, \%conditionalColumns,$conditionScale);
 		$visited{$fields[$column{"id"}]}{$fields[$column{$refcolumn}]}=1;
 	}
 		
@@ -608,7 +644,9 @@ sub printMultipliedLines{
 	my @defaultColumns = @{$_[2]};
 	my %availableDefaults = %{$_[3]};
 	my $ptmString=$_[4];
-	
+	my %conditionalColumns=%{$_[5]};
+	my $conditionScale=$_[6];
+		
 	my $peptide = $fields[$column{"peptide"}];
 	my $scored_peptide;
 	my @modPositions = @{exactPositionsInPeptide($peptide,$ptmString)};
@@ -624,7 +662,8 @@ sub printMultipliedLines{
 	
 	for(my $i=0;$i<scalar(@modPositions);$i++){
 		my @toprint=();
-		foreach my $defaultCol (@defaultColumns){
+		foreach my $defaultCol (@defaultColumns){			
+			# it checks if the column is available on the table
 			if(defined($availableDefaults{$defaultCol})){
 				if($defaultCol eq "localization_score"){
 					if(scalar(@scores)>0){
@@ -637,10 +676,38 @@ sub printMultipliedLines{
 				}elsif($defaultCol eq "residue"){
 					push(@toprint,$modifiedRes[$i]);
 				}else{
-					if(defined($fields[$column{$defaultCol}])){
-						push(@toprint,$fields[$column{$defaultCol}]);
+					# if this is a conditional column
+					if(defined($conditionalColumns{$defaultCol})){
+						# If the scale is the one by default (log2)
+						if($conditionScale eq "log2"){
+							# if the data is present (if not 'NA')
+							if(defined($fields[$column{$defaultCol}])){
+								push(@toprint, $fields[$column{$defaultCol}]);
+							}else{
+								push(@toprint, "NA");
+							}
+						}else{
+							my $rounded;
+							# if the data is present (if not 'NA')
+							if(defined($fields[$column{$defaultCol}])){
+								if($conditionScale eq "ratio"){
+									$rounded = sprintf("%.4f", log_N($fields[$column{$defaultCol}],2));
+									push(@toprint, $rounded);
+								}elsif($conditionScale eq "log10"){
+									$rounded = sprintf("%.4f", log_N(10**$fields[$column{$defaultCol}], 2));
+									push(@toprint, $rounded);
+								}
+							}else{
+								push(@toprint,"NA");
+							}
+						}
 					}else{
-						push(@toprint,"NA");
+						if(defined($fields[$column{$defaultCol}])){
+							push(@toprint,$fields[$column{$defaultCol}]);
+						}else{
+							push(@toprint,"NA");
+						}
+						
 					}
 				}
 			}else{
@@ -661,6 +728,12 @@ sub printMultipliedLines{
 	}	
 }
 
+# Function to get logarithms
+sub log_N{
+  my $num = shift;
+  my $base = shift;
+  return log($num)/log($base);
+}
 
 sub getSimplifiedPeptidesForIndexes{
 	my $peptide=$_[0];
