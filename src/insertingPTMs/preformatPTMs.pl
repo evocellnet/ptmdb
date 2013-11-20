@@ -16,9 +16,10 @@ my $aaCol = $ARGV[7];
 my $resnumCol = $ARGV[8];
 my $locScoreCol = $ARGV[9];
 my $peptideCol = $ARGV[10];
-my $peptideScoredCol = $ARGV[11];
-my $conditionalData = $ARGV[12];
-my $spectralCountsCol = $ARGV[13];
+my $peptideFormat = $ARGV[11];
+my $peptideScoredCol = $ARGV[12];
+my $conditionalData = $ARGV[13];
+my $spectralCountsCol = $ARGV[14];
 
 #ARGS[14...] are described after
 
@@ -43,10 +44,10 @@ $colnames{$peptideScoredCol} = "peptide_scored";
 $colnames{$spectralCountsCol}="spectral_count";
 
 if($conditionalData eq "true"){
-	$numConditons = $ARGV[14];
-	$conditionScale = $ARGV[15];
+	$numConditons = $ARGV[15];
+	$conditionScale = $ARGV[16];
 	
-	for (my $i=16;$i<scalar(@ARGV);$i++){
+	for (my $i=17;$i<scalar(@ARGV);$i++){
 		my $thiscolname =$ARGV[$i];
 		push(@defaultColumns, $thiscolname);
 		$colnames{$thiscolname}=$thiscolname;
@@ -86,7 +87,12 @@ my %availableDefaults = %{$availableDefaultsRef};
 
 #Gets the format used for the peptide
 my @firstEntryFields = split($fs,$inlines[$startingRow]);
-my $peptideFormat = getPeptideFormat($firstEntryFields[$column{"peptide"}]);
+my $peptideFormatValidation = getPeptideFormat($firstEntryFields[$column{"peptide"}]);
+
+# Checks if the peptide format is correct. Otherwise it crashes
+if($peptideFormat ne $peptideFormatValidation){
+	die "Peptide do not correspond with the detected format";
+}
 my ($inlinesref, $ptmString) = standarizePeptides(\@inlines, \%column, $fs, $startingRow,$peptideFormat);
 @inlines = @{$inlinesref};
 
