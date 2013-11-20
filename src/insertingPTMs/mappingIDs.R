@@ -76,7 +76,7 @@ names(ptms)[1] <- "index"
 #Database Table mapping uniprot 2 ensembl ids
 if(idType == "ipi"){
 	#Query database
-	directMappingsQuery <- paste("SELECT ipihis.all_ipi,ensipi.ensembl_id,ensp.sequence FROM ipi_history AS ipihis INNER JOIN ensembl_ipi AS ensipi ON ipihis.current_ipi = ensipi.ipi INNER JOIN ensp ON ensipi.ensembl_id = ensp.id WHERE ensp.id=\'",org,"\')",sep="")
+	directMappingsQuery <- paste("SELECT ipihis.all_ipi,ensipi.ensembl_id,ensp.sequence FROM ipi_history AS ipihis INNER JOIN ensembl_ipi AS ensipi ON ipihis.current_ipi = ensipi.ipi INNER JOIN ensp ON ensipi.ensembl_id = ensp.id WHERE ensp.taxid=\'",org,"\'",sep="")
 	directMapping <- query(directMappingsQuery)
 	if(length(directMapping)){
 		res <- merge(ptms, unique(directMapping[ ,c("all_ipi", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="all_ipi")
@@ -84,7 +84,7 @@ if(idType == "ipi"){
 		stop("No results returned from the database")
 	}
 }else if(idType == "uniprot"){
-	directMappingsQuery <- paste("SELECT uniens.uniprot_accession,uniens.ensembl_id,ensp.sequence FROM uniprot_ensembl AS uniens INNER JOIN ensp ON uniens.ensembl_id = ensp.id WHERE ensp.id=\'",org,"\'",sep="")
+	directMappingsQuery <- paste("SELECT uniens.uniprot_accession,uniens.ensembl_id,ensp.sequence FROM uniprot_ensembl AS uniens INNER JOIN ensp ON uniens.ensembl_id = ensp.id WHERE ensp.taxid=\'",org,"\'",sep="")
 	directMapping <- query(directMappingsQuery)
 	#We add available ensembl references
 	if(length(directMapping)){
