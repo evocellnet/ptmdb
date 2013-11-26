@@ -33,7 +33,7 @@ echo -ne "Downloading datasets from Biomart...\n "
 wget -P ${MARTS} "http://www.biomart.org/biomart/martservice?type=datasets&mart=ensembl" -O ${MARTS}/biomart_datasets.txt
 
 echo -ne "Inserting modifications...\n "	
-perl ./src/databaseXreferences/insertModifications.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${MODTYPESFILE}
+perl ./src/databaseXreferences/insertModifications.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${DBPORT} ${MODTYPESFILE}
 
 for ((i=1; i<${#organism[@]}; i++))
 
@@ -45,7 +45,7 @@ for ((i=1; i<${#organism[@]}; i++))
 	
 	#CHECKING IF AN ORGANISM EXISTS IN THE DATABASE
 	
-	EXIST=`perl ./src/databaseXreferences/checkOrganism.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${TAXID}`
+	EXIST=`perl ./src/databaseXreferences/checkOrganism.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${DBPORT} ${TAXID}`
 	
 		if [[ $EXIST = "TRUE" ]]
 			then
@@ -143,7 +143,7 @@ for ((i=1; i<${#organism[@]}; i++))
 
 				echo -ne "Inserting databases information...\n"
 		
-				perl ./src/databaseXreferences/insertDatabaseInfo.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${ENSEMBL_FASTA} ${TAXID} ${SCIENTIFIC_NAME} ${COMMON_NAME} ${ENSNAME} ${INPARANNOID} ${UNIPROT} ${IPI_FASTA} ${IPI_HISTORY/.history/_parsed.history} ${BIOMARTLWP} ${XML_PATH}
+				perl ./src/databaseXreferences/insertDatabaseInfo.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${DBPORT} ${ENSEMBL_FASTA} ${TAXID} ${SCIENTIFIC_NAME} ${COMMON_NAME} ${ENSNAME} ${INPARANNOID} ${UNIPROT} ${IPI_FASTA} ${IPI_HISTORY/.history/_parsed.history} ${BIOMARTLWP} ${XML_PATH}
 		fi
 		
 		

@@ -9,9 +9,10 @@ my $dbhost=$ARGV[0];
 my $database=$ARGV[1];
 my $dbuser=$ARGV[2];
 my $dbpass=$ARGV[3];
-my $experiment=$ARGV[4];	# EXPERIMENT ID to be linked to
-my $conditionsNamesString=$ARGV[5];	#semi-colon separated conditions names
-my $conditionsIdsString=$ARGV[6]; #semi-colon separated conditions strings
+my $dbport=$ARGV[4];
+my $experiment=$ARGV[5];	# EXPERIMENT ID to be linked to
+my $conditionsNamesString=$ARGV[6];	#semi-colon separated conditions names
+my $conditionsIdsString=$ARGV[7]; #semi-colon separated conditions strings
 
 my $colsRef = parseHeader($inlines[0]);
 my %cols = %{$colsRef};
@@ -22,7 +23,7 @@ my @conditionsNames = split(";", $conditionsNamesString);
 my @conditionsIdsString = split(";", $conditionsIdsString);
 
 #Connecting to the database
-my $dbh = DBI->connect('DBI:mysql:'.$database.";".$dbhost, $dbuser, $dbpass, {AutoCommit => 0}) || die "Could not connect to database: $DBI::errstr";
+my $dbh = DBI->connect('DBI:mysql:database='.$database.";host=".$dbhost.";port=".$dbport, $dbuser, $dbpass, {AutoCommit => 0}) || die "Could not connect to database: $DBI::errstr";
 my $errflag=0;
 
 my $quantitativeStudy;

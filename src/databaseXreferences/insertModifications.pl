@@ -7,10 +7,11 @@ my $dbhost=$ARGV[0];
 my $database=$ARGV[1];
 my $dbuser=$ARGV[2];
 my $dbpass=$ARGV[3];
-my $MODIFICATIONS_FILE = $ARGV[4];
+my $dbport=$ARGV[4];
+my $MODIFICATIONS_FILE = $ARGV[5];
 
 #Connecting to the database
-my $dbh = DBI->connect('DBI:mysql:'.$database.";".$dbhost, $dbuser, $dbpass, {AutoCommit => 0}) || die "Could not connect to database: $DBI::errstr";
+my $dbh = DBI->connect('DBI:mysql:database='.$database.";host=".$dbhost.";port=".$dbport, $dbuser, $dbpass, {AutoCommit => 0}) || die "Could not connect to database: $DBI::errstr";
 my $errflag=0;
 
 ### INSERTING MODIFICATION TYPES #################################################################################

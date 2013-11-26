@@ -63,7 +63,7 @@ printStatistics <- function(res){
 
 # Set up a connection to your database management system.
 # I'm using the public MySQL server for the UCSC genome browser (no password)
-mychannel <- dbConnect(MySQL(), user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE)
+mychannel <- dbConnect(MySQL(), user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE, port=DBPORT)
 
 #Reading PTM table
 ptms <- read.table(file=pipe('cat /dev/stdin'), sep="\t", comment.char="",

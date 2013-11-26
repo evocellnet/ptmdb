@@ -7,25 +7,26 @@ my $dbhost=$ARGV[0];
 my $database=$ARGV[1];
 my $dbuser=$ARGV[2];
 my $dbpass=$ARGV[3];
+my $dbport=$ARGV[4];
 
 #Input Databases
-my $ENSEMBL_FASTA=$ARGV[4];
-my $TAXID = $ARGV[5];
-my $SCIENTIFIC_NAME = $ARGV[6];
-my $COMMON_NAME = $ARGV[7];
-my $ENSNAME = $ARGV[8];
-my $INPARANNOID = $ARGV[9];
-my $UNIPROT = $ARGV[10];
-my $IPI_FASTA = $ARGV[11];
-my $IPI_HISTORY_PARSED = $ARGV[12];
-my $BIOMARTLWP = $ARGV[13];
-my $XML_PATH = $ARGV[14];
+my $ENSEMBL_FASTA=$ARGV[5];
+my $TAXID = $ARGV[6];
+my $SCIENTIFIC_NAME = $ARGV[7];
+my $COMMON_NAME = $ARGV[8];
+my $ENSNAME = $ARGV[9];
+my $INPARANNOID = $ARGV[10];
+my $UNIPROT = $ARGV[11];
+my $IPI_FASTA = $ARGV[12];
+my $IPI_HISTORY_PARSED = $ARGV[13];
+my $BIOMARTLWP = $ARGV[14];
+my $XML_PATH = $ARGV[15];
 
 my $tolerance = 0.05;	# Tolerance in sequence length for two IDs to be considered the same (When evidences support it)
 my $relaxtolerance = 0.5;	# Tolerance in sequence length for two IDs to be considered the same (Stronger evidences support it)
 
 #Connecting to the database
-my $dbh = DBI->connect('DBI:mysql:'.$database.";".$dbhost, $dbuser, $dbpass, {AutoCommit => 0}) || die "Could not connect to database: $DBI::errstr";
+my $dbh = DBI->connect('DBI:mysql:database='.$database.";host=".$dbhost.";port=".$dbport, $dbuser, $dbpass, {AutoCommit => 0}) || die "Could not connect to database: $DBI::errstr";
 my $errflag=0;
 
 #### ORGANISM #############################
