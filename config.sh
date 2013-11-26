@@ -9,7 +9,7 @@ DBHOST="localhost"
 DATABASE="ptmdb"
 DBUSER="webAdmin"
 DBPASS="webAdmin"
-DBPORT="3306"
+DBPORT=3306
 
 # Biomart datasets
 MARTS="./src/databaseXreferences"
