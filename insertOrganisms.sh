@@ -114,9 +114,10 @@ for ((i=1; i<${#organism[@]}; i++))
 					IPI_HISTORY="${PROTEOMES}/${organism[i]}/${ipi[i]}.history"
 					ENSEMBL_FASTA="${PROTEOMES}/${organism[i]}/ensembl_${organism[i]}"
 				
-				SUB=$(echo ${SCIENTIFIC_NAME} | sed 's/[a-zA-Z]*_\([a-zA-Z]*\)/\1/')
+				SUBLOW=${SCIENTIFIC_NAME,}	#change the first letter of scientific name from uppercase to lowercase
+				SUB=$(echo ${SCIENTIFIC_NAME} | sed 's/[a-zA-Z]* \([a-zA-Z]*\)/\1/')#matches all characters after space in the scientific name field of csv file		
 				# SUB=`expr match "${SCIENTIFIC_NAME}" '.*\_\([a-z]*\)'`	#matches all characters after '_' in the scientific name field of csv file				
-				ENSEMBL_NAME=${SCIENTIFIC_NAME:0:1}${SUB}	#concatenates the first character of scientific name field with the above
+				ENSEMBL_NAME=${SUBLOW:0:1}${SUB}	#concatenates the first character of scientific name field with the above
 				if grep -q ${ENSEMBL_NAME} "${MARTS}/biomart_datasets.txt"
 				then
 					ENSNAME=${ENSEMBL_NAME}_gene_ensembl
@@ -125,7 +126,7 @@ for ((i=1; i<${#organism[@]}; i++))
 				fi
 				
 				mkdir -p ./src/databaseXreferences/xmlTemplates
-				perl ./src/databaseXreferences/xmlQueryGenerator.pl ${ENSNAME} ${XML_PATH} ${TAXID}	#Creates the xml file dynamically
+				perl ./src/databaseXreferences/xmlQueryGenerator.pl "${ENSNAME}" ${XML_PATH} ${TAXID}	#Creates the xml file dynamically
 				
 				
 
@@ -143,7 +144,7 @@ for ((i=1; i<${#organism[@]}; i++))
 
 				echo -ne "Inserting databases information...\n"
 		
-				perl ./src/databaseXreferences/insertDatabaseInfo.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${DBPORT} ${ENSEMBL_FASTA} ${TAXID} ${SCIENTIFIC_NAME} ${COMMON_NAME} ${ENSNAME} ${INPARANNOID} ${UNIPROT} ${IPI_FASTA} ${IPI_HISTORY/.history/_parsed.history} ${BIOMARTLWP} ${XML_PATH}
+				perl ./src/databaseXreferences/insertDatabaseInfo.pl ${DBHOST} ${DATABASE} ${DBUSER} ${DBPASS} ${DBPORT} ${ENSEMBL_FASTA} ${TAXID} "${SCIENTIFIC_NAME}" ${COMMON_NAME} "${ENSNAME}" ${INPARANNOID} ${UNIPROT} ${IPI_FASTA} ${IPI_HISTORY/.history/_parsed.history} ${BIOMARTLWP} ${XML_PATH}
 		fi
 		
 		
