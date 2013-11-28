@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `comments` TINYTEXT NULL,
   `labelling_type` ENUM('free','metabolic','chemical') NULL,
   `labelling_method` VARCHAR(11) NULL,
-  `spectrometer` VARCHAR(30) NULL,
+  `spectrometer` VARCHAR(140) NULL,
   `enrichment_method` ENUM('TiO2','Antibody') NULL,
   `antibody` VARCHAR(11) NULL,
   `identification_software` VARCHAR(140) NULL,
