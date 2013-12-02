@@ -48,6 +48,8 @@ if($conditionalData eq "true"){
 	
 	for (my $i=17;$i<scalar(@ARGV);$i++){
 		my $thiscolname =$ARGV[$i];
+		# removing strange characters from headers
+		$thiscolname=~s/[\/\\\.\?\+\-]/_/g;
 		push(@defaultColumns, $thiscolname);
 		$colnames{$thiscolname}=$thiscolname;
 		$conditionalColumns{$thiscolname}=1;
