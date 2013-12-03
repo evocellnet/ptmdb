@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `labelling_type` ENUM('free','metabolic','chemical') NULL,
   `labelling_method` VARCHAR(11) NULL,
   `spectrometer` VARCHAR(140) NULL,
-  `enrichment_method` ENUM('TiO2','Antibody') NULL,
+  `enrichment_method` ENUM('TiO2','IMAC','Antibody') NULL,
   `antibody` VARCHAR(11) NULL,
   `identification_software` VARCHAR(140) NULL,
   `quantification_software` VARCHAR(140) NULL,
