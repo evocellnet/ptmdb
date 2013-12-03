@@ -125,7 +125,7 @@ for (my $i=1;$i<scalar(@inlines);$i++){
 			
 		}else{
 			$ins_site=$dbh->prepare('INSERT INTO site(experiment, modif_type,residue) VALUES (?,?,?)');
-			unless($ins_site->execute($experiment, $fields[$cols{"localization_score"}],$fields[$cols{"modification_type"}],$fields[$cols{"residue"}])){
+			unless($ins_site->execute($experiment,$fields[$cols{"modification_type"}],$fields[$cols{"residue"}])){
 				$errflag=1;
 			}
 		}
