@@ -489,6 +489,43 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_refseq` (
 ENGINE = InnoDB;
 
 
+-- -----------------------------------------------------
+-- Table `ptmdb`.`domain`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`domain` (
+  `pfam_id` VARCHAR(7) NOT NULL,
+  `name` VARCHAR(15) NOT NULL,
+  `description` VARCHAR(80) NULL,
+  `type` VARCHAR(20) NULL,
+  PRIMARY KEY (`pfam_id`),
+  UNIQUE INDEX `pfam_id_UNIQUE` (`pfam_id` ASC))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `ptmdb`.`domain_ensp`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `ptmdb`.`domain_ensp` (
+  `pfam_id` VARCHAR(7) NOT NULL,
+  `ensp_id` VARCHAR(30) NOT NULL,
+  `start` INT UNSIGNED NOT NULL,
+  `end` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`pfam_id`, `ensp_id`),
+  UNIQUE INDEX `pfam_id_UNIQUE` (`pfam_id` ASC),
+  UNIQUE INDEX `ensp_id_UNIQUE` (`ensp_id` ASC),
+  CONSTRAINT `from_domain_to_domain_ensp`
+    FOREIGN KEY (`pfam_id`)
+    REFERENCES `ptmdb`.`domain` (`pfam_id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `from_ensp_to_domain_ensp`
+    FOREIGN KEY (`ensp_id`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
