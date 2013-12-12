@@ -401,19 +401,21 @@ sub getRepeated{
 	for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 		my $line=$inlines[$i];
 		my @fields = split($fs, $line);
-		#if the id is defined		
-		if(defined($fields[$column{"id"}]) && ($fields[$column{"position"}] ne '')){			
-			my @repeated = sort {$a <=> $b} @{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{$refColName}]}};
-			my @relativeInEntries = @{relativePositionsInEntries(\@repeated, \%excluded)};
-			my @relativeInPeptide = @{relativePositionsInPeptide($fields[$column{"peptide"}], $ptmString)};
-			my %inPeptide;
-			foreach my $p (@relativeInPeptide){
-				$inPeptide{$p}=1;
-			}
-			for(my $i=0;$i<scalar(@relativeInEntries);$i++){
-				if(not defined($inPeptide{$relativeInEntries[$i]})){
-					my $ambigousPos = $repeated[$i];
-					$excluded{$fields[$column{"id"}]}{$ambigousPos}=1;
+		#if the id is defined
+		if(defined($column{"position"})){
+			if(defined($fields[$column{"id"}]) && ($fields[$column{"position"}] ne '')){			
+				my @repeated = sort {$a <=> $b} @{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{$refColName}]}};
+				my @relativeInEntries = @{relativePositionsInEntries(\@repeated, \%excluded)};
+				my @relativeInPeptide = @{relativePositionsInPeptide($fields[$column{"peptide"}], $ptmString)};
+				my %inPeptide;
+				foreach my $p (@relativeInPeptide){
+					$inPeptide{$p}=1;
+				}
+				for(my $i=0;$i<scalar(@relativeInEntries);$i++){
+					if(not defined($inPeptide{$relativeInEntries[$i]})){
+						my $ambigousPos = $repeated[$i];
+						$excluded{$fields[$column{"id"}]}{$ambigousPos}=1;
+					}
 				}
 			}
 		}
