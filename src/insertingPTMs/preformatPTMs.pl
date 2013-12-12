@@ -390,8 +390,10 @@ sub getRepeated{
 				$repeated{$fields[$column{"id"}]}{$fields[$column{$refColName}]}++;
 			}
 			#push the positions that are repeated
-			if(defined($fields[$column{"position"}])){
-				push(@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{$refColName}]}},$fields[$column{"position"}]);
+			if(defined($column{"position"})){			
+				if(defined($fields[$column{"position"}])){
+					push(@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{$refColName}]}},$fields[$column{"position"}]);
+				}
 			}
 		}
 	}
