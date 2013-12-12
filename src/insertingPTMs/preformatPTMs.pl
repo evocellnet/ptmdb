@@ -145,6 +145,8 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 				}
 			}
 		}
+	}else{
+		%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults,  \%conditionalColumns, $conditionScale)};
 	}
 }
 
