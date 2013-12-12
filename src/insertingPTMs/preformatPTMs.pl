@@ -123,23 +123,25 @@ for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 	my @fields = split($fs, $line);
 	
 	#It checks if the id is defined
-	if(defined($fields[$column{"id"}]) && ($fields[$column{"position"}] ne '')){			
-		#check if the position is excluded because an ambiguity problem
-		if(!defined($excluded{$fields[$column{"id"}]}{$fields[$column{"position"}]})){
-			#It checks if we have columns for the scored peptides
-			if($peptideScoredCol ne "NA"){
-				#if there is an entry for each site on the peptide and they match their relative positions
-				if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}}, \%{$excluded{$fields[$column{"id"}]}}, $ptmString)){
-					printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%repeatedPositions, $ptmString, \%conditionalColumns, $conditionScale);
+	if(defined($fields[$column{"position"}])){
+		if(defined($fields[$column{"id"}]) && ($fields[$column{"position"}] ne '')){			
+			#check if the position is excluded because an ambiguity problem
+			if(!defined($excluded{$fields[$column{"id"}]}{$fields[$column{"position"}]})){
+				#It checks if we have columns for the scored peptides
+				if($peptideScoredCol ne "NA"){
+					#if there is an entry for each site on the peptide and they match their relative positions
+					if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide_scored"}]}}, \%{$excluded{$fields[$column{"id"}]}}, $ptmString)){
+						printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%repeatedPositions, $ptmString, \%conditionalColumns, $conditionScale);
+					}else{
+						%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults,  \%conditionalColumns, $conditionScale)};
+					}			
 				}else{
-					%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults,  \%conditionalColumns, $conditionScale)};
-				}			
-			}else{
-				#if there is an entry for each site on the peptide and they match their relative positions
-				if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide"}]}}, \%{$excluded{$fields[$column{"id"}]}}, $ptmString)){
-					printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%repeatedPositions, $ptmString,  \%conditionalColumns, $conditionScale);
-				}else{	#if not they are saved for later processing
-					%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults, \%conditionalColumns, $conditionScale)};
+					#if there is an entry for each site on the peptide and they match their relative positions
+					if(checkEntrySitePositionAgreement($fields[$column{"peptide"}], \@{$repeatedPositions{$fields[$column{"id"}]}{$fields[$column{"peptide"}]}}, \%{$excluded{$fields[$column{"id"}]}}, $ptmString)){
+						printLine(\@fields, \%column, \@defaultColumns, \%availableDefaults, \%repeatedPositions, $ptmString,  \%conditionalColumns, $conditionScale);
+					}else{	#if not they are saved for later processing
+						%printedEntries = %{multiplyEntry(\@fields, \%column, \%printedEntries, $ptmString, \%availableDefaults, \%conditionalColumns, $conditionScale)};
+					}
 				}
 			}
 		}
