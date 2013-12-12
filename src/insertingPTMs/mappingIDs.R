@@ -97,7 +97,7 @@ if(idType == "ipi"){
 	directMapping <- query(directMappingsQuery)
 	#We add available ensembl references
 	if(length(directMapping)){
-		res <- merge(ptms, unique(directMapping[ ,c("ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="id")
+		res <- merge(ptms, unique(directMapping[ ,c("ensembl_id", "sequence")]), all.x=TRUE, by.x="ensembl_id", by.y="id")
 	}else{
 		stop("No results returned from the database")
 	}
