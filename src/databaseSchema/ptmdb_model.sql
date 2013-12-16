@@ -510,7 +510,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`domain_ensp` (
   `ensp_id` VARCHAR(30) NOT NULL,
   `start` INT UNSIGNED NOT NULL,
   `end` INT UNSIGNED NOT NULL,
-  PRIMARY KEY (`pfam_id`, `ensp_id`),
+  PRIMARY KEY (`pfam_id`, `ensp_id`, `start`),
   UNIQUE INDEX `pfam_id_UNIQUE` (`pfam_id` ASC),
   UNIQUE INDEX `ensp_id_UNIQUE` (`ensp_id` ASC),
   CONSTRAINT `from_domain_to_domain_ensp`
