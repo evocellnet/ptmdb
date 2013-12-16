@@ -93,11 +93,11 @@ if(idType == "ipi"){
 		stop("No results returned from the database")
 	}
 }else if(idType == "ensp"){
-	directMappingsQuery <- paste("SELECT ensp.id AS ensembl_id,ensp.sequence FROM ensp WHERE ensp.taxid=\'", org, "\'", sep="")
+	directMappingsQuery <- paste("SELECT ensp.id,ensp.id AS ensembl_id,ensp.sequence FROM ensp WHERE ensp.taxid=\'", org, "\'", sep="")
 	directMapping <- query(directMappingsQuery)
 	#We add available ensembl references
 	if(length(directMapping)){
-		res <- merge(ptms, unique(directMapping[ ,c("ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="ensembl_id")
+		res <- merge(ptms, unique(directMapping[ ,c("id","ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="id")
 	}else{
 		stop("No results returned from the database")
 	}
