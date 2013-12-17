@@ -16,15 +16,19 @@ Check out the config.sh file to be sure of the external databases necessary to f
 This repository can act also as a submodule of other projects intended to use the ptmdb.
 
 
+
 ### ptmdbR
 
+
 ptmdbR has been created as a subproject of ptmdb and serves as an interface between the database and R. Some of the most frequent actions such as connecting with the database or querying its content are implemented as simple functions. This package serves as a framework that should be useful when asking higher order questions.
+
 
 #####Using ptmdbR
 
 Integrating ptmdbR on your on project is extremely easy. You just have to invoke the library from the proper path:
 
-	library(ptmdbR, lib.loc="")
+	library(ptmdbR, lib.loc="<path to the libraries parent directory>")
+
 
 #####Updating ptmdbR
 
