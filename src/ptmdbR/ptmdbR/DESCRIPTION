@@ -1,0 +1,15 @@
+Package: ptmdbR
+Type: Package
+Title: Tools for working with the ptmdb database using R
+Version: 0.1
+Date: 2013-12-17
+Author: David Ochoa <ochoa@ebi.ac.uk>
+Maintainer: David Ochoa <ochoa@ebi.ac.uk>
+Description: Ptmdb is a MySQL database designed to contain large datasets of
+    post-translational modifications (PTMs). The database tries to standarize
+    the complexity of the PTM data by integrating the multiple biological and
+    technical concepts under the same framework. This package contains a number
+    of common R functions that can be useful when working with the ptmdb
+    database.
+License: MIT
+Built: R 3.0.2; ; 2013-12-17 17:13:50 UTC; unix

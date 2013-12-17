@@ -1,0 +1,3 @@
+getAllPublications      Connects to ptmdb database
+ptmdbConnect            Connects to ptmdb database
+ptmdbR                  Useful functions for working with ptmdb

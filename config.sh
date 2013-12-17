@@ -1,5 +1,4 @@
 #!/bin/bash
-#ORGANISMS
 
 # DATABASE
 #schema
@@ -28,3 +27,7 @@ input="organism.csv"
 
 # Modification types
 MODTYPESFILE="modifications.csv"
+
+# ptmdbR library (for R)
+PTMDBRSRC="src/ptmdbR/src"
+PTMDBRLIBLOC="src/ptmdbR/"
