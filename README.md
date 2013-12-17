@@ -20,7 +20,7 @@ This repository can act also as a submodule of other projects intended to use th
 ### ptmdbR
 
 
-ptmdbR has been created as a subproject of ptmdb and serves as an interface between the database and R. Some of the most frequent actions such as connecting with the database or querying its content are implemented as simple functions. This package serves as a framework that should be useful when asking higher order questions.
+ptmdbR has been created as a subproject of ptmdb and serves as an interface between the database and R. Some of the most frequent actions such as connecting with the database or querying its content are implemented as simple functions. This framework should be useful when asking higher order questions.
 
 
 #####Using ptmdbR
