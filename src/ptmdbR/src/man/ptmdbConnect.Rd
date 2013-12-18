@@ -2,13 +2,12 @@
 \alias{ptmdbConnect}
 \title{Connects to ptmdb database}
 \usage{
-ptmdbConnect(configFile)
+ptmdbConnect(...)
 }
 \arguments{
-  \item{configfile}{path to the configuration file of a
-  given ptmdb project. This file should contain the DBUSER,
-  DBPASS, DBHOST, DATABASE and DBPORT of the database of
-  interest}
+  \item{...}{Arguments necessary to connect to the
+  database. The arguments are inherited from the
+  \code{\link{dbConnect}} function (see example)}
 }
 \value{
 Produces an object of the class
@@ -19,6 +18,6 @@ This function can be used to directly connect to the
 database using a configuration File.
 }
 \examples{
-dbConnection <- ptmdbConnect(configFile)
+dbConnection <- ptmdbConnect(user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE, port=DBPORT)
 }
 
