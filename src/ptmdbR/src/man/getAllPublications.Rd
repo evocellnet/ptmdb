@@ -1,6 +1,6 @@
 \name{getAllPublications}
 \alias{getAllPublications}
-\title{Connects to ptmdb database}
+\title{Gets the list of publications on ptmdb}
 \usage{
 getAllPublications(db)
 }
@@ -13,7 +13,8 @@ Produces a dataframe containing each of the publications in
 the database
 }
 \description{
-Gets the list of publications on ptmdb
+The publications available in a given database are listed
+ordered by publication date
 }
 \examples{
 dbConnection <- ptmdbConnect(configFile)

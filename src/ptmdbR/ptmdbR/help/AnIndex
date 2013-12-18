@@ -1,4 +1,5 @@
 ptmdbR-package	ptmdbR
 getAllPublications	getAllPublications
+getSiteQuantificationsForProtein	getSiteQuantificationsForProtein
 ptmdbConnect	ptmdbConnect
 ptmdbR	ptmdbR

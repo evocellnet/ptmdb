@@ -1,3 +1,6 @@
-getAllPublications      Connects to ptmdb database
+getAllPublications      Gets the list of publications on ptmdb
+getSiteQuantificationsForProtein
+                        Gets a data.frame with the quantifications of a
+                        given protein
 ptmdbConnect            Connects to ptmdb database
 ptmdbR                  Useful functions for working with ptmdb
