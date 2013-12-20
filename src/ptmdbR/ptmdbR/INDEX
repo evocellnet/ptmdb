@@ -1,4 +1,6 @@
 getAllPublications      Gets the list of publications on ptmdb
+getPTMset               Gets a data.frame with the quantifications of a
+                        given protein
 getSiteQuantificationsForProtein
                         Gets a data.frame with the quantifications of a
                         given protein

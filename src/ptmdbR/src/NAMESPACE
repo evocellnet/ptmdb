@@ -1,4 +1,4 @@
 export(getAllPublications)
-export(getSiteQuantificationsForProtein)
+export(getPTMset)
 export(ptmdbConnect)
 import(RMySQL)

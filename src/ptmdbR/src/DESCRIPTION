@@ -11,4 +11,8 @@ Description: Ptmdb is a MySQL database designed to contain large datasets of
     technical concepts under the same framework. This package contains a number
     of common R functions that can be useful when working with the ptmdb
     database.
+Depends:
+    R (>= 1.8.0),
+    RMySQL,
+    Biobase
 License: MIT
