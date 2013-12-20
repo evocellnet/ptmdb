@@ -51,9 +51,9 @@ getPTMset <- function(db){
 	# querying database
 	quantifications <- dbGetQuery(db, quantificationsQuery)
 	conditions <- dbGetQuery(db, conditionsQuery);
-	conditions <- conditions[ ,!(names(test) %in% "id")]
+	conditions <- conditions[ ,!(names(conditions) %in% "id")]
 	experiments <- dbGetQuery(db, experimentsQuery);
-	experiments <- experiments[ ,!(names(test) %in% "id")]
+	experiments <- experiments[ ,!(names(experiments) %in% "id")]
 	publications <- dbGetQuery(db, publicationsQuery);
 	
 	######################################### 
