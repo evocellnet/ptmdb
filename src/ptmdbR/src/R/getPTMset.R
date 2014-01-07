@@ -24,9 +24,8 @@ getPTMset <- function(db){
 		ensg.name AS 'gene_name',
 		ensp.id AS 'ensp',
 		peptide.peptide AS 'peptide',
-		GROUP_CONCAT(DISTINCT(ensp_site.position)) AS 'positions',
+		GROUP_CONCAT(DISTINCT(ensp_site.position) ORDER BY ensp_site.position ASC) AS 'positions',
 		GROUP_CONCAT(DISTINCT(site.modif_type)) AS 'types',
-		GROUP_CONCAT(site.residue) AS 'residues',
 		experiment.id AS 'experiment',
 		peptide_quantification.log2 AS 'log2',
 		site.localization_score AS 'locscore',
@@ -62,7 +61,7 @@ getPTMset <- function(db){
 	
 	#PREPARING EXPRESSION OBJECT
 	#Add another column with the peptide name i.e ENSPXXXX_POSITION1,POSITION2
-	quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$residues,quantifications$peptide,sep="_")
+	quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$peptide,sep="_")
 	
 	# Add another column for condition + experiment
 	quantifications$condExp <- paste(quantifications$condition, quantifications$experiment,sep="_")	
@@ -92,7 +91,6 @@ getPTMset <- function(db){
 	#PREPARING FEATURE DATA
 	ensps <- sapply(strsplit(rownames(exprs), "_"), function(x) x[1])
 	positions <- sapply(strsplit(rownames(exprs), "_"), function(x) x[2])
-	residues <- sapply(strsplit(rownames(exprs), "_"), function(x) x[3])
 	peptides <- sapply(strsplit(rownames(exprs), "_"), function(x) x[4])
 	protIdM <- unique(quantifications[ ,c("ensg","gene_name","ensp")])
 	row.names(protIdM) <- protIdM$ensp
@@ -104,7 +102,6 @@ getPTMset <- function(db){
 							ensgs=ensgenes,
 							geneNames=gene_names,
 							positions=positions,
-							residues=residues,
 							peptides=peptides)
 	
 	featureData <- new("AnnotatedDataFrame",data=features)
