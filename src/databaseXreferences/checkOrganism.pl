@@ -24,11 +24,11 @@ $field = $statement->fetchrow_array();
 
 if($field)
 {
-	print 'TRUE';
+	exit 0;
 }
 else
 {
-	print 'FALSE';
+	exit 1;
 }
 
 
