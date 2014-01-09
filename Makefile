@@ -11,27 +11,37 @@
 # program. If not, see <http://www.debian.org/misc/bsd.license>.
 
 
-# DATABASE
+# Database
 #schema
-DATABASE_SCHEMA = src/databaseSchema/ptmdb_model.sql
+DATABASE_SCHEMA ?= src/databaseSchema/ptmdb_model.sql
 #connection
-DBHOST = localhost
-DATABASE = ptmdb
-DBUSER = webAdmin
-DBPASS = webAdmin
-DBPORT = 3306
+DBHOST ?= localhost
+DATABASE ?= ptmdb
+DBUSER ?= webAdmin
+DBPASS ?= webAdmin
+DBPORT ?= 3306
+
+# Programs
+MYSQL ?= /usr/bin/mysql 
+R ?= /usr/bin/R
+PERL ?= /usr/bin/perl
+TAR ?= /usr/bin/tar
+WGET ?= /usr/bin/wget
+AWK ?= /usr/bin/awk
+
+MYSQL_CMD = $(MYSQL) -h$(DBHOST) -u$(DBUSER) -p$(DBPASS) -P$(DBPORT)
 DB = $(DBHOST) $(DATABASE) $(DBUSER) $(DBPASS) $(DBPORT)
+
+#Proteomes FTPS
+INPARAFTP ?= http://inparanoid.sbc.su.se/download/8.0_current/sequences/processed
+IPIFTP ?= ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current
+UNIPROT ?= http://www.uniprot.org/uniprot/?query=taxonomy%3a$(1)&force=yes&format=txt
+ENSEMBL_URL = $(1)/release-$(4)/fasta/$(shell echo $(2) | sed 's/\(.*\) \(.*\)/\L\1_\2/')/pep/$(shell echo $(2) | sed 's/ /_/').$(3).$(4).pep.all.fa.gz
 
 # Biomart datasets
 MARTS = $(CURDIR)/src/databaseXreferences
 XML_PATH = $(MARTS)/xmlTemplates
 BIOMARTLWP = $(CURDIR)/src/databaseXreferences
-
-#Proteomes FTPS
-INPARAFTP = http://inparanoid.sbc.su.se/download/8.0_current/sequences/processed
-IPIFTP = ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current
-UNIPROT = http://www.uniprot.org/uniprot/?query=taxonomy%3a$(1)&force=yes&format=txt
-ENSEMBL_URL = $(1)/release-$(4)/fasta/$(shell echo $(2) | sed 's/\(.*\) \(.*\)/\L\1_\2/')/pep/$(shell echo $(2) | sed 's/ /_/').$(3).$(4).pep.all.fa.gz
 
 #Proteomes folder
 PROTEOMES = $(CURDIR)/proteomes
@@ -45,14 +55,7 @@ MODTYPESFILE = $(CURDIR)/modifications.csv
 # ptmdbR library (for R)
 PTMDBRSRC = $(CURDIR)/src/ptmdbR/src
 PTMDBRLIBLOC = $(CURDIR)/src/ptmdbR/
-RMIRROR = http://cran.uk.r-project.org
-
-MYSQL = /usr/bin/mysql -h$(DBHOST) -u$(DBUSER) -p$(DBPASS) -P$(DBPORT)
-R = /usr/bin/R
-PERL = /usr/bin/perl
-TAR = /usr/bin/tar
-WGET = /usr/bin/wget
-AWK = /usr/bin/awk
+RMIRROR ?= http://cran.uk.r-project.org
 
 # generate some lists based on the species in ORGANISMSFILE
 CSVCUT = $(shell grep $(1) $(ORGANISMSFILE) | cut -d"	" -f$(2))
@@ -77,6 +80,7 @@ ENSEMBL_TARGETS = $(foreach SP,$(SPECIES),ensembl_$(SP))
 INSERT_TARGETS = $(foreach SP,$(SPECIES),insert_$(SP))
 PARSE_TARGETS =  $(foreach SP,$(SPECIES),parse-history_$(SP))
 
+# An XML template used in building XML queries
 XMLSTUB = <?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Query>\n<Query virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "1" count = "" datasetConfigVersion = "0.6" >\n\t<Dataset name = "DATASET" interface = "default" >ATTRIBUTES\n\t</Dataset>\n</Query>
 
 
@@ -91,8 +95,8 @@ all: create-tables organisms
 
 create-tables:
 	@printf "Connecting to the database...\n"
-	if ! (echo "SELECT * from organism;" | $(MYSQL) $(DATABASE) >/dev/null 2>&1); then \
-		$(MYSQL) $(DATABASE) <${DATABASE_SCHEMA}; \
+	if ! (echo "SELECT * from organism;" | $(MYSQL_CMD) $(DATABASE) >/dev/null 2>&1); then \
+		$(MYSQL_CMD) $(DATABASE) <${DATABASE_SCHEMA}; \
 	fi
 
 R-deps:
@@ -128,7 +132,7 @@ parse-histories: $(foreach SP,$(SPECIES),parse-history_$(SP))
 insert-species: create-tables $(foreach SP,$(SPECIES),insert_$(SP))
 
 modifications: create-tables
-	if [[ "`echo 'SELECT count(*) FROM modification;' | $(MYSQL) -N $(DATABASE)`" != \
+	if [[ "`echo 'SELECT count(*) FROM modification;' | $(MYSQL_CMD) -N $(DATABASE)`" != \
 			"`sed -n '$$=' $(MODTYPESFILE)`" ]]; then \
 		printf "Inserting modifications...\n "; \
 		$(PERL) $(MARTS)/insertModifications.pl $(DB) $(MODTYPESFILE) || true; \
