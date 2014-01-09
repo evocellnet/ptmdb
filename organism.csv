@@ -1,8 +1,8 @@
-COMMON_NAME	SCIENTIFIC_NAME	TAXID	IPI	ENSEMBL_FTP     ENSEMBL	BIOMART DATABASE
-human	Homo sapiens	9606	ipi.HUMAN	ftp://ftp.ensembl.org/pub	homo_sapiens/pep/Homo_sapiens.GRCh37	ENSEMBL GENES 74
-mouse	Mus musculus	10090	ipi.MOUSE	ftp://ftp.ensembl.org/pub	mus_musculus/pep/Mus_musculus.GRCm38 	ENSEMBL GENES 74
-saccharomyces	Saccharomyces cerevisiae	559292	NA	ftp://ftp.ensembl.org/pub	saccharomyces_cerevisiae/pep/Saccharomyces_cerevisiae.EF4	ENSEMBL GENES 74
-rat	Rattus norvegicus	10116	ipi.RAT	ftp://ftp.ensembl.org/pub	rattus_norvegicus/pep/Rattus_norvegicus.Rnor_5.0	ENSEMBL GENES 74
-arabidopsis	Arabidopsis thaliana	3702	ipi.ARATH	ftp://ftp.ensemblgenomes.org/pub/plants	arabidopsis_thaliana/pep/Arabidopsis_thaliana.TAIR10.20.pep.all.fa.gz	ENSEMBL PLANTS 20
-roundworm	Caenorhabditis elegans	6239	NA	ftp://ftp.ensembl.org/pub	caenorhabditis_elegans/pep/Caenorhabditis_elegans.WBcel235	ENSEMBL GENES 74
-fruitfly	Drosophila melanogaster	7227	NA	ftp://ftp.ensembl.org/pub	drosophila_melanogaster/pep/Drosophila_melanogaster.BDGP5	ENSEMBL GENES 74
+COMMON_NAME	SCIENTIFIC_NAME	TAXID	IPI	ENSEMBL_FTP     ENSEMBL_GENOME_VER	ENSEMBL_REL	BIOMART DATABASE
+human	Homo sapiens	9606	ipi.HUMAN	ftp://ftp.ensembl.org/pub	GRCh37	74	ENSEMBL GENES 74
+mouse	Mus musculus	10090	ipi.MOUSE	ftp://ftp.ensembl.org/pub	GRCm38	74	ENSEMBL GENES 74
+saccharomyces	Saccharomyces cerevisiae	559292	NA	ftp://ftp.ensembl.org/pub	EF4	74	ENSEMBL GENES 74
+rat	Rattus norvegicus	10116	ipi.RAT	ftp://ftp.ensembl.org/pub	Rnor_5.0	74	ENSEMBL GENES 74
+arabidopsis	Arabidopsis thaliana	3702	ipi.ARATH	ftp://ftp.ensemblgenomes.org/pub/plants	TAIR10	20	ENSEMBL PLANTS 20
+roundworm	Caenorhabditis elegans	6239	NA	ftp://ftp.ensembl.org/pub	WBcel235	74	ENSEMBL GENES 74
+fruitfly	Drosophila melanogaster	7227	NA	ftp://ftp.ensembl.org/pub	BDGP5	74	ENSEMBL GENES 74

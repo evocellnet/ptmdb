@@ -31,7 +31,7 @@ BIOMARTLWP = $(CURDIR)/src/databaseXreferences
 INPARAFTP = http://inparanoid.sbc.su.se/download/8.0_current/sequences/processed
 IPIFTP = ftp://ftp.ebi.ac.uk/pub/databases/IPI/last_release/current
 UNIPROT = http://www.uniprot.org/uniprot/?query=taxonomy%3a$(1)&force=yes&format=txt
-ENSEMBL_RELEASE = 74
+ENSEMBL_URL = $(1)/release-$(4)/fasta/$(shell echo $(2) | sed 's/\(.*\) \(.*\)/\L\1_\2/')/pep/$(shell echo $(2) | sed 's/ /_/').$(3).$(4).pep.all.fa.gz
 
 #Proteomes folder
 PROTEOMES = $(CURDIR)/proteomes
@@ -211,7 +211,7 @@ $(PROTEOMES)/%/ipi.history: %_dir
 $(PROTEOMES)/%/ensembl: %_dir
 	printf "Downloading $* from ensembl...\n"
 	$(WGET) -P $(PROTEOMES)/$* \
-		$(call CSVCUT,$*,5)/release-$(ENSEMBL_RELEASE)/fasta/$(call CSVCUT,$*,6).$(ENSEMBL_RELEASE).pep.all.fa.gz -O $@.gz
+		$(call ENSEMBL_URL,$(call CSVCUT,$*,5),$(call CSVCUT,$*,2),$(call CSVCUT,$*,6),$(call CSVCUT,$*,7)) -O $@.gz
 	gunzip $@.gz
 
 # Generate XML queries
