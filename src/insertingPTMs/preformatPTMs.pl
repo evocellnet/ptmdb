@@ -215,12 +215,8 @@ sub printLine{
 							}
 						}elsif($conditionScale eq "log10"){
 							if($fields[$column{$defaultCol}] ne ''){
-								if($fields[$column{$defaultCol}] > 0){							
-									$rounded = sprintf("%.4f", log_N(10 ** $fields[$column{$defaultCol}], 2));
-									push(@toprint, $rounded);
-								}else{
-									push(@toprint, "NA");
-								}
+								$rounded = sprintf("%.4f", log_N(10 ** $fields[$column{$defaultCol}], 2));
+								push(@toprint, $rounded);
 							}else{
 								push(@toprint, "NA");
 							}
