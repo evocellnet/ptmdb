@@ -28,6 +28,7 @@ to use the ptmdb.
 First, you must define the organisms that will be present in the
 database in the `organism.csv` file.  This file consists of eight
 tab-delimited fields:
+
     * the common name (i.e. "human")
     * the scientific name ("Homo sapiens")
     * the taxonomic ID ("9606")
