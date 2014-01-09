@@ -63,6 +63,12 @@ INPARAS = $(foreach SP,$(SPECIES),$(PROTEOMES)/$(SP)/inpara.txt)
 IPIS = $(foreach SP,$(SPECIES),$(PROTEOMES)/$(SP)/ipi.fasta)
 HISTORIES = $(foreach SP,$(SPECIES),$(PROTEOMES)/$(SP)/ipi.history)
 ENSEMBLS = $(foreach SP,$(SPECIES),$(PROTEOMES)/$(SP)/ensembl)
+ENSG_QUERIES = $(foreach SP,$(SPECIES),$(XML_PATH)/$(SP)_ensg.xml)
+ENSP_QUERIES = $(foreach SP,$(SPECIES),$(XML_PATH)/$(SP)_ensg_ensp.xml)
+UNIPROT_QUERIES = $(foreach SP,$(SPECIES),$(XML_PATH)/$(SP)_uniprot_ensp.xml)
+INPARANOID_QUERIES = $(foreach SP,$(SPECIES),$(XML_PATH)/$(SP)_inparanoid_ensp.xml)
+REFSEQ_QUERIES = $(foreach SP,$(SPECIES),$(XML_PATH)/$(SP)_refseq.xml)
+
 UNIPROT_TARGETS = $(foreach SP,$(SPECIES),uniprot_$(SP))
 INPARA_TARGETS = $(foreach SP,$(SPECIES),inpara_$(SP))
 IPIFASTA_TARGETS = $(foreach SP,$(SPECIES),ipifasta_$(SP))
@@ -70,6 +76,9 @@ IPIHIST_TARGETS = $(foreach SP,$(SPECIES),ipihistory_$(SP))
 ENSEMBL_TARGETS = $(foreach SP,$(SPECIES),ensembl_$(SP))
 INSERT_TARGETS = $(foreach SP,$(SPECIES),insert_$(SP))
 PARSE_TARGETS =  $(foreach SP,$(SPECIES),parse-history_$(SP))
+
+XMLSTUB = <?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Query>\n<Query virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "1" count = "" datasetConfigVersion = "0.6" >\n\t<Dataset name = "DATASET" interface = "default" >ATTRIBUTES\n\t</Dataset>\n</Query>
+
 
 #### Phony targets
 
@@ -112,7 +121,7 @@ ipihistories:  $(foreach SP,$(SPECIES),ipihistory_$(SP))
 
 ensembls:  $(foreach SP,$(SPECIES),ensembl_$(SP))
 
-xml-queries: $(XML_PATH)/ensg.xml
+xml-queries: $(ENSG_QUERIES) $(ENSP_QUERIES) $(UNIPROT_QUERIES) $(INPARANOID_QUERIES) $(REFSEQ_QUERIES)
 
 parse-histories: $(foreach SP,$(SPECIES),parse-history_$(SP))
 
@@ -147,7 +156,7 @@ $(ENSEMBL_TARGETS): ensembl_%: $(PROTEOMES)/%/ensembl
 $(PARSE_TARGETS): parse-history_%: $(PROTEOMES)/%/parsed.history
 
 # Insert a species into the database
-$(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_% parse-history_%
+$(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_% parse-history_% xml-queries
 	printf "Inserting databases information...\n"
 	COMMONNAME=$(call CSVCUT,$*,1); \
 	SCINAME="$(call CSVCUT,$*,2)"; \
@@ -211,21 +220,77 @@ $(PROTEOMES)/%/ensembl: %_dir
 		$(call ENSEMBL_URL,$(call CSVCUT,$*,5),$(call CSVCUT,$*,2),$(call CSVCUT,$*,6),$(call CSVCUT,$*,7)) -O $@.gz
 	gunzip $@.gz
 
-# Generate XML queries
-$(XML_PATH)/ensg.xml: $(MARTS)/biomart_datasets.txt
-	printf "Generating XML queries...\n"
+$(XML_PATH)/%_ensg.xml: $(MARTS)/biomart_datasets.txt
+	printf "Generating Ensembl Gene XML queries...\n"
 	mkdir -p $(XML_PATH)
-	for sp in $(SPECIES); do \
-		SCINAME="`grep $$sp $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
-		TAXID="`grep $$sp $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
-		ENSEMBL_NAME=`echo "$${SCINAME}" | sed 's/\([A-Z]\)[a-z]* \(.*\)/\L\1\2/'`; \
-		if grep -q $${ENSEMBL_NAME} "$(MARTS)/biomart_datasets.txt"; then \
-			ENSNAME=$${ENSEMBL_NAME}_gene_ensembl; \
-		else \
-			ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
-		fi; \
-		$(PERL) $(MARTS)/xmlQueryGenerator.pl $${ENSNAME} $(XML_PATH) $${TAXID}; \
-	done
+	SCINAME="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
+	TAXID="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
+	ENSEMBL_NAME=`echo "$${SCINAME}" | sed 's/\([A-Z]\)[a-z]* \(.*\)/\L\1\2/'`; \
+	if grep -q $${ENSEMBL_NAME} "$(MARTS)/biomart_datasets.txt"; then \
+		ENSNAME=$${ENSEMBL_NAME}_gene_ensembl; \
+	else \
+		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
+	fi; \
+	ATTRIBUTES="\n\t\t<Filter name = \"biotype\" value = \"protein_coding\"/>\n\t\t<Attribute name = \"ensembl_gene_id\" />\n\t\t<Attribute name = \"external_gene_id\" />\n\t\t<Attribute name = \"description\" />"; \
+	printf '$(XMLSTUB)' | m4 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
+
+$(XML_PATH)/%_ensg_ensp.xml: $(MARTS)/biomart_datasets.txt
+	printf "Generating Ensembl peptide XML queries...\n"
+	mkdir -p $(XML_PATH)
+	SCINAME="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
+	TAXID="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
+	ENSEMBL_NAME=`echo "$${SCINAME}" | sed 's/\([A-Z]\)[a-z]* \(.*\)/\L\1\2/'`; \
+	if grep -q $${ENSEMBL_NAME} "$(MARTS)/biomart_datasets.txt"; then \
+		ENSNAME=$${ENSEMBL_NAME}_gene_ensembl; \
+	else \
+		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
+	fi; \
+	ATTRIBUTES="\n\t\t<Filter name = \"biotype\" value = \"protein_coding\"/>\n\t\t<Attribute name = \"ensembl_gene_id\" />\n\t\t<Attribute name = \"ensembl_peptide_id\" />"; \
+	printf '$(XMLSTUB)' | m4 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
+
+$(XML_PATH)/%_uniprot_ensp.xml: $(MARTS)/biomart_datasets.txt
+	printf "Generating Uniprot XML queries...\n"
+	mkdir -p $(XML_PATH)
+	SCINAME="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
+	TAXID="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
+	ENSEMBL_NAME=`echo "$${SCINAME}" | sed 's/\([A-Z]\)[a-z]* \(.*\)/\L\1\2/'`; \
+	if grep -q $${ENSEMBL_NAME} "$(MARTS)/biomart_datasets.txt"; then \
+		ENSNAME=$${ENSEMBL_NAME}_gene_ensembl; \
+	else \
+		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
+	fi; \
+	ATTRIBUTES="\n\t\t<Attribute name = \"ensembl_peptide_id\"/>\n\t\t<Attribute name = \"uniprot_swissprot_accession\" />\n\t\t<Attribute name = \"uniprot_sptrembl\" />"; \
+	printf '$(XMLSTUB)' | m4 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
+
+$(XML_PATH)/%_inparanoid_ensp.xml: $(MARTS)/biomart_datasets.txt
+	printf "Generating Inparanoid XML queries...\n"
+	mkdir -p $(XML_PATH)
+	SCINAME="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
+	TAXID="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
+	ENSEMBL_NAME=`echo "$${SCINAME}" | sed 's/\([A-Z]\)[a-z]* \(.*\)/\L\1\2/'`; \
+	if grep -q $${ENSEMBL_NAME} "$(MARTS)/biomart_datasets.txt"; then \
+		ENSNAME=$${ENSEMBL_NAME}_gene_ensembl; \
+	else \
+		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
+	fi; \
+	if [[ "$$TAXID" == "6239" ]]; then \
+		ATTRIBUTES="\n\t\t<Attribute name = \"ensembl_peptide_id\"/>\n\t\t<Attribute name = \"wormpep_id\" />"; \
+		printf '$(XMLSTUB)' | m4 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@; \
+	fi
+
+$(XML_PATH)/%_refseq.xml: $(MARTS)/biomart_datasets.txt
+	printf "Generating refseq XML queries...\n"
+	mkdir -p $(XML_PATH)
+	SCINAME="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
+	TAXID="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
+	ENSEMBL_NAME=`echo "$${SCINAME}" | sed 's/\([A-Z]\)[a-z]* \(.*\)/\L\1\2/'`; \
+	if grep -q $${ENSEMBL_NAME} "$(MARTS)/biomart_datasets.txt"; then \
+		ENSNAME=$${ENSEMBL_NAME}_gene_ensembl; \
+	else \
+		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
+	fi; \
+	ATTRIBUTES="\n\t\t<Attribute name = \"ensembl_peptide_id\"/>\n\t\t<Attribute name = \"refseq_peptide\" />\n\t\t<Attribute name = \"refseq_peptide_predicted\" />"; \
+	printf '$(XMLSTUB)' | m4 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
 
 # Parse the IPI history for a species
 $(PROTEOMES)/%/parsed.history: $(PROTEOMES)/%/ipi.history
