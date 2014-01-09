@@ -61,7 +61,8 @@ Thus, to only download the proteomic data, run `make proteomes`.
 
 To silence some of Make's output, run it with the `-s` option.  To
 parallelise some of the processes, use the `-j` option (i.e. `-j4`
-runs four parallel processes).
+runs four parallel processes).  You probably only want to parallelise
+the downloads of proteomic data (`make -j4 proteomes; make all`).
 
 ### ptmdbR
 
