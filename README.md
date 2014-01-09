@@ -29,16 +29,16 @@ First, you must define the organisms that will be present in the
 database in the `organism.csv` file.  This file consists of eight
 tab-delimited fields:
 
-    * the common name (i.e. "human")
-    * the scientific name ("Homo sapiens")
-    * the taxonomic ID ("9606")
-    * the IPI ID ("ipi.HUMAN" or "NA" if it doesn't exist)
-    * the Ensembl FTP master directory in which the species
-      directories reside ("ftp://ftp.ensembl.org/pub",
-      "ftp://ftp.ensemblgenomes.org/pub/plants", etc.)
-    * the Ensembl proteome version ("GRCh37")
-    * the Ensembl release number ("74")
-    * the BioMart Database ("ENSEMBL GENES 74")
+* the common name (i.e. "human")
+* the scientific name ("Homo sapiens")
+* the taxonomic ID ("9606")
+* the IPI ID ("ipi.HUMAN" or "NA" if it doesn't exist)
+* the Ensembl FTP master directory in which the species directories
+  reside ("ftp://ftp.ensembl.org/pub",
+  "ftp://ftp.ensemblgenomes.org/pub/plants", etc.)
+* the Ensembl proteome version ("GRCh37")
+* the Ensembl release number ("74")
+* the BioMart Database ("ENSEMBL GENES 74")
 
 Next, you must define the classes of post-translational modifications
 that will be stored in the database in the `modifications.csv` file.
