@@ -116,9 +116,9 @@ xml-queries: $(XML_PATH)/ensg.xml
 
 parse-histories: $(foreach SP,$(SPECIES),parse-history_$(SP))
 
-insert-species: $(foreach SP,$(SPECIES),insert_$(SP))
+insert-species: create-tables $(foreach SP,$(SPECIES),insert_$(SP))
 
-modifications:
+modifications: create-tables
 	if [[ "`echo 'SELECT count(*) FROM modification;' | $(MYSQL) -N $(DATABASE)`" != \
 			"`sed -n '$$=' $(MODTYPESFILE)`" ]]; then \
 		printf "Inserting modifications...\n "; \
@@ -133,9 +133,6 @@ clean:
 
 # Some pattern targets for convenience, with a bit of magic to make
 # phony targets and pattern targets live together in peace and harmony.
-
-.PHONY: $(UNIPROT_TARGETS) $(INPARA_TARGETS) $(IPIFASTA_TARGETS) \
-$(IPIHIST_TARGETS) $(ENSEMBL_TARGETS) $(PARSE_TARGETS) $(INSERT_TARGETS)
 
 $(UNIPROT_TARGETS): uniprot_%: $(PROTEOMES)/%/uniprot.txt
 
