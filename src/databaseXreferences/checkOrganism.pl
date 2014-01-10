@@ -20,7 +20,8 @@ $statement->execute($TAXID);                        # execute the query
 
 my $field;
 $field = $statement->fetchrow_array();
-
+$statement->finish();
+$dbh->disconnect();
 
 if($field)
 {
@@ -30,8 +31,3 @@ else
 {
 	exit 1;
 }
-
-
-
-$statement->finish();
-$dbh->disconnect();
