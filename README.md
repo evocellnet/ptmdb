@@ -55,7 +55,7 @@ data are handled via the `Makefile`.  If your `organism.csv` and
 automate the whole process.  This process can be broken down into
 individual steps as follows:
 
-    make create-tables modifications xml-queries parse-histories proteomes insert-species
+    make tables modifications xml-queries parse-histories proteomes insert-species
 
 Thus, to only download the proteomic data, run `make proteomes`.
 
@@ -63,6 +63,17 @@ To silence some of Make's output, run it with the `-s` option.  To
 parallelise some of the processes, use the `-j` option (i.e. `-j4`
 runs four parallel processes).  You probably only want to parallelise
 the downloads of proteomic data (`make -j4 proteomes; make all`).
+
+### Cleaning up
+
+There are three `clean` targets in the `Makefile`.  The first two
+delete incidental data that is not necessary after the database has
+been set up: `clean-proteomes` and `clean-xml`.  The former deletes
+all of the downloaded proteomic data while the latter deletes XML
+Biomart queries.  Running `make clean` is equivalent to `make
+clean-proteomes clean-xml`.  Finally, the `clean-tables` target clears
+data out of the database.  Needless to say, none of these actions can
+be undone, so use caution.
 
 ### ptmdbR
 
