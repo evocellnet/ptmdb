@@ -26,7 +26,7 @@ MYSQL ?= /usr/bin/mysql
 R ?= /usr/bin/R
 PERL ?= /usr/bin/perl
 TAR ?= /usr/bin/tar
-WGET ?= /usr/bin/wget
+WGET ?= /usr/bin/wget -q
 AWK ?= /usr/bin/awk
 
 MYSQL_CMD = $(MYSQL) -h$(DBHOST) -u$(DBUSER) -p$(DBPASS) -P$(DBPORT)
@@ -87,13 +87,13 @@ XMLSTUB = <?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Query>\n<Query virtu
 #### Phony targets
 
 .PRECIOUS: $(UNIPROTS) $(INPARAS) $(IPIS) $(HISTORIES) $(ENSEMBLS)
-.PHONY: all create-tables R-deps ptmdbR clean organisms modifications proteomes \
+.PHONY: all tables R-deps ptmdbR clean organisms modifications proteomes \
 xml-queries parse-histories insert-species uniprots inparas ipifastas \
 ipihistories ensembls 
 
-all: create-tables organisms
+all: tables organisms
 
-create-tables:
+tables:
 	@printf "Connecting to the database...\n"
 	if ! (echo "SELECT * from organism;" | $(MYSQL_CMD) $(DATABASE) >/dev/null 2>&1); then \
 		$(MYSQL_CMD) $(DATABASE) <${DATABASE_SCHEMA}; \
@@ -129,9 +129,9 @@ xml-queries: $(ENSG_QUERIES) $(ENSP_QUERIES) $(UNIPROT_QUERIES) $(INPARANOID_QUE
 
 parse-histories: $(foreach SP,$(SPECIES),parse-history_$(SP))
 
-insert-species: create-tables $(foreach SP,$(SPECIES),insert_$(SP))
+insert-species: tables $(foreach SP,$(SPECIES),insert_$(SP))
 
-modifications: create-tables
+modifications: tables
 	if [[ "`echo 'SELECT count(*) FROM modification;' | $(MYSQL_CMD) -N $(DATABASE)`" != \
 			"`sed -n '$$=' $(MODTYPESFILE)`" ]]; then \
 		printf "Inserting modifications...\n "; \
@@ -167,7 +167,7 @@ $(PARSE_TARGETS): parse-history_%: $(PROTEOMES)/%/parsed.history
 proteome_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_% parse-history_%
 
 # Insert a species into the database
-$(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_% parse-history_% xml-queries create-tables
+$(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_% parse-history_% xml-queries tables
 	printf "Inserting databases information...\n"
 	COMMONNAME=$(call CSVCUT,$*,1); \
 	SCINAME="$(call CSVCUT,$*,2)"; \
@@ -233,8 +233,8 @@ $(PROTEOMES)/%/ensembl: %_dir
 
 # Parse the IPI history for a species
 $(PROTEOMES)/%/parsed.history: $(PROTEOMES)/%/ipi.history
-	printf "Preformatting histories... "
-	if [[ "$(call CSVCUT,$*,6)" != "NA" ]]; then \
+	printf "Preformatting $* history... "
+	if [[ "$(call CSVCUT,$*,4)" != "NA" ]]; then \
 		$(PERL) $(MARTS)/preformat_IPIhistory.pl $(PROTEOMES)/$*/ipi.fasta \
 			$(PROTEOMES)/$*/ipi.history >$@; \
 		printf "\n"; \
