@@ -85,8 +85,7 @@ XMLSTUB = <?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Query>\n<Query virtu
 
 TABLES = organism refseq_protein inparanoid ensg ensp_inparanoid	\
 ensg_ensp ensp_refseq ipi_history ipi ensembl_ipi ensp uniprot_ipi	\
-uniprot_isoform uniprot_acc uniprot_entry domain domain_esp			\
-modification
+uniprot_isoform uniprot_acc uniprot_entry domain modification
 
 #### Phony targets
 
