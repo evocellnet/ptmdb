@@ -229,6 +229,12 @@ $(PROTEOMES)/%/ensembl: %_dir
 		$(call ENSEMBL_URL,$(call CSVCUT,$*,5),$(call CSVCUT,$*,2),$(call CSVCUT,$*,6),$(call CSVCUT,$*,7)) -O $@.gz
 	gunzip $@.gz
 
+# Generate various XML queries for Biomart.  For now at least, the
+# various attributes (<Attribute>, <Filter>, etc) need to be defined
+# in a single-line string containing all the necessary newlines and
+# tab characters (not strictly necessary, but they make the final
+# product look nicer).  Then, the uniqueRows, dataset name and
+# attributes are merged into the XMLSTUB via M4.
 $(XML_PATH)/%_ensg.xml: $(MARTS)/biomart_datasets.txt
 	printf "Generating Ensembl Gene XML queries...\n"
 	mkdir -p $(XML_PATH)
@@ -303,7 +309,7 @@ $(XML_PATH)/%_refseq.xml: $(MARTS)/biomart_datasets.txt
 
 # Parse the IPI history for a species
 $(PROTEOMES)/%/parsed.history: $(PROTEOMES)/%/ipi.history
-	printf "Preformatting databases... "
+	printf "Preformatting histories... "
 	if [[ "$(call CSVCUT,$*,6)" != "NA" ]]; then \
 		$(PERL) $(MARTS)/preformat_IPIhistory.pl $(PROTEOMES)/$*/ipi.fasta \
 			$(PROTEOMES)/$*/ipi.history >$@; \
