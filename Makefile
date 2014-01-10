@@ -81,7 +81,7 @@ INSERT_TARGETS = $(foreach SP,$(SPECIES),insert_$(SP))
 PARSE_TARGETS =  $(foreach SP,$(SPECIES),parse-history_$(SP))
 
 # An XML template used in building XML queries
-XMLSTUB = <?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Query>\n<Query virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "1" count = "" datasetConfigVersion = "0.6" >\n\t<Dataset name = "DATASET" interface = "default" >ATTRIBUTES\n\t</Dataset>\n</Query>
+XMLSTUB = <?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Query>\n<Query virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "ROWS" count = "" datasetConfigVersion = "0.6" >\n\t<Dataset name = "DATASET" interface = "default" >ATTRIBUTES\n\t</Dataset>\n</Query>
 
 
 #### Phony targets
@@ -236,7 +236,7 @@ $(XML_PATH)/%_ensg.xml: $(MARTS)/biomart_datasets.txt
 		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
 	fi; \
 	ATTRIBUTES="\n\t\t<Filter name = \"biotype\" value = \"protein_coding\"/>\n\t\t<Attribute name = \"ensembl_gene_id\" />\n\t\t<Attribute name = \"external_gene_id\" />\n\t\t<Attribute name = \"description\" />"; \
-	printf '$(XMLSTUB)' | m4 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
+	printf '$(XMLSTUB)' | m4 -DROWS=1 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
 
 $(XML_PATH)/%_ensg_ensp.xml: $(MARTS)/biomart_datasets.txt
 	printf "Generating Ensembl peptide XML queries...\n"
@@ -250,7 +250,7 @@ $(XML_PATH)/%_ensg_ensp.xml: $(MARTS)/biomart_datasets.txt
 		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
 	fi; \
 	ATTRIBUTES="\n\t\t<Filter name = \"biotype\" value = \"protein_coding\"/>\n\t\t<Attribute name = \"ensembl_gene_id\" />\n\t\t<Attribute name = \"ensembl_peptide_id\" />"; \
-	printf '$(XMLSTUB)' | m4 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
+	printf '$(XMLSTUB)' | m4 -DROWS=1 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
 
 $(XML_PATH)/%_uniprot_ensp.xml: $(MARTS)/biomart_datasets.txt
 	printf "Generating Uniprot XML queries...\n"
@@ -264,7 +264,7 @@ $(XML_PATH)/%_uniprot_ensp.xml: $(MARTS)/biomart_datasets.txt
 		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
 	fi; \
 	ATTRIBUTES="\n\t\t<Attribute name = \"ensembl_peptide_id\"/>\n\t\t<Attribute name = \"uniprot_swissprot_accession\" />\n\t\t<Attribute name = \"uniprot_sptrembl\" />"; \
-	printf '$(XMLSTUB)' | m4 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
+	printf '$(XMLSTUB)' | m4 -DROWS=1 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
 
 $(XML_PATH)/%_inparanoid_ensp.xml: $(MARTS)/biomart_datasets.txt
 	printf "Generating Inparanoid XML queries...\n"
@@ -279,7 +279,7 @@ $(XML_PATH)/%_inparanoid_ensp.xml: $(MARTS)/biomart_datasets.txt
 	fi; \
 	if [[ "$$TAXID" == "6239" ]]; then \
 		ATTRIBUTES="\n\t\t<Attribute name = \"ensembl_peptide_id\"/>\n\t\t<Attribute name = \"wormpep_id\" />"; \
-		printf '$(XMLSTUB)' | m4 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@; \
+		printf '$(XMLSTUB)' | m4 -DROWS=0 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@; \
 	fi
 
 $(XML_PATH)/%_refseq.xml: $(MARTS)/biomart_datasets.txt
@@ -294,7 +294,7 @@ $(XML_PATH)/%_refseq.xml: $(MARTS)/biomart_datasets.txt
 		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
 	fi; \
 	ATTRIBUTES="\n\t\t<Attribute name = \"ensembl_peptide_id\"/>\n\t\t<Attribute name = \"refseq_peptide\" />\n\t\t<Attribute name = \"refseq_peptide_predicted\" />"; \
-	printf '$(XMLSTUB)' | m4 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
+	printf '$(XMLSTUB)' | m4 -DROWS=1 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
 
 # Parse the IPI history for a species
 $(PROTEOMES)/%/parsed.history: $(PROTEOMES)/%/ipi.history
