@@ -171,7 +171,7 @@ $(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_
 	else \
 		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
 	fi; \
-	if ! $(PERL) $(MARTS)/checkOrganism.pl $(DB) $(TAXID); then \
+	if ! $(PERL) $(MARTS)/checkOrganism.pl $(DB) $$TAXID; then \
 		printf "\n\t* Inserting new Organism $$SCINAME\n"; \
 		$(PERL) $(MARTS)/insertDatabaseInfo.pl $(DB) "$(PROTEOMES)/$*/ensembl" \
 			$${TAXID} "$${SCINAME}" $${COMMONNAME} "$${ENSNAME}" \
