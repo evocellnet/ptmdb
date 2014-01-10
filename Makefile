@@ -176,7 +176,7 @@ proteome_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_% parse-history_%
 
 # Insert a species into the database
 $(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_% parse-history_% xml-queries tables
-	printf "Inserting databases information...\n"
+	printf "Inserting databases information for $*...\n"
 	COMMONNAME=$(call CSVCUT,$*,1); \
 	SCINAME="$(call CSVCUT,$*,2)"; \
 	TAXID=$(call CSVCUT,$*,3); \
@@ -214,7 +214,8 @@ $(PROTEOMES)/%/uniprot.txt: %_dir
 # Download the inparanoid proteome for a species
 $(PROTEOMES)/%/inpara.txt: %_dir
 	printf "Downloading $* from inparanoid ...\n"
-	$(WGET) -P $(PROTEOMES)/$* $(INPARAFTP)/$(call CSVCUT,$*,3).fasta -O $@
+	$(WGET) -P $(PROTEOMES)/$* $(INPARAFTP)/$(call CSVCUT,$*,3).fasta -O $@ || \
+		printf "Inparanoid proteome not available for $*\n"
 
 # Download the IPI proteome for a species
 $(PROTEOMES)/%/ipi.fasta: %_dir
@@ -257,7 +258,7 @@ $(PROTEOMES)/%/parsed.history: $(PROTEOMES)/%/ipi.history
 # product look nicer).  Then, the uniqueRows, dataset name and
 # attributes are merged into the XMLSTUB via M4.
 $(XML_PATH)/%_ensg.xml: $(MARTS)/biomart_datasets.txt
-	printf "Generating Ensembl Gene XML queries...\n"
+	printf "Generating Ensembl Gene XML queries for $*...\n"
 	mkdir -p $(XML_PATH)
 	SCINAME="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
 	TAXID="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
@@ -271,7 +272,7 @@ $(XML_PATH)/%_ensg.xml: $(MARTS)/biomart_datasets.txt
 	printf '$(XMLSTUB)' | m4 -DROWS=1 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
 
 $(XML_PATH)/%_ensg_ensp.xml: $(MARTS)/biomart_datasets.txt
-	printf "Generating Ensembl peptide XML queries...\n"
+	printf "Generating Ensembl peptide XML queries for $*...\n"
 	mkdir -p $(XML_PATH)
 	SCINAME="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
 	TAXID="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
@@ -285,7 +286,7 @@ $(XML_PATH)/%_ensg_ensp.xml: $(MARTS)/biomart_datasets.txt
 	printf '$(XMLSTUB)' | m4 -DROWS=1 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
 
 $(XML_PATH)/%_uniprot_ensp.xml: $(MARTS)/biomart_datasets.txt
-	printf "Generating Uniprot XML queries...\n"
+	printf "Generating Uniprot XML queries for $*...\n"
 	mkdir -p $(XML_PATH)
 	SCINAME="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
 	TAXID="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
@@ -299,7 +300,6 @@ $(XML_PATH)/%_uniprot_ensp.xml: $(MARTS)/biomart_datasets.txt
 	printf '$(XMLSTUB)' | m4 -DROWS=1 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
 
 $(XML_PATH)/%_inparanoid_ensp.xml: $(MARTS)/biomart_datasets.txt
-	printf "Generating Inparanoid XML queries...\n"
 	mkdir -p $(XML_PATH)
 	SCINAME="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
 	TAXID="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
@@ -310,12 +310,13 @@ $(XML_PATH)/%_inparanoid_ensp.xml: $(MARTS)/biomart_datasets.txt
 		ENSNAME=$${ENSEMBL_NAME}_eg_gene; \
 	fi; \
 	if [[ "$$TAXID" == "6239" ]]; then \
+		printf "Generating Inparanoid XML queries for $*...\n"; \
 		ATTRIBUTES="\n\t\t<Attribute name = \"ensembl_peptide_id\"/>\n\t\t<Attribute name = \"wormpep_id\" />"; \
 		printf '$(XMLSTUB)' | m4 -DROWS=0 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@; \
 	fi
 
 $(XML_PATH)/%_refseq.xml: $(MARTS)/biomart_datasets.txt
-	printf "Generating refseq XML queries...\n"
+	printf "Generating refseq XML queries for $*...\n"
 	mkdir -p $(XML_PATH)
 	SCINAME="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f2`"; \
 	TAXID="`grep $* $(ORGANISMSFILE) | cut -d\"	\" -f3`"; \
