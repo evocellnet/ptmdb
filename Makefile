@@ -164,8 +164,10 @@ $(ENSEMBL_TARGETS): ensembl_%: $(PROTEOMES)/%/ensembl
 
 $(PARSE_TARGETS): parse-history_%: $(PROTEOMES)/%/parsed.history
 
+proteome_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_% parse-history_%
+
 # Insert a species into the database
-$(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_% parse-history_% xml-queries
+$(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_% parse-history_% xml-queries create-tables
 	printf "Inserting databases information...\n"
 	COMMONNAME=$(call CSVCUT,$*,1); \
 	SCINAME="$(call CSVCUT,$*,2)"; \
