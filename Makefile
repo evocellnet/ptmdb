@@ -231,6 +231,17 @@ $(PROTEOMES)/%/ensembl: %_dir
 		$(call ENSEMBL_URL,$(call CSVCUT,$*,5),$(call CSVCUT,$*,2),$(call CSVCUT,$*,6),$(call CSVCUT,$*,7)) -O $@.gz
 	gunzip $@.gz
 
+# Parse the IPI history for a species
+$(PROTEOMES)/%/parsed.history: $(PROTEOMES)/%/ipi.history
+	printf "Preformatting histories... "
+	if [[ "$(call CSVCUT,$*,6)" != "NA" ]]; then \
+		$(PERL) $(MARTS)/preformat_IPIhistory.pl $(PROTEOMES)/$*/ipi.fasta \
+			$(PROTEOMES)/$*/ipi.history >$@; \
+		printf "\n"; \
+	else \
+		printf "skipped\n"; \
+	fi
+
 # Generate various XML queries for Biomart.  For now at least, the
 # various attributes (<Attribute>, <Filter>, etc) need to be defined
 # in a single-line string containing all the necessary newlines and
@@ -308,14 +319,3 @@ $(XML_PATH)/%_refseq.xml: $(MARTS)/biomart_datasets.txt
 	fi; \
 	ATTRIBUTES="\n\t\t<Attribute name = \"ensembl_peptide_id\"/>\n\t\t<Attribute name = \"refseq_peptide\" />\n\t\t<Attribute name = \"refseq_peptide_predicted\" />"; \
 	printf '$(XMLSTUB)' | m4 -DROWS=1 -DDATASET=$$ENSNAME -DATTRIBUTES="`printf \"$$ATTRIBUTES\"`" - >$@
-
-# Parse the IPI history for a species
-$(PROTEOMES)/%/parsed.history: $(PROTEOMES)/%/ipi.history
-	printf "Preformatting histories... "
-	if [[ "$(call CSVCUT,$*,6)" != "NA" ]]; then \
-		$(PERL) $(MARTS)/preformat_IPIhistory.pl $(PROTEOMES)/$*/ipi.fasta \
-			$(PROTEOMES)/$*/ipi.history >$@; \
-		printf "\n"; \
-	else \
-		printf "skipped\n"; \
-	fi
