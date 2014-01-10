@@ -138,8 +138,13 @@ modifications: create-tables
 		$(PERL) $(MARTS)/insertModifications.pl $(DB) $(MODTYPESFILE) || true; \
 	fi
 
-clean:
+clean: clean-proteomes clean-xml
+
+clean-proteomes:
 	rm -rvf $(PROTEOMES)
+
+clean-xml:
+	rm $(XML_PATH)/*.xml
 
 %_dir:
 	mkdir -p $(PROTEOMES)/$*
