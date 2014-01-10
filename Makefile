@@ -83,6 +83,10 @@ PARSE_TARGETS =  $(foreach SP,$(SPECIES),parse-history_$(SP))
 # An XML template used in building XML queries
 XMLSTUB = <?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Query>\n<Query virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "ROWS" count = "" datasetConfigVersion = "0.6" >\n\t<Dataset name = "DATASET" interface = "default" >ATTRIBUTES\n\t</Dataset>\n</Query>
 
+TABLES = organism refseq_protein inparanoid ensg ensp_inparanoid	\
+ensg_ensp ensp_refseq ipi_history ipi ensembl_ipi ensp uniprot_ipi	\
+uniprot_isoform uniprot_acc uniprot_entry domain domain_esp			\
+modification
 
 #### Phony targets
 
@@ -145,6 +149,11 @@ clean-proteomes:
 
 clean-xml:
 	rm $(XML_PATH)/*.xml
+
+clean-tables:
+	for table in $(TABLES); do \
+		echo "DELETE FROM $$table;" | $(MYSQL_CMD) $(DATABASE); \
+	done
 
 %_dir:
 	mkdir -p $(PROTEOMES)/$*
