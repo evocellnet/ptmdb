@@ -3,10 +3,10 @@ use strict;
 
 my $ptmdbDir = $ARGV[0];
 my $dbhost= $ARGV[1];
-my $database=$ARGV[2]
-my $dbuser=$ARGV[3]
-my $dbpass=$ARGV[4]
-my $dbport=$ARGV[5]
+my $database=$ARGV[2];
+my $dbuser=$ARGV[3];
+my $dbpass=$ARGV[4];
+my $dbport=$ARGV[5];
 my $idformat = $ARGV[6];
 my $taxid = $ARGV[7];
 my $infile = $ARGV[8];
