@@ -6,12 +6,9 @@ DBHOST<- args[1]	#database host
 DATABASE<- args[2]	#database name
 DBUSER<- args[3]	#database user
 DBPASS<- args[4]	#database password
-DBPORT<- args[5]	#database port
+DBPORT<- as.numeric(args[5])	#database port
 idType <- args[6]	#idType: [ipi,uniprot,ensp,ensg,gene_name]
 org <- args[7]		#number of organisms
-
-#PROJECT VARIABLES
-source(configfile)
 
 #FUNCTIONS
 #calculates percentage

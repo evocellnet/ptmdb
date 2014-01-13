@@ -41,7 +41,7 @@ if($conditionalData eq "true"){
 #PREFORMATING 
 my $preformatScript = $ptmdbDir."/src/insertingPTMs/preformatPTMs.pl";
 my $preformatCommand = "perl ".$preformatScript;
-for (my $i=4;$i<scalar(@ARGV);$i++){
+for (my $i=8;$i<scalar(@ARGV);$i++){
 	$preformatCommand.=" ";
 	$preformatCommand.=("\'".$ARGV[$i]."\'");
 }
