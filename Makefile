@@ -22,12 +22,12 @@ DBPASS ?= webAdmin
 DBPORT ?= 3306
 
 # Programs
-MYSQL ?= /usr/bin/mysql 
-R ?= /usr/bin/R
-PERL ?= /usr/bin/perl
-TAR ?= /usr/bin/tar
-WGET ?= /usr/bin/wget -q
-AWK ?= /usr/bin/awk
+MYSQL ?= $(shell which mysql)
+R ?= $(shell which R)
+PERL ?= $(shell which perl)
+TAR ?= $(shell which tar)
+WGET ?= $(shell which wget) -q
+AWK ?= $(shell which awk)
 
 MYSQL_CMD = $(MYSQL) -h$(DBHOST) -u$(DBUSER) -p$(DBPASS) -P$(DBPORT)
 DB = $(DBHOST) $(DATABASE) $(DBUSER) $(DBPASS) $(DBPORT)
