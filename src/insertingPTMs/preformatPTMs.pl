@@ -378,6 +378,7 @@ sub getRepeated{
 	#loops the file: LOOKING FOR REPEATED ENTRIES AND THEIR POSITIONS
 	for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 		my $line=$inlines[$i];
+		chomp($line);
 		my @fields = split($fs, $line);
 		#if the id is defined
 		if(defined($fields[$column{"id"}])){
@@ -400,6 +401,7 @@ sub getRepeated{
 	my %excluded;
 	for (my $i=$startingRow;$i<scalar(@inlines);$i++){
 		my $line=$inlines[$i];
+		chomp($line);
 		my @fields = split($fs, $line);
 		#if the id is defined
 		if(defined($column{"position"})){
