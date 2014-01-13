@@ -20,18 +20,14 @@ $statement->execute($TAXID);                        # execute the query
 
 my $field;
 $field = $statement->fetchrow_array();
-
+$statement->finish();
+$dbh->disconnect();
 
 if($field)
 {
-	print 'TRUE';
+	exit 0;
 }
 else
 {
-	print 'FALSE';
+	exit 1;
 }
-
-
-
-$statement->finish();
-$dbh->disconnect();
