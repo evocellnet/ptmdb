@@ -17,6 +17,8 @@ necessary to fill the database.
 
 	* R - *packages:* RMySQL, (devtools?)
 
+	* wget - Not installed in OSX
+	
 This repository can act also as a submodule of other projects intended
 to use the ptmdb.
 
