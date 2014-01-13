@@ -23,9 +23,18 @@ close(MODFILE);
 foreach my $line (@modfilelines){
 	chomp($line);
 	my @fields = split("\t", $line);
-	my $insModificationsStatement =  $dbh->prepare('INSERT INTO modification(id,description) VALUES (?,?)');
-	unless($insModificationsStatement->execute($fields[0], $fields[1])){
-		$errflag=1;
+	my $prequery = qq`SELECT id FROM modification WHERE id=?`;      # the query to execute
+	my $prestatement = $dbh->prepare($prequery) || die "Can't prepare a statement: $DBI::errstr";          # prepare the query
+	$prestatement->execute($fields[0]);             # execute the query
+	my $field;
+	$field = $prestatement->fetchrow_array();
+	if($field){
+		next;
+	}else{
+		my $insModificationsStatement =  $dbh->prepare('INSERT INTO modification(id,description) VALUES (?,?)');
+		unless($insModificationsStatement->execute($fields[0], $fields[1])){
+			$errflag=1;
+		}
 	}
 }
 
@@ -39,3 +48,5 @@ if($errflag){
 #$dbh->rollback();
 
 $dbh->commit();
+
+exit;

@@ -2,11 +2,13 @@
 suppressMessages(library(RMySQL))
 
 args <- commandArgs(TRUE)
-
-configfile <- args[1]	#input file with the 
-# infile <- args[2]	# input file with the PTMs
-idType <- args[2]	#idType: [ipi,uniprot]
-org <- args[3]		#number of organisms
+DBHOST<- args[1]	#database host
+DATABASE<- args[2]	#database name
+DBUSER<- args[3]	#database user
+DBPASS<- args[4]	#database password
+DBPORT<- args[5]	#database port
+idType <- args[6]	#idType: [ipi,uniprot,ensp,ensg,gene_name]
+org <- args[7]		#number of organisms
 
 #PROJECT VARIABLES
 source(configfile)
