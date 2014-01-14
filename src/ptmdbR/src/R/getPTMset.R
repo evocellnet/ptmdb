@@ -6,12 +6,14 @@
 #'
 #' The conditions are split into different columns when they are measured by two independent experiments. Those measurements obtained in different biological replicates obtained by the same group under the same experimental conditions are averaged. Moreover, additional phenotypical data such as publication, experimental setup or the description of the condition can be found on the \code{\link{ExpressionSet}} at the column level.
 #'
+#' This function might take some time to run depending on the size of the database.
+#'
 #' @param db An object of the class \code{\link{MySQLConnection}}
 #' @export
 #' @examples
-#' dbConnection <- ptmdbConnect(configFile)
+#' db <- ptmdbConnect(user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE, port=DBPORT)
 #' eset <- getPTMset(db)
-#' @return An object of the class \code{\link{ExpressionSet}} containing all the peptides and conditions and their log2 values. Additional information about the phenotypic data of the conditions as well as about the different peptides can be accessed used the functions defined in \code{\link{Biobase}}. 
+#' @return An object of the class \code{\link{ExpressionSet}} containing all the peptides and conditions and their log2 values. Additional information about the phenotypic data of the conditions and the feature data can be accessed using the functions defined in \code{\link{Biobase}}. 
 
 getPTMset <- function(db){
 	
@@ -41,7 +43,7 @@ getPTMset <- function(db){
 		INNER JOIN peptide_quantification ON peptide_quantification.peptide = peptide.id
 		INNER JOIN ptmdb.condition ON peptide_quantification.condition = condition.id
 	WHERE peptide_quantification.log2 IS NOT NULL
-	GROUP BY ensp.id,peptide.id,condition.id;";
+	GROUP BY ensp.id,peptide.id,condition.id,experiment.id;";
 	
 	conditionsQuery <- "SELECT *,id AS condition_id FROM ptmdb.condition;";
 	experimentsQuery <- "SELECT *,id AS experiment_id FROM ptmdb.experiment;";		

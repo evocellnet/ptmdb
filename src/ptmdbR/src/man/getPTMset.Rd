@@ -12,9 +12,8 @@ getPTMset(db)
 An object of the class \code{\link{ExpressionSet}}
 containing all the peptides and conditions and their log2
 values. Additional information about the phenotypic data of
-the conditions as well as about the different peptides can
-be accessed used the functions defined in
-\code{\link{Biobase}}.
+the conditions and the feature data can be accessed using
+the functions defined in \code{\link{Biobase}}.
 }
 \description{
 This function access to the database and returns all the
@@ -39,9 +38,12 @@ conditions are averaged. Moreover, additional phenotypical
 data such as publication, experimental setup or the
 description of the condition can be found on the
 \code{\link{ExpressionSet}} at the column level.
+
+This function might take some time to run depending on the
+size of the database.
 }
 \examples{
-dbConnection <- ptmdbConnect(configFile)
+db <- ptmdbConnect(user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE, port=DBPORT)
 eset <- getPTMset(db)
 }
 
