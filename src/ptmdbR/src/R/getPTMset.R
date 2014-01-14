@@ -28,6 +28,7 @@ getPTMset <- function(db){
 		peptide.peptide AS 'peptide',
 		GROUP_CONCAT(DISTINCT(ensp_site.position) ORDER BY ensp_site.position ASC) AS 'positions',
 		GROUP_CONCAT(DISTINCT(site.modif_type)) AS 'types',
+		site.modif_type AS 'types',
 		experiment.id AS 'experiment',
 		peptide_quantification.log2 AS 'log2',
 		site.localization_score AS 'locscore',
