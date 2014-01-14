@@ -93,7 +93,7 @@ getPTMset <- function(db){
 	#PREPARING FEATURE DATA
 	ensps <- sapply(strsplit(rownames(exprs), "_"), function(x) x[1])
 	positions <- sapply(strsplit(rownames(exprs), "_"), function(x) x[2])
-	peptides <- sapply(strsplit(rownames(exprs), "_"), function(x) x[4])
+	peptides <- sapply(strsplit(rownames(exprs), "_"), function(x) x[3])
 	protIdM <- unique(quantifications[ ,c("ensg","gene_name","ensp")])
 	row.names(protIdM) <- protIdM$ensp
 	ensgenes <- protIdM[ensps,"ensg"]
