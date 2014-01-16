@@ -22,22 +22,34 @@ quantifications found in a given database in the form of a
 \code{\link{ExpressionSet}} contains the peptides in the
 rows and the conditions in the columns, being every single
 cell the log2 quantification of a given peptide in a given
-conditions.
+conditions. Additional metadata corresponding to rows and
+columns is also contained in the
+\code{\link{ExpressionSet}} object.
 }
 \details{
 Each of the rows in the \code{\link{ExpressionSet}}
 represents a single peptide. Those peptides belonging to
-different isoforms of the same protein are treated as
-different entities.
+different products of the same gene are treated as
+different entities. In the same way, peptides with the same
+sequence and modifications but reported by different
+experiments are also considered as independent entities at
+this stage. Further filtering might be required to collapse
+this information into more biologically relevant results.
+The metadata of the peptides contains additional
+information such as the position of the modifications, the
+modified residues, localization scores,
 
 The conditions are split into different columns when they
-are measured by two independent experiments. Those
-measurements obtained in different biological replicates
-obtained by the same group under the same experimental
-conditions are averaged. Moreover, additional phenotypical
-data such as publication, experimental setup or the
-description of the condition can be found on the
-\code{\link{ExpressionSet}} at the column level.
+are measured by two independent experiments. Two different
+experiments are those publised in different publications or
+those produced in the same publication by two different
+mass-spec experiments (reported in independent tables).
+Those measurements obtained in different biological
+replicates published in the same article under the same
+experimental conditions are averaged. Additional
+phenotypical data such as publication, experimental setup
+or the description of the condition can be found on the
+\code{\link{ExpressionSet}}.
 
 This function might take some time to run depending on the
 size of the database.
