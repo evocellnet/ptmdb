@@ -1,21 +1,37 @@
 #' Gets a data.frame with the quantifications of a given protein
 #'
+#' @description
 #' This function access to the database and returns all the quantifications found in a given database in the form of a \code{\link{ExpressionSet}}. The \code{\link{ExpressionSet}} contains the peptides in the rows and the conditions in the columns, being every single cell the log2 quantification of a given peptide in a given conditions. Additional metadata corresponding to rows and columns is also contained in the \code{\link{ExpressionSet}} object.
 #'
-#' Each of the rows in the \code{\link{ExpressionSet}} represents a single peptide. Those peptides belonging to different products of the same gene are treated as different entities. In the same way, peptides with the same sequence and modifications but reported by different experiments are also considered as independent entities at this stage. Further filtering might be required to collapse this information into more biologically relevant results. The metadata of the peptides contains additional information such as the position of the modifications, the modified residues, localization scores,
+#' @param db An object of the class \code{\link{MySQLConnection}}
+#' @param peptideCollapse An optional character string giving a method for collapsing the peptides. This must be one of the following strings: "none" (default), "identical",...
 #'
-#' The conditions are split into different columns when they are measured by two independent experiments. Two different experiments are those publised in different publications or those produced in the same publication by two different mass-spec experiments (reported in independent tables). Those measurements obtained in different biological replicates published in the same article under the same experimental conditions are averaged. Additional phenotypical data such as publication, experimental setup or the description of the condition can be found on the \code{\link{ExpressionSet}}.
+#' @export
+#'
+#' @details
+#'
+#' The multiple experimental conditions are split into different columns when they are measured by two independent experiments. Two different experiments are those publised in different publications or those produced in the same publication by two different mass-spec experiments (reported in independent tables). Those measurements obtained in different biological replicates published in the same article under the same experimental conditions are averaged. Additional phenotypical data such as publication, experimental setup or the description of the condition can be found on the \code{\link{ExpressionSet}}.
+#'
+#' Each of the rows in the \code{\link{ExpressionSet}} represents a single peptide. Those peptides belonging to different products of the same gene are treated as different entities. In the same way, peptides with the same sequence and modifications but reported by different experiments are also considered as independent entities unless a peptideCollapse option is specified. Additionally, the metadata of the peptides contains additional information such as the position of the modifications, the modified residues, localization scores.
+#'
+#' \code{\link{getPTMset}} can also produce a PTMset with no-redundant peptides if the peptideCollapse option is specified. However, this process is not trivial since the definition of equivalent peptides might change depending on the biological question trying to answer. Therefore, this function contains a number of alternative methods designed to filter the PTMset on the most convenient way. The options implemented are the following:
+#' \itemize{
+#'   \item none (default). Peptides are keeped as independent entities no matter they have the same peptide sequence and modifications.  	
+#'   \item identical. Peptides with the same exact peptide sequence and modifications are merged into one single entry.
+#'   \item samemodifications. Peptides with the same modifications but not necessarly sequence are merged into one single entry.
+#'   ...
+#' }
 #'
 #' This function might take some time to run depending on the size of the database.
 #'
-#' @param db An object of the class \code{\link{MySQLConnection}}
-#' @export
+#' @return An object of the class \code{\link{ExpressionSet}} containing all the peptides and conditions and their log2 values. Additional information about the phenotypic data of the conditions and the feature data can be accessed using the functions defined in \code{\link{Biobase}}. 
+#'
 #' @examples
 #' db <- ptmdbConnect(user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE, port=DBPORT)
 #' eset <- getPTMset(db)
-#' @return An object of the class \code{\link{ExpressionSet}} containing all the peptides and conditions and their log2 values. Additional information about the phenotypic data of the conditions and the feature data can be accessed using the functions defined in \code{\link{Biobase}}. 
+#'
 
-getPTMset <- function(db){
+getPTMset <- function(db, peptideCollapse="none"){
 	
 	######################################### 
 	# DATABASE 
@@ -65,15 +81,24 @@ getPTMset <- function(db){
 	experiments <- experiments[ ,!(names(experiments) %in% "id")]
 	publications <- dbGetQuery(db, publicationsQuery);
 	
+	
+	######################################### 
+	# COLLAPSING PEPTIDES
+	#########################################
+	
+	#This column would be used to select unique peptides. The values of all the peptides sharing this would have the same id
+	if(peptideCollapse == "identical"){
+		quantifications$peptideName <- paste(quantifications$ensp, quantifications$peptide,sep="_")	
+	}else if(peptideCollapse = "samemodifications"){
+		quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types,sep="_")	
+	}else{
+		quantifications$peptideName <- paste(quantifications$ensp, quantifications$peptide_id,sep="_")	
+	}
+	
 	######################################### 
 	# FORMATING DATA TO CREATE EXPRESSIONSET
 	#########################################
-	
-	#PREPARING EXPRESSION OBJECT
-	
-	
-	quantifications$peptideName <- paste(quantifications$ensp, quantifications$peptide_id,sep="_")	
-	
+		
 	# Add another column for condition + experiment
 	quantifications$condExp <- paste(quantifications$condition, quantifications$experiment,sep="_")	
 	
@@ -96,32 +121,29 @@ getPTMset <- function(db){
 	
 	pData <- cbind(conds,exps,pubs)
 	rownames(pData) <- colnames(exprs)
-	phenoData <- new("AnnotatedDataFrame",data=pData)
-	
+	phenoData <- new("AnnotatedDataFrame",data=pData)	
 	
 	#PREPARING FEATURE DATA
-	peptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp")])
-	rownames(peptideInfo) <- peptideInfo$peptideName
+	if(peptideCollapse == "identical"){
+		# Peptide information when each peptide have different sequence/modifications
+		thepeptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id")])
+		peptideInfo <- aggregate(thepeptideInfo, by=list(thepeptideInfo$peptideName), unique)
+		peptideInfo$locscores <- sapply(tapply(thepeptideInfo$locscores, thepeptideInfo$peptideName, function (x) if(length(which(!is.na(x)))>0){sapply(x[!is.na(x)],function(y) as.numeric(unlist(strsplit(y, ","))))}else{x}), function(z) if(is.matrix(z)){paste(apply(z,1,function(b) max(b,na.rm=TRUE)),collapse=",")}else{if(length(z[!is.na(z)])>0){max(unlist(z), na.rm=TRUE)}else{NA}})
+	}else if(peptideCollapse="samemodifications"){
+		thepeptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id","peptide")])
+		peptideInfo <- aggregate(thepeptideInfo, by=list(thepeptideInfo$peptideName), unique)
+		peptideInfo$peptide <- tapply(quantifications$peptide, quantifications$peptideName, function (x) if(length(unique(x)) == 1){return(unique(x))}else{return(NA)})
+		peptideInfo$locscores <- sapply(tapply(thepeptideInfo$locscores, thepeptideInfo$peptideName, function (x) if(length(which(!is.na(x)))>0){sapply(x[!is.na(x)],function(y) as.numeric(unlist(strsplit(y, ","))))}else{x}), function(z) if(is.matrix(z)){paste(apply(z,1,function(b) max(b,na.rm=TRUE)),collapse=",")}else{if(length(z[!is.na(z)])>0){max(unlist(z), na.rm=TRUE)}else{NA}})
 		
-	ensps <- sapply(strsplit(rownames(exprs), "_"), function(x) x[1])
-	positions <- peptideInfo[rownames(exprs), "positions"]
-	peptides <- peptideInfo[rownames(exprs), "peptide"]
-	ensgenes <- peptideInfo[rownames(exprs), "ensg"]
-	gene_names <- peptideInfo[rownames(exprs), "gene_name"]
-	localization_scores <- peptideInfo[rownames(exprs), "locscores"]
-	residues <- peptideInfo[rownames(exprs), "residues"]
-	modif_types <- peptideInfo[rownames(exprs), "types"]
+	}else{
+		peptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id")])
+		
+	}
+	rownames(peptideInfo) <- peptideInfo$peptideName
 	
-	features <- data.frame(row.names=rownames(exprs),
-							ensps=ensps,
-							ensgs=ensgenes,
-							geneNames=gene_names,
-							positions=positions,
-							peptides=peptides,
-							locscores=localization_scores,
-							residues=residues,
-							modif_types=modif_types
-							)
+	
+	features <- cbind(sapply(strsplit(rownames(exprs), "_"), function(x) x[1]), peptideInfo[rownames(exprs), c("positions", "peptide", "ensg","gene_name","locscores","residues","types")])
+	names(features) <- c("ensp","positions", "peptide", "ensg","gene_name","locscores","residues","types")
 	
 	featureData <- new("AnnotatedDataFrame",data=features)
 	
