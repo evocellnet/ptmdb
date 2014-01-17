@@ -95,9 +95,9 @@ getPTMset <- function(db, peptideCollapse="none"){
 	#This column would be used to select unique peptides. The values of all the peptides sharing this would have the same id
 	if(peptideCollapse == "identical"){
 		quantifications$peptideName <- paste(quantifications$ensp, quantifications$peptide,sep="_")	
-	}else if(peptideCollapse = "samemodifications"){
+	}else if(peptideCollapse == "samemodifications"){
 		quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types,sep="_")	
-	}else{
+	}else if(peptideCollapse == "none"){
 		quantifications$peptideName <- paste(quantifications$ensp, quantifications$peptide_id,sep="_")	
 	}
 	
@@ -130,18 +130,22 @@ getPTMset <- function(db, peptideCollapse="none"){
 	phenoData <- new("AnnotatedDataFrame",data=pData)	
 	
 	#PREPARING FEATURE DATA
+	#peptideCollapse identical
 	if(peptideCollapse == "identical"){
 		# Peptide information when each peptide have different sequence/modifications
 		thepeptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id")])
 		peptideInfo <- aggregate(thepeptideInfo, by=list(thepeptideInfo$peptideName), unique)
 		peptideInfo$locscores <- sapply(tapply(thepeptideInfo$locscores, thepeptideInfo$peptideName, function (x) if(length(which(!is.na(x)))>0){sapply(x[!is.na(x)],function(y) as.numeric(unlist(strsplit(y, ","))))}else{x}), function(z) if(is.matrix(z)){paste(apply(z,1,function(b) max(b,na.rm=TRUE)),collapse=",")}else{if(length(z[!is.na(z)])>0){max(unlist(z), na.rm=TRUE)}else{NA}})
-	}else if(peptideCollapse="samemodifications"){
+	
+	#peptideCollapse samemodifications	
+	}else if(peptideCollapse == "samemodifications"){
 		thepeptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id","peptide")])
 		peptideInfo <- aggregate(thepeptideInfo, by=list(thepeptideInfo$peptideName), unique)
 		peptideInfo$peptide <- tapply(quantifications$peptide, quantifications$peptideName, function (x) if(length(unique(x)) == 1){return(unique(x))}else{return(NA)})
 		peptideInfo$locscores <- sapply(tapply(thepeptideInfo$locscores, thepeptideInfo$peptideName, function (x) if(length(which(!is.na(x)))>0){sapply(x[!is.na(x)],function(y) as.numeric(unlist(strsplit(y, ","))))}else{x}), function(z) if(is.matrix(z)){paste(apply(z,1,function(b) max(b,na.rm=TRUE)),collapse=",")}else{if(length(z[!is.na(z)])>0){max(unlist(z), na.rm=TRUE)}else{NA}})
-		
-	}else{
+	
+	#peptideCollapse none	
+	}else if(peptideCollapse == "none"){
 		peptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id")])
 		
 	}
