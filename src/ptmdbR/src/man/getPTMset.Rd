@@ -68,8 +68,11 @@ matter they have the same peptide sequence and
 modifications.  \item identical. Peptides with the same
 exact peptide sequence and modifications are merged into
 one single entry.  \item samemodifications. Peptides with
-the same modifications but not necessarly sequence are
-merged into one single entry.  ... }
+the same modifications but not necessarly the same sequence
+are merged into one single entry. Using this option might
+have as consequence the lost of some peptide sequences in
+the ExpressionSet, since not unique peptide sequence can be
+related with the given peptide entity.  ... }
 
 This function might take some time to run depending on the
 size of the database.
