@@ -2,11 +2,16 @@
 \alias{getPTMset}
 \title{Gets a data.frame with the quantifications of a given protein}
 \usage{
-getPTMset(db)
+getPTMset(db, peptideCollapse = "none")
 }
 \arguments{
   \item{db}{An object of the class
   \code{\link{MySQLConnection}}}
+
+  \item{peptideCollapse}{An optional character string
+  giving a method for collapsing the peptides. This must be
+  one of the following strings: "none" (default),
+  "identical",...}
 }
 \value{
 An object of the class \code{\link{ExpressionSet}}
@@ -27,29 +32,44 @@ columns is also contained in the
 \code{\link{ExpressionSet}} object.
 }
 \details{
+The multiple experimental conditions are split into
+different columns when they are measured by two independent
+experiments. Two different experiments are those publised
+in different publications or those produced in the same
+publication by two different mass-spec experiments
+(reported in independent tables). Those measurements
+obtained in different biological replicates published in
+the same article under the same experimental conditions are
+averaged. Additional phenotypical data such as publication,
+experimental setup or the description of the condition can
+be found on the \code{\link{ExpressionSet}}.
+
 Each of the rows in the \code{\link{ExpressionSet}}
 represents a single peptide. Those peptides belonging to
 different products of the same gene are treated as
 different entities. In the same way, peptides with the same
 sequence and modifications but reported by different
-experiments are also considered as independent entities at
-this stage. Further filtering might be required to collapse
-this information into more biologically relevant results.
-The metadata of the peptides contains additional
+experiments are also considered as independent entities
+unless a peptideCollapse option is specified. Additionally,
+the metadata of the peptides contains additional
 information such as the position of the modifications, the
-modified residues, localization scores,
+modified residues, localization scores.
 
-The conditions are split into different columns when they
-are measured by two independent experiments. Two different
-experiments are those publised in different publications or
-those produced in the same publication by two different
-mass-spec experiments (reported in independent tables).
-Those measurements obtained in different biological
-replicates published in the same article under the same
-experimental conditions are averaged. Additional
-phenotypical data such as publication, experimental setup
-or the description of the condition can be found on the
-\code{\link{ExpressionSet}}.
+\code{\link{getPTMset}} can also produce a PTMset with
+no-redundant peptides if the peptideCollapse option is
+specified. However, this process is not trivial since the
+definition of equivalent peptides might change depending on
+the biological question trying to answer. Therefore, this
+function contains a number of alternative methods designed
+to filter the PTMset on the most convenient way. The
+options implemented are the following: \itemize{ \item none
+(default). Peptides are keeped as independent entities no
+matter they have the same peptide sequence and
+modifications.  \item identical. Peptides with the same
+exact peptide sequence and modifications are merged into
+one single entry.  \item samemodifications. Peptides with
+the same modifications but not necessarly sequence are
+merged into one single entry.  ... }
 
 This function might take some time to run depending on the
 size of the database.
