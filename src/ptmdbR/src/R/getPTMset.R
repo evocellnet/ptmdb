@@ -35,7 +35,7 @@ getPTMset <- function(db, peptideCollapse="none"){
 	
     na.method <- pmatch(peptideCollapse, c("none", "identical", "samemodifications"))
     if (is.na(na.method)) 
-        stop("invalid 'use' argument")
+        stop("invalid 'peptideCollapse' argument")
 	
 	######################################### 
 	# DATABASE 
