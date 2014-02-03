@@ -2,7 +2,9 @@
 \alias{getPTMset}
 \title{Gets a data.frame with the quantifications of a given protein}
 \usage{
-getPTMset(db, peptideCollapse = "none")
+getPTMset(db, peptideCollapse = "none",
+  locscoreFilter = list(loc.probability = 0, ASCORE = 0),
+  na.scores.remove = FALSE)
 }
 \arguments{
   \item{db}{An object of the class
@@ -12,6 +14,13 @@ getPTMset(db, peptideCollapse = "none")
   giving a method for collapsing the peptides. This must be
   one of the following strings: "none" (default),
   "identical",...}
+
+  \item{locscoreFilter}{A list containing the
+  "loc.probability" and "ASCORE" score filters. By default,
+  no threshold is applied.}
+
+  \item{na.scores.remove}{Boolean value. When TRUE the
+  sites without localization scores are removed.}
 }
 \value{
 An object of the class \code{\link{ExpressionSet}}
@@ -54,6 +63,11 @@ unless a peptideCollapse option is specified. Additionally,
 the metadata of the peptides contains additional
 information such as the position of the modifications, the
 modified residues, localization scores.
+
+If the 'locscoreFilter' is greater than 0 the peptides
+containing no sites with a localization score (localization
+probability and ASCORE) greater than the specified
+threshold are filtered. Depending on the
 
 \code{\link{getPTMset}} can also produce a PTMset with
 no-redundant peptides if the peptideCollapse option is

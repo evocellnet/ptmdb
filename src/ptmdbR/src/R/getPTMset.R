@@ -5,7 +5,9 @@
 #'
 #' @param db An object of the class \code{\link{MySQLConnection}}
 #' @param peptideCollapse An optional character string giving a method for collapsing the peptides. This must be one of the following strings: "none" (default), "identical",...
-#'
+#' @param locscoreFilter A list containing the "loc.probability" and "ASCORE" score filters. By default, no threshold is applied. 
+#' @param na.scores.remove Boolean value. When TRUE the sites without localization scores are removed.
+#' 
 #' @export
 #'
 #' @details
@@ -13,6 +15,8 @@
 #' The multiple experimental conditions are split into different columns when they are measured by two independent experiments. Two different experiments are those publised in different publications or those produced in the same publication by two different mass-spec experiments (reported in independent tables). Those measurements obtained in different biological replicates published in the same article under the same experimental conditions are averaged. Additional phenotypical data such as publication, experimental setup or the description of the condition can be found on the \code{\link{ExpressionSet}}.
 #'
 #' Each of the rows in the \code{\link{ExpressionSet}} represents a single peptide. Those peptides belonging to different products of the same gene are treated as different entities. In the same way, peptides with the same sequence and modifications but reported by different experiments are also considered as independent entities unless a peptideCollapse option is specified. Additionally, the metadata of the peptides contains additional information such as the position of the modifications, the modified residues, localization scores.
+#'
+#' If the 'locscoreFilter' is greater than 0 the peptides containing no sites with a localization score (localization probability and ASCORE) greater than the specified threshold are filtered. Depending on the 
 #'
 #' \code{\link{getPTMset}} can also produce a PTMset with no-redundant peptides if the peptideCollapse option is specified. However, this process is not trivial since the definition of equivalent peptides might change depending on the biological question trying to answer. Therefore, this function contains a number of alternative methods designed to filter the PTMset on the most convenient way. The options implemented are the following:
 #' \itemize{
@@ -31,11 +35,15 @@
 #' eset <- getPTMset(db)
 #'
 
-getPTMset <- function(db, peptideCollapse="none"){
+getPTMset <- function(db, peptideCollapse="none", locscoreFilter=list("loc.probability"=0, "ASCORE"=0), na.scores.remove=FALSE){
 	
     na.method <- pmatch(peptideCollapse, c("none", "identical", "samemodifications"))
     if (is.na(na.method)) 
         stop("invalid 'peptideCollapse' argument")
+    if (!is.list(locscoreFilter)) 
+        stop("List expected on 'locscoreFilter' argument")
+    if (!is.logical(na.scores.remove)) 
+        stop("TRUE/FALSE value expected on 'na.scores.remove' argument")
 	
 	######################################### 
 	# DATABASE 
@@ -83,7 +91,9 @@ getPTMset <- function(db, peptideCollapse="none"){
 	conditions <- conditions[ ,!(names(conditions) %in% "id")]
 	experiments <- dbGetQuery(db, experimentsQuery);
 	experiments <- experiments[ ,!(names(experiments) %in% "id")]
+	row.names(experiments) <- experiments$experiment_id
 	publications <- dbGetQuery(db, publicationsQuery);
+	row.names(publications) <- publications$pub_id
 	
 	
 	######################################### 
@@ -100,12 +110,29 @@ getPTMset <- function(db, peptideCollapse="none"){
 	}
 	
 	######################################### 
+	# FILTERING BY LOCALIZATION SCORE
+	#########################################
+	scoresValues <- as.data.frame(cbind(experiments[quantifications$experiment, "scoring_method"], quantifications$locscore))
+	scoresValues[scoresValues == "NA"] <- NA
+	scoresValues$max <- sapply(strsplit(as.character(scoresValues[ ,2]), ","), function(x) max(as.numeric(x)))
+	scoresValues$probBool <- scoresValues$V1 == "Localization Probability"
+	scoresValues$ascoreBool <- scoresValues$V1 == "Localization Probability"
+	scoresValues$probBoolPos <- scoresValues$max > locscoreFilter[["loc.probability"]]
+	scoresValues$ascoreBoolPos <- scoresValues$max > locscoreFilter[["ASCORE"]]
+	indexes <- (scoresValues$probBool & scoresValues$probBoolPos) | (scoresValues$ascoreBool & scoresValues$ascoreBoolPos)
+	if(na.scores.remove){
+		indexes[is.na(indexes)] <- FALSE
+	}else{
+		indexes[is.na(indexes)] <- TRUE
+	}
+	
+	######################################### 
 	# FORMATING DATA TO CREATE EXPRESSIONSET
 	#########################################
 		
 	# Add another column for condition + experiment
 	quantifications$condExp <- paste(quantifications$condition, quantifications$experiment,sep="_")	
-	
+		
 	# Integrate every condition and peptide considering that every peptide in each isoform, condition and experiment is an independent entry. The conditions are also divided in different tracks if they come from different experiments (either on the different papers or in the same paper multiple mass_spec experiments). Then, still there might be multiple log2 measures for the same peptide (i.e multiple biological replicas). In that cases they are averaged to get a single number. 
 	df <- tapply(quantifications$log2, list(quantifications$peptideName,quantifications$condExp), function(y) mean(y,na.rm=TRUE))
 	
@@ -117,10 +144,8 @@ getPTMset <- function(db, peptideCollapse="none"){
 	conds <- conditions[as.character(thisconditions), ]
 	 
 	thisexperiments <- sapply(strsplit(colnames(exprs), "_"), function(x) x[2])
-	row.names(experiments) <- experiments$experiment_id
 	exps <- experiments[as.character(thisexperiments), ]
 	
-	row.names(publications) <- publications$pub_id
 	pubs <- publications[as.character(experiments[as.character(thisexperiments), "publication"]), ]
 	
 	pData <- cbind(conds,exps,pubs)
@@ -130,6 +155,7 @@ getPTMset <- function(db, peptideCollapse="none"){
 	phenoData <- new("AnnotatedDataFrame",data=pData)	
 	
 	#PREPARING FEATURE DATA
+		
 	#peptideCollapse identical
 	if(peptideCollapse == "identical"){
 		# Peptide information when each peptide have different sequence/modifications
