@@ -115,7 +115,7 @@ getPTMset <- function(db, peptideCollapse="none"){
 	thisconditions <- sapply(strsplit(colnames(exprs), "_"), function(x) x[1])
 	row.names(conditions) <- conditions$condition_id
 	conds <- conditions[as.character(thisconditions), ]
-	
+	 
 	thisexperiments <- sapply(strsplit(colnames(exprs), "_"), function(x) x[2])
 	row.names(experiments) <- experiments$experiment_id
 	exps <- experiments[as.character(thisexperiments), ]
@@ -124,6 +124,8 @@ getPTMset <- function(db, peptideCollapse="none"){
 	pubs <- publications[as.character(experiments[as.character(thisexperiments), "publication"]), ]
 	
 	pData <- cbind(conds,exps,pubs)
+	pData$scoring_method[pData$scoring_method == "NA"] <- NA #Correcting NA values
+	
 	rownames(pData) <- colnames(exprs)
 	phenoData <- new("AnnotatedDataFrame",data=pData)	
 	
