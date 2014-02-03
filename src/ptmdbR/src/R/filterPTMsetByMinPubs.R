@@ -18,7 +18,7 @@
 
 filterPTMsetByMinPubs <- function(eset, n=1){
 	
-    if (!is.numeric(pubEvidence))
+    if (!is.numeric(n))
         stop("invalid 'n' argument")
 	
 	#Filters the P
