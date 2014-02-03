@@ -1,0 +1,33 @@
+\name{filterPTMsetByMinPubs}
+\alias{filterPTMsetByMinPubs}
+\title{Filters the PTMset peptides by the minimum number of publications}
+\usage{
+filterPTMsetByMinPubs(eset, n = 1)
+}
+\arguments{
+  \item{eset}{An object of the class
+  \code{\link{ExpressionSet}}}
+
+  \item{n}{A minimum number of publications with valid
+  quantifications. The default value (n=1) removes all the
+  peptides without quantifications.}
+}
+\value{
+An object of the class \code{\link{ExpressionSet}}
+containing the peptides (rows) fullfilling the condition.
+Additional information about the phenotypic data of the
+conditions and the feature data can be accessed using the
+functions defined in \code{\link{Biobase}}.
+}
+\description{
+The peptides that do not contain a minimum number of valid
+quantifications (non-NA) for the given minimum number of
+publications are removed from the
+\code{\link{ExpressionSet}}.
+}
+\examples{
+db <- ptmdbConnect(user=DBUSER, password=DBPASS, host=DBHOST, dbname=DATABASE, port=DBPORT)  #database connection
+eset <- getPTMset(db) #gets the PTMset
+filteredEset <- filterPTMsetByMinPubs(eset, n=1)])  #returns the PTMset filtered
+}
+

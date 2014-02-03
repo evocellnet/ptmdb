@@ -1,3 +1,5 @@
+filterPTMsetByMinPubs   Filters the PTMset peptides by the minimum
+                        number of publications
 getAllPublications      Gets the list of publications on ptmdb
 getPTMset               Gets a data.frame with the quantifications of a
                         given protein

@@ -1,4 +1,5 @@
 ptmdbR-package	ptmdbR
+filterPTMsetByMinPubs	filterPTMsetByMinPubs
 getAllPublications	getAllPublications
 getPTMset	getPTMset
 getSiteQuantificationsForProtein	getSiteQuantificationsForProtein
