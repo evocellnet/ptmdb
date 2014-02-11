@@ -4,6 +4,7 @@
 #' This function access to the database and returns all the quantifications found in a given database in the form of a \code{\link{ExpressionSet}}. The \code{\link{ExpressionSet}} contains the peptides in the rows and the conditions in the columns, being every single cell the log2 quantification of a given peptide in a given conditions. Additional metadata corresponding to rows and columns is also contained in the \code{\link{ExpressionSet}} object.
 #'
 #' @param db An object of the class \code{\link{MySQLConnection}}
+#' @param onlySingles An optional boolean. By default ('FALSE'), all the peptides are retrieved. If onlySingles is set to TRUE, only the peptides modified once are retrieved.  
 #' @param peptideCollapse An optional character string giving a method for collapsing the peptides. This must be one of the following strings: "none" (default), "identical",...
 #' @param locscoreFilter A list containing the "loc.probability" and "ASCORE" score filters. By default, no threshold is applied. 
 #' @param na.scores.remove Boolean value. When TRUE the sites without localization scores are removed.
@@ -17,6 +18,8 @@
 #' Each of the rows in the \code{\link{ExpressionSet}} represents a single peptide. Those peptides belonging to different products of the same gene are treated as different entities. In the same way, peptides with the same sequence and modifications but reported by different experiments are also considered as independent entities unless a peptideCollapse option is specified. Additionally, the metadata of the peptides contains additional information such as the position of the modifications, the modified residues, localization scores.
 #'
 #' If the 'locscoreFilter' is greater than 0 the peptides containing no sites with a localization score (localization probability and ASCORE) greater than the specified threshold are filtered. Depending on the 
+#'
+#' When 'onlySingles' is switched to TRUE, the peptides containing more than one modification are ignored in the final set.
 #'
 #' \code{\link{getPTMset}} can also produce a PTMset with no-redundant peptides if the peptideCollapse option is specified. However, this process is not trivial since the definition of equivalent peptides might change depending on the biological question trying to answer. Therefore, this function contains a number of alternative methods designed to filter the PTMset on the most convenient way. The options implemented are the following:
 #' \itemize{
@@ -35,12 +38,14 @@
 #' eset <- getPTMset(db)
 #'
 
-getPTMset <- function(db, peptideCollapse="none", locscoreFilter=list("loc.probability"=0, "ASCORE"=0), na.scores.remove=FALSE){
+getPTMset <- function(db, peptideCollapse="none", onlySingles=FALSE, locscoreFilter=list("loc.probability"=0, "ASCORE"=0), na.scores.remove=FALSE){
 	
     na.method <- pmatch(peptideCollapse, c("none", "identical", "samemodifications"))
     if (is.na(na.method)) 
         stop("invalid 'peptideCollapse' argument")
-    if (!is.list(locscoreFilter)) 
+    if (!is.logical(onlySingles)) 
+        stop("TRUE/FALSE value expected on 'onlySingles' argument")
+	if (!is.list(locscoreFilter)) 
         stop("List expected on 'locscoreFilter' argument")
     if (!is.logical(na.scores.remove)) 
         stop("TRUE/FALSE value expected on 'na.scores.remove' argument")
@@ -58,7 +63,7 @@ getPTMset <- function(db, peptideCollapse="none", locscoreFilter=list("loc.proba
 			experiment.id AS 'experiment',
 			peptide_quantification.log2 AS 'log2',
 			condition.id AS 'condition'
-		FROM peptide	
+		FROM peptide
 			INNER JOIN(
 				SELECT
 					ensp.id AS 'ensp',
@@ -95,6 +100,14 @@ getPTMset <- function(db, peptideCollapse="none", locscoreFilter=list("loc.proba
 	publications <- dbGetQuery(db, publicationsQuery);
 	row.names(publications) <- publications$pub_id
 	
+	
+	######################################### 
+	# ONLY SINGLES PARAMETER
+	#########################################
+	
+	if(onlySingles){
+		quantifications <- quantifications[sapply(strsplit(quantifications$types, ","), length) == 1, ]
+	}
 	
 	######################################### 
 	# COLLAPSING PEPTIDES

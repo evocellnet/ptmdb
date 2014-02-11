@@ -2,13 +2,18 @@
 \alias{getPTMset}
 \title{Gets a data.frame with the quantifications of a given protein}
 \usage{
-getPTMset(db, peptideCollapse = "none",
+getPTMset(db, peptideCollapse = "none", onlySingles = FALSE,
   locscoreFilter = list(loc.probability = 0, ASCORE = 0),
   na.scores.remove = FALSE)
 }
 \arguments{
   \item{db}{An object of the class
   \code{\link{MySQLConnection}}}
+
+  \item{onlySingles}{An optional boolean. By default
+  ('FALSE'), all the peptides are retrieved. If onlySingles
+  is set to TRUE, only the peptides modified once are
+  retrieved.}
 
   \item{peptideCollapse}{An optional character string
   giving a method for collapsing the peptides. This must be
@@ -68,6 +73,10 @@ If the 'locscoreFilter' is greater than 0 the peptides
 containing no sites with a localization score (localization
 probability and ASCORE) greater than the specified
 threshold are filtered. Depending on the
+
+When 'onlySingles' is switched to TRUE, the peptides
+containing more than one modification are ignored in the
+final set.
 
 \code{\link{getPTMset}} can also produce a PTMset with
 no-redundant peptides if the peptideCollapse option is
