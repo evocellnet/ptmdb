@@ -6,7 +6,7 @@
 #' @param db An object of the class \code{\link{MySQLConnection}}
 #' @param onlySingles An optional boolean. By default ('FALSE'), all the peptides are retrieved. If onlySingles is set to TRUE, only the peptides modified once are retrieved.  
 #' @param peptideCollapse An optional character string giving a method for collapsing the peptides. This must be one of the following strings: "none" (default), "identical",...
-#' @param locscoreFilter A list containing the "loc.probability" and "ASCORE" score filters. By default, no threshold is applied. 
+#' @param locscoreFilter A list containing the "loc.probability" and "ASCORE" score filters. By default 'NA', no threshold is applied. 
 #' @param na.scores.remove Boolean value. When TRUE the sites without localization scores are removed.
 #' 
 #' @export
@@ -38,15 +38,18 @@
 #' eset <- getPTMset(db)
 #'
 
-getPTMset <- function(db, peptideCollapse="none", onlySingles=FALSE, locscoreFilter=list("loc.probability"=0, "ASCORE"=0), na.scores.remove=FALSE){
+getPTMset <- function(db, peptideCollapse="none", onlySingles=FALSE, locscoreFilter=NA, na.scores.remove=FALSE){
 	
     na.method <- pmatch(peptideCollapse, c("none", "identical", "samemodifications"))
     if (is.na(na.method)) 
         stop("invalid 'peptideCollapse' argument")
     if (!is.logical(onlySingles)) 
         stop("TRUE/FALSE value expected on 'onlySingles' argument")
-	if (!is.list(locscoreFilter)) 
-        stop("List expected on 'locscoreFilter' argument")
+	if (!is.list(locscoreFilter)){
+		if(!is.na(locscoreFilter)){
+	        stop("List or NA expected on 'locscoreFilter' argument")
+		}
+	}
     if (!is.logical(na.scores.remove)) 
         stop("TRUE/FALSE value expected on 'na.scores.remove' argument")
 	
@@ -125,18 +128,21 @@ getPTMset <- function(db, peptideCollapse="none", onlySingles=FALSE, locscoreFil
 	######################################### 
 	# FILTERING BY LOCALIZATION SCORE
 	#########################################
-	scoresValues <- as.data.frame(cbind(experiments[quantifications$experiment, "scoring_method"], quantifications$locscore))
-	scoresValues[scoresValues == "NA"] <- NA
-	scoresValues$max <- sapply(strsplit(as.character(scoresValues[ ,2]), ","), function(x) max(as.numeric(x)))
-	scoresValues$probBool <- scoresValues$V1 == "Localization Probability"
-	scoresValues$ascoreBool <- scoresValues$V1 == "Localization Probability"
-	scoresValues$probBoolPos <- scoresValues$max > locscoreFilter[["loc.probability"]]
-	scoresValues$ascoreBoolPos <- scoresValues$max > locscoreFilter[["ASCORE"]]
-	indexes <- (scoresValues$probBool & scoresValues$probBoolPos) | (scoresValues$ascoreBool & scoresValues$ascoreBoolPos)
-	if(na.scores.remove){
-		indexes[is.na(indexes)] <- FALSE
-	}else{
-		indexes[is.na(indexes)] <- TRUE
+	if(!is.na(locscoreFilter)){
+		scoresValues <- as.data.frame(cbind(experiments[quantifications$experiment, "scoring_method"], quantifications$locscore))
+		scoresValues[scoresValues == "NA"] <- NA
+		scoresValues$max <- sapply(strsplit(as.character(scoresValues[ ,2]), ","), function(x) max(as.numeric(x)))
+		scoresValues$probBool <- scoresValues$V1 == "Localization Probability"
+		scoresValues$ascoreBool <- scoresValues$V1 == "Localization Probability"
+		scoresValues$probBoolPos <- scoresValues$max > locscoreFilter[["loc.probability"]]
+		scoresValues$ascoreBoolPos <- scoresValues$max > locscoreFilter[["ASCORE"]]
+		indexes <- (scoresValues$probBool & scoresValues$probBoolPos) | (scoresValues$ascoreBool & scoresValues$ascoreBoolPos)
+		if(na.scores.remove){
+			indexes[is.na(indexes)] <- FALSE
+		}else{
+			indexes[is.na(indexes)] <- TRUE
+		}
+		quantifications <- quantification[indexes, ]
 	}
 	
 	######################################### 

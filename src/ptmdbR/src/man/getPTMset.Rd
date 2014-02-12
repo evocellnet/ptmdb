@@ -3,8 +3,7 @@
 \title{Gets a data.frame with the quantifications of a given protein}
 \usage{
 getPTMset(db, peptideCollapse = "none", onlySingles = FALSE,
-  locscoreFilter = list(loc.probability = 0, ASCORE = 0),
-  na.scores.remove = FALSE)
+  locscoreFilter = NA, na.scores.remove = FALSE)
 }
 \arguments{
   \item{db}{An object of the class
@@ -21,8 +20,8 @@ getPTMset(db, peptideCollapse = "none", onlySingles = FALSE,
   "identical",...}
 
   \item{locscoreFilter}{A list containing the
-  "loc.probability" and "ASCORE" score filters. By default,
-  no threshold is applied.}
+  "loc.probability" and "ASCORE" score filters. By default
+  'NA', no threshold is applied.}
 
   \item{na.scores.remove}{Boolean value. When TRUE the
   sites without localization scores are removed.}
