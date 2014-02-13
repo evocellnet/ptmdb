@@ -128,7 +128,7 @@ getPTMset <- function(db, peptideCollapse="none", onlySingles=FALSE, locscoreFil
 	######################################### 
 	# FILTERING BY LOCALIZATION SCORE
 	#########################################
-	if(!is.na(locscoreFilter)){
+	if(is.list(locscoreFilter)){
 		scoresValues <- as.data.frame(cbind(experiments[quantifications$experiment, "scoring_method"], quantifications$locscore))
 		scoresValues[scoresValues == "NA"] <- NA
 		scoresValues$max <- sapply(strsplit(as.character(scoresValues[ ,2]), ","), function(x) max(as.numeric(x)))
