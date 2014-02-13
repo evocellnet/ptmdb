@@ -142,7 +142,7 @@ getPTMset <- function(db, peptideCollapse="none", onlySingles=FALSE, locscoreFil
 		}else{
 			indexes[is.na(indexes)] <- TRUE
 		}
-		quantifications <- quantification[indexes, ]
+		quantifications <- quantifications[indexes, ]
 	}
 	
 	######################################### 
