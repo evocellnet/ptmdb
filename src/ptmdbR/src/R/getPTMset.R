@@ -118,11 +118,11 @@ getPTMset <- function(db, peptideCollapse="none", onlySingles=FALSE, locscoreFil
 	
 	#This column would be used to select unique peptides. The values of all the peptides sharing this would have the same id
 	if(peptideCollapse == "identical"){
-		quantifications$peptideName <- paste(quantifications$ensp, quantifications$peptide,sep="_")	
+		quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types, quantifications$peptide,sep="_")	
 	}else if(peptideCollapse == "samemodifications"){
 		quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types,sep="_")	
 	}else if(peptideCollapse == "none"){
-		quantifications$peptideName <- paste(quantifications$ensp, quantifications$peptide_id,sep="_")	
+		quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types, quantifications$peptide, quantifications$peptide_id,sep="_")	
 	}
 	
 	######################################### 
