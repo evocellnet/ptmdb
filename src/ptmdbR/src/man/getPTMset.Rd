@@ -9,6 +9,10 @@ getPTMset(db, unpublished = FALSE, peptideCollapse = "none",
   \item{db}{An object of the class
   \code{\link{MySQLConnection}}}
 
+  \item{unpublished}{An optional boolean. By default
+  ('FALSE'), only the published datasets are retrieved.
+  When TRUE, other unpublished datasets are retrieved.}
+
   \item{onlySingles}{An optional boolean. By default
   ('FALSE'), all the peptides are retrieved. If onlySingles
   is set to TRUE, only the peptides modified once are

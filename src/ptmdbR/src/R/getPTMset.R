@@ -4,6 +4,7 @@
 #' This function access to the database and returns all the quantifications found in a given database in the form of a \code{\link{ExpressionSet}}. The \code{\link{ExpressionSet}} contains the peptides in the rows and the conditions in the columns, being every single cell the log2 quantification of a given peptide in a given conditions. Additional metadata corresponding to rows and columns is also contained in the \code{\link{ExpressionSet}} object.
 #'
 #' @param db An object of the class \code{\link{MySQLConnection}}
+#' @param unpublished An optional boolean. By default ('FALSE'), only the published datasets are retrieved. When TRUE, other unpublished datasets are retrieved.
 #' @param onlySingles An optional boolean. By default ('FALSE'), all the peptides are retrieved. If onlySingles is set to TRUE, only the peptides modified once are retrieved.  
 #' @param peptideCollapse An optional character string giving a method for collapsing the peptides. This must be one of the following strings: "none" (default), "identical",...
 #' @param locscoreFilter A list containing the "loc.probability" and "ASCORE" score filters. By default 'NA', no threshold is applied. 
@@ -108,8 +109,9 @@ getPTMset <- function(db, unpublished=FALSE, peptideCollapse="none", onlySingles
 	######################################### 
 	# FILTER UNPUBLISHED
 	#########################################
+	
 	if(!unpublished){
-		unpublishedExperiments <- experiments$experiment_id[experiments$publication == "NULL"]
+		unpublishedExperiments <- experiments$experiment_id[is.na(experiments$publication)]
 		quantifications <- quantifications[!(quantifications$experiment %in% unpublishedExperiments), ]
 	}
 	
