@@ -38,13 +38,15 @@
 #' eset <- getPTMset(db)
 #'
 
-getPTMset <- function(db, peptideCollapse="none", onlySingles=FALSE, locscoreFilter=NA, na.scores.remove=FALSE){
+getPTMset <- function(db, unpublished=FALSE, peptideCollapse="none", onlySingles=FALSE, locscoreFilter=NA, na.scores.remove=FALSE){
 	
     na.method <- pmatch(peptideCollapse, c("none", "identical", "samemodifications"))
     if (is.na(na.method)) 
         stop("invalid 'peptideCollapse' argument")
     if (!is.logical(onlySingles)) 
         stop("TRUE/FALSE value expected on 'onlySingles' argument")
+    if (!is.logical(unpublished)) 
+        stop("TRUE/FALSE value expected on 'unpublished' argument")
 	if (!is.list(locscoreFilter)){
 		if(!is.na(locscoreFilter)){
 	        stop("List or NA expected on 'locscoreFilter' argument")
@@ -103,6 +105,13 @@ getPTMset <- function(db, peptideCollapse="none", onlySingles=FALSE, locscoreFil
 	publications <- dbGetQuery(db, publicationsQuery);
 	row.names(publications) <- publications$pub_id
 	
+	######################################### 
+	# FILTER UNPUBLISHED
+	#########################################
+	if(!unpublished){
+		unpublishedExperiments <- experiments$experiment_id[experiments$publication == "NULL"]
+		quantifications <- quantifications[!(quantifications$experiment %in% unpublishedExperiments), ]
+	}
 	
 	######################################### 
 	# ONLY SINGLES PARAMETER

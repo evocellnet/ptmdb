@@ -2,8 +2,8 @@
 \alias{getPTMset}
 \title{Gets a data.frame with the quantifications of a given protein}
 \usage{
-getPTMset(db, peptideCollapse = "none", onlySingles = FALSE,
-  locscoreFilter = NA, na.scores.remove = FALSE)
+getPTMset(db, unpublished = FALSE, peptideCollapse = "none",
+  onlySingles = FALSE, locscoreFilter = NA, na.scores.remove = FALSE)
 }
 \arguments{
   \item{db}{An object of the class
