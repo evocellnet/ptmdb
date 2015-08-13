@@ -181,6 +181,7 @@ $(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_
 	SCINAME="$(call CSVCUT,$*,2)"; \
 	TAXID=$(call CSVCUT,$*,3); \
 	ENSEMBL_NAME=`echo "$${SCINAME}" | sed 's/\([A-Z]\)[a-z]* \(.*\)/\L\1\2/'`; \
+	BIOMART_HOST=$(call CSVCUT,$*,9); \
 	if grep -q $${ENSEMBL_NAME} "$(MARTS)/biomart_datasets.txt"; then \
 		ENSNAME=$${ENSEMBL_NAME}_gene_ensembl; \
 	else \
@@ -192,7 +193,7 @@ $(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_
 			$${TAXID} "$${SCINAME}" $${COMMONNAME} "$${ENSNAME}" \
 			"$(PROTEOMES)/$*/inpara.txt" "$(PROTEOMES)/$*/uniprot.txt" \
 			"$(PROTEOMES)/$*/ipi.fasta" "$(PROTEOMES)/$*/parsed.history" \
-			$(BIOMARTLWP) $(XML_PATH); \
+			$(BIOMARTLWP) $(XML_PATH) $(BIOMART_HOST); \
 	else \
 		printf "Organism $$SCINAME already exists in the database\n\n"; \
 	fi

@@ -21,6 +21,7 @@ my $IPI_FASTA = $ARGV[12];
 my $IPI_HISTORY_PARSED = $ARGV[13];
 my $BIOMARTLWP = $ARGV[14];
 my $XML_PATH = $ARGV[15];
+my $BIOMART_HOST = $ARGV[16];
 
 my $tolerance = 0.05;	# Tolerance in sequence length for two IDs to be considered the same (When evidences support it)
 my $relaxtolerance = 0.5;	# Tolerance in sequence length for two IDs to be considered the same (Stronger evidences support it)
@@ -92,7 +93,7 @@ print "\t* Inserting Ensembl Genes...\n";
 my $ins_ensp_genes = $dbh->prepare('INSERT INTO ensg(id,name,description,taxid) VALUES (?,?,?,?)');
 
 
-open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/${COMMON_NAME}_ensg.xml |") || die "Failed: $!\n";
+open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/${COMMON_NAME}_ensg.xml ${BIOMART_HOST} |") || die "Failed: $!\n";
 while ( <PS> )
 {
 	my $line = $_;

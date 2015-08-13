@@ -10,7 +10,7 @@
 	}
 	close(FH);
 	 
-	my $path="http://www.biomart.org/biomart/martservice?";
+	my $path=$ARGV[1]."biomart/martservice?";
 	my $request = HTTP::Request->new("POST",$path,HTTP::Headers->new(),'query='.$xml."\n");
 	my $ua = LWP::UserAgent->new;
 	 
