@@ -193,7 +193,7 @@ $(INSERT_TARGETS): insert_%: uniprot_% inpara_% ipifasta_% ipihistory_% ensembl_
 			$${TAXID} "$${SCINAME}" $${COMMONNAME} "$${ENSNAME}" \
 			"$(PROTEOMES)/$*/inpara.txt" "$(PROTEOMES)/$*/uniprot.txt" \
 			"$(PROTEOMES)/$*/ipi.fasta" "$(PROTEOMES)/$*/parsed.history" \
-			$(BIOMARTLWP) $(XML_PATH) $(BIOMART_HOST); \
+			$(BIOMARTLWP) $(XML_PATH) "$${BIOMART_HOST}"; \
 	else \
 		printf "Organism $$SCINAME already exists in the database\n\n"; \
 	fi
