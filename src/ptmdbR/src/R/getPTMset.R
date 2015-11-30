@@ -94,7 +94,7 @@ getPTMset <- function(db, unpublished=FALSE, peptideCollapse="none", onlySingles
 		
 	conditionsQuery <- "SELECT *,id AS condition_id FROM condition;";
 	experimentsQuery <- "SELECT *,id AS experiment_id FROM experiment;";		
-	publicationsQuery <- "SELECT * FROM ptmdb.publication;";
+	publicationsQuery <- "SELECT * FROM publication;";
 	
 	# querying database
 	quantifications <- dbGetQuery(db, quantificationsQuery)
