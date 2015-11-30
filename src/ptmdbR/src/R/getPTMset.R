@@ -88,13 +88,13 @@ getPTMset <- function(db, unpublished=FALSE, peptideCollapse="none", onlySingles
 			INNER JOIN ensg ON ensg_ensp.ensg_id = ensg.id
 			INNER JOIN experiment ON peptide.experiment = experiment.id
 			INNER JOIN peptide_quantification ON peptide_quantification.peptide = peptide.id
-			INNER JOIN condition ON peptide_quantification.condition = condition.id
+			INNER JOIN ptmdb.condition ON peptide_quantification.condition = condition.id
 		WHERE peptide_quantification.log2 IS NOT NULL
 	;";
 		
-	conditionsQuery <- "SELECT *,id AS condition_id FROM condition;";
-	experimentsQuery <- "SELECT *,id AS experiment_id FROM experiment;";		
-	publicationsQuery <- "SELECT * FROM publication;";
+	conditionsQuery <- "SELECT *,id AS condition_id FROM ptmdb.condition;";
+	experimentsQuery <- "SELECT *,id AS experiment_id FROM ptmdb.experiment;";		
+	publicationsQuery <- "SELECT * FROM ptmdb.publication;";
 	
 	# querying database
 	quantifications <- dbGetQuery(db, quantificationsQuery)
@@ -123,7 +123,7 @@ getPTMset <- function(db, unpublished=FALSE, peptideCollapse="none", onlySingles
 		quantifications <- quantifications[sapply(strsplit(quantifications$types, ","), length) == 1, ]
 	}
 	
-	######################################### 	
+	######################################### 
 	# COLLAPSING PEPTIDES
 	#########################################
 	
