@@ -39,28 +39,28 @@
 #' eset <- getPTMset(db)
 #'
 
-getPTMset <- function(db, unpublished=FALSE, peptideCollapse="none", onlySingles=FALSE, locscoreFilter=NA, na.scores.remove=FALSE){
-	
-    na.method <- pmatch(peptideCollapse, c("none", "identical", "samemodifications"))
-    if (is.na(na.method)) 
-        stop("invalid 'peptideCollapse' argument")
-    if (!is.logical(onlySingles)) 
-        stop("TRUE/FALSE value expected on 'onlySingles' argument")
-    if (!is.logical(unpublished)) 
-        stop("TRUE/FALSE value expected on 'unpublished' argument")
-	if (!is.list(locscoreFilter)){
-		if(!is.na(locscoreFilter)){
-	        stop("List or NA expected on 'locscoreFilter' argument")
-		}
-	}
-    if (!is.logical(na.scores.remove)) 
-        stop("TRUE/FALSE value expected on 'na.scores.remove' argument")
-	
-	######################################### 
-	# DATABASE 
-	#########################################
-	
-	quantificationsQuery <- "
+getPTMset <- function(db, unpublished=FALSE, peptideCollapse="none", onlySingles=FALSE, locscoreFilter=NA, na.scores.remove=FALSE, organism="9606"){
+  
+  na.method <- pmatch(peptideCollapse, c("none", "identical", "samemodifications"))
+  if (is.na(na.method)) 
+    stop("invalid 'peptideCollapse' argument")
+  if (!is.logical(onlySingles)) 
+    stop("TRUE/FALSE value expected on 'onlySingles' argument")
+  if (!is.logical(unpublished)) 
+    stop("TRUE/FALSE value expected on 'unpublished' argument")
+  if (!is.list(locscoreFilter)){
+    if(!is.na(locscoreFilter)){
+      stop("List or NA expected on 'locscoreFilter' argument")
+    }
+  }
+  if (!is.logical(na.scores.remove)) 
+    stop("TRUE/FALSE value expected on 'na.scores.remove' argument")
+  
+######################################### 
+# DATABASE 
+#########################################
+  
+  quantificationsQuery <- paste("
 		SELECT 
 			pepinfo.*,
 			ensg.id AS 'ensg',
@@ -89,135 +89,135 @@ getPTMset <- function(db, unpublished=FALSE, peptideCollapse="none", onlySingles
 			INNER JOIN experiment ON peptide.experiment = experiment.id
 			INNER JOIN peptide_quantification ON peptide_quantification.peptide = peptide.id
 			INNER JOIN `condition` ON peptide_quantification.condition = condition.id
-		WHERE peptide_quantification.log2 IS NOT NULL
-	;";
-		
-	conditionsQuery <- "SELECT *,id AS condition_id FROM `condition`;";
-	experimentsQuery <- "SELECT *,id AS experiment_id FROM experiment;";
-	publicationsQuery <- "SELECT * FROM publication;";
-	
-	# querying database
-	quantifications <- dbGetQuery(db, quantificationsQuery)
-	conditions <- dbGetQuery(db, conditionsQuery);
-	conditions <- conditions[ ,!(names(conditions) %in% "id")]
-	experiments <- dbGetQuery(db, experimentsQuery);
-	experiments <- experiments[ ,!(names(experiments) %in% "id")]
-	row.names(experiments) <- experiments$experiment_id
-	publications <- dbGetQuery(db, publicationsQuery);
-	row.names(publications) <- publications$pub_id
-	
-	######################################### 
-	# FILTER UNPUBLISHED
-	#########################################
-	
-	if(!unpublished){
-		unpublishedExperiments <- experiments$experiment_id[is.na(experiments$publication)]
-		quantifications <- quantifications[!(quantifications$experiment %in% unpublishedExperiments), ]
-	}
-	
-	######################################### 
-	# ONLY SINGLES PARAMETER
-	#########################################
-	
-	if(onlySingles){
-		quantifications <- quantifications[sapply(strsplit(quantifications$types, ","), length) == 1, ]
-	}
-	
-	######################################### 
-	# COLLAPSING PEPTIDES
-	#########################################
-	
-	#This column would be used to select unique peptides. The values of all the peptides sharing this would have the same id
-	if(peptideCollapse == "identical"){
-		quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types, quantifications$peptide,sep="_")	
-	}else if(peptideCollapse == "samemodifications"){
-		quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types,sep="_")	
-	}else if(peptideCollapse == "none"){
-		quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types, quantifications$peptide, quantifications$peptide_id,sep="_")	
-	}
-	
-	######################################### 
-	# FILTERING BY LOCALIZATION SCORE
-	#########################################
-	if(is.list(locscoreFilter)){
-		scoresValues <- as.data.frame(cbind(experiments[quantifications$experiment, "scoring_method"], quantifications$locscore))
-		scoresValues[scoresValues == "NA"] <- NA
-		scoresValues$max <- sapply(strsplit(as.character(scoresValues[ ,2]), ","), function(x) max(as.numeric(x)))
-		scoresValues$probBool <- scoresValues$V1 == "Localization Probability"
-		scoresValues$ascoreBool <- scoresValues$V1 == "Localization Probability"
-		scoresValues$probBoolPos <- scoresValues$max > locscoreFilter[["loc.probability"]]
-		scoresValues$ascoreBoolPos <- scoresValues$max > locscoreFilter[["ASCORE"]]
-		indexes <- (scoresValues$probBool & scoresValues$probBoolPos) | (scoresValues$ascoreBool & scoresValues$ascoreBoolPos)
-		if(na.scores.remove){
-			indexes[is.na(indexes)] <- FALSE
-		}else{
-			indexes[is.na(indexes)] <- TRUE
-		}
-		quantifications <- quantifications[indexes, ]
-	}
-	
-	######################################### 
-	# FORMATING DATA TO CREATE EXPRESSIONSET
-	#########################################
-		
-	# Add another column for condition + experiment
-	quantifications$condExp <- paste(quantifications$condition, quantifications$experiment,sep="_")	
-		
-	# Integrate every condition and peptide considering that every peptide in each isoform, condition and experiment is an independent entry. The conditions are also divided in different tracks if they come from different experiments (either on the different papers or in the same paper multiple mass_spec experiments). Then, still there might be multiple log2 measures for the same peptide (i.e multiple biological replicas). In that cases they are averaged to get a single number. 
-	df <- tapply(quantifications$log2, list(quantifications$peptideName,quantifications$condExp), function(y) mean(y,na.rm=TRUE))
-	
-	exprs <- as.matrix(df)
-	
-	#PREPARING PHENOTIPIC DATA
-	thisconditions <- sapply(strsplit(colnames(exprs), "_"), function(x) x[1])
-	row.names(conditions) <- conditions$condition_id
-	conds <- conditions[as.character(thisconditions), ]
-	 
-	thisexperiments <- sapply(strsplit(colnames(exprs), "_"), function(x) x[2])
-	exps <- experiments[as.character(thisexperiments), ]
-	
-	pubs <- publications[as.character(experiments[as.character(thisexperiments), "publication"]), ]
-	
-	pData <- cbind(conds,exps,pubs)
-	pData$scoring_method[pData$scoring_method == "NA"] <- NA #Correcting NA values
-	
-	rownames(pData) <- colnames(exprs)
-	phenoData <- new("AnnotatedDataFrame",data=pData)	
-	
-	#PREPARING FEATURE DATA
-		
-	#peptideCollapse identical
-	if(peptideCollapse == "identical"){
-		# Peptide information when each peptide have different sequence/modifications
-		thepeptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id")])
-		peptideInfo <- aggregate(thepeptideInfo, by=list(thepeptideInfo$peptideName), unique)
-		peptideInfo$locscores <- sapply(tapply(thepeptideInfo$locscores, thepeptideInfo$peptideName, function (x) if(length(which(!is.na(x)))>0){sapply(x[!is.na(x)],function(y) as.numeric(unlist(strsplit(y, ","))))}else{x}), function(z) if(is.matrix(z)){paste(apply(z,1,function(b) max(b,na.rm=TRUE)),collapse=",")}else{if(length(z[!is.na(z)])>0){max(unlist(z), na.rm=TRUE)}else{NA}})
-	
-	#peptideCollapse samemodifications	
-	}else if(peptideCollapse == "samemodifications"){
-		thepeptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id","peptide")])
-		peptideInfo <- aggregate(thepeptideInfo, by=list(thepeptideInfo$peptideName), unique)
-		peptideInfo$peptide <- tapply(quantifications$peptide, quantifications$peptideName, function (x) if(length(unique(x)) == 1){return(unique(x))}else{return(NA)})
-		peptideInfo$locscores <- sapply(tapply(thepeptideInfo$locscores, thepeptideInfo$peptideName, function (x) if(length(which(!is.na(x)))>0){sapply(x[!is.na(x)],function(y) as.numeric(unlist(strsplit(y, ","))))}else{x}), function(z) if(is.matrix(z)){paste(apply(z,1,function(b) max(b,na.rm=TRUE)),collapse=",")}else{if(length(z[!is.na(z)])>0){max(unlist(z), na.rm=TRUE)}else{NA}})
-	
-	#peptideCollapse none	
-	}else if(peptideCollapse == "none"){
-		peptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id")])
-		
-	}
-	rownames(peptideInfo) <- peptideInfo$peptideName
-	
-	
-	features <- cbind(sapply(strsplit(rownames(exprs), "_"), function(x) x[1]), peptideInfo[rownames(exprs), c("positions", "peptide", "ensg","gene_name","locscores","residues","types")])
-	names(features) <- c("ensp","positions", "peptide", "ensg","gene_name","locscores","residues","types")
-	
-	featureData <- new("AnnotatedDataFrame",data=features)
-	
-	#WRAPPING THE EXPRESSION SET
-	eset <- ExpressionSet(
-				assayData=exprs,
-				phenoData=phenoData,
-				featureData=featureData)
-	
-	return(eset)
+		WHERE `experiment`.organism = \'",organism,"\' AND peptide_quantification.log2 IS NOT NULL
+	;",sep="");
+  
+  conditionsQuery <- "SELECT *,id AS condition_id FROM `condition`;";
+  experimentsQuery <- "SELECT *,id AS experiment_id FROM experiment;";
+  publicationsQuery <- "SELECT * FROM publication;";
+  
+                                        # querying database
+  quantifications <- dbGetQuery(db, quantificationsQuery)
+  conditions <- dbGetQuery(db, conditionsQuery);
+  conditions <- conditions[ ,!(names(conditions) %in% "id")]
+  experiments <- dbGetQuery(db, experimentsQuery);
+  experiments <- experiments[ ,!(names(experiments) %in% "id")]
+  row.names(experiments) <- experiments$experiment_id
+  publications <- dbGetQuery(db, publicationsQuery);
+  row.names(publications) <- publications$pub_id
+  
+######################################### 
+# FILTER UNPUBLISHED
+#########################################
+  
+  if(!unpublished){
+    unpublishedExperiments <- experiments$experiment_id[is.na(experiments$publication)]
+    quantifications <- quantifications[!(quantifications$experiment %in% unpublishedExperiments), ]
+  }
+  
+######################################### 
+# ONLY SINGLES PARAMETER
+#########################################
+  
+  if(onlySingles){
+    quantifications <- quantifications[sapply(strsplit(quantifications$types, ","), length) == 1, ]
+  }
+  
+######################################### 
+# COLLAPSING PEPTIDES
+#########################################
+  
+                                        #This column would be used to select unique peptides. The values of all the peptides sharing this would have the same id
+  if(peptideCollapse == "identical"){
+    quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types, quantifications$peptide,sep="_")	
+  }else if(peptideCollapse == "samemodifications"){
+    quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types,sep="_")	
+  }else if(peptideCollapse == "none"){
+    quantifications$peptideName <- paste(quantifications$ensp, quantifications$positions,quantifications$types, quantifications$peptide, quantifications$peptide_id,sep="_")	
+  }
+  
+######################################### 
+# FILTERING BY LOCALIZATION SCORE
+#########################################
+  if(is.list(locscoreFilter)){
+    scoresValues <- as.data.frame(cbind(experiments[quantifications$experiment, "scoring_method"], quantifications$locscore))
+    scoresValues[scoresValues == "NA"] <- NA
+    scoresValues$max <- sapply(strsplit(as.character(scoresValues[ ,2]), ","), function(x) max(as.numeric(x)))
+    scoresValues$probBool <- scoresValues$V1 == "Localization Probability"
+    scoresValues$ascoreBool <- scoresValues$V1 == "Localization Probability"
+    scoresValues$probBoolPos <- scoresValues$max > locscoreFilter[["loc.probability"]]
+    scoresValues$ascoreBoolPos <- scoresValues$max > locscoreFilter[["ASCORE"]]
+    indexes <- (scoresValues$probBool & scoresValues$probBoolPos) | (scoresValues$ascoreBool & scoresValues$ascoreBoolPos)
+    if(na.scores.remove){
+      indexes[is.na(indexes)] <- FALSE
+    }else{
+      indexes[is.na(indexes)] <- TRUE
+    }
+    quantifications <- quantifications[indexes, ]
+  }
+  
+######################################### 
+# FORMATING DATA TO CREATE EXPRESSIONSET
+#########################################
+
+                                       # Add another column for condition + experiment
+  quantifications$condExp <- paste(quantifications$condition, quantifications$experiment,sep="_")	
+  
+                                        # Integrate every condition and peptide considering that every peptide in each isoform, condition and experiment is an independent entry. The conditions are also divided in different tracks if they come from different experiments (either on the different papers or in the same paper multiple mass_spec experiments). Then, still there might be multiple log2 measures for the same peptide (i.e multiple biological replicas). In that cases they are averaged to get a single number. 
+  df <- tapply(quantifications$log2, list(quantifications$peptideName,quantifications$condExp), function(y) mean(y,na.rm=TRUE))
+  
+  exprs <- as.matrix(df)
+  
+                                        #PREPARING PHENOTIPIC DATA
+  thisconditions <- sapply(strsplit(colnames(exprs), "_"), function(x) x[1])
+  row.names(conditions) <- conditions$condition_id
+  conds <- conditions[as.character(thisconditions), ]
+  
+  thisexperiments <- sapply(strsplit(colnames(exprs), "_"), function(x) x[2])
+  exps <- experiments[as.character(thisexperiments), ]
+  
+  pubs <- publications[as.character(experiments[as.character(thisexperiments), "publication"]), ]
+  
+  pData <- cbind(conds,exps,pubs)
+  pData$scoring_method[pData$scoring_method == "NA"] <- NA #Correcting NA values
+  
+  rownames(pData) <- colnames(exprs)
+  phenoData <- new("AnnotatedDataFrame",data=pData)	
+  
+                                        #PREPARING FEATURE DATA
+  
+                                        #peptideCollapse identical
+  if(peptideCollapse == "identical"){
+                                        # Peptide information when each peptide have different sequence/modifications
+    thepeptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id")])
+    peptideInfo <- aggregate(thepeptideInfo, by=list(thepeptideInfo$peptideName), unique)
+    peptideInfo$locscores <- sapply(tapply(thepeptideInfo$locscores, thepeptideInfo$peptideName, function (x) if(length(which(!is.na(x)))>0){sapply(x[!is.na(x)],function(y) as.numeric(unlist(strsplit(y, ","))))}else{x}), function(z) if(is.matrix(z)){paste(apply(z,1,function(b) max(b,na.rm=TRUE)),collapse=",")}else{if(length(z[!is.na(z)])>0){max(unlist(z), na.rm=TRUE)}else{NA}})
+    
+                                        #peptideCollapse samemodifications	
+  }else if(peptideCollapse == "samemodifications"){
+    thepeptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id","peptide")])
+    peptideInfo <- aggregate(thepeptideInfo, by=list(thepeptideInfo$peptideName), unique)
+    peptideInfo$peptide <- tapply(quantifications$peptide, quantifications$peptideName, function (x) if(length(unique(x)) == 1){return(unique(x))}else{return(NA)})
+    peptideInfo$locscores <- sapply(tapply(thepeptideInfo$locscores, thepeptideInfo$peptideName, function (x) if(length(which(!is.na(x)))>0){sapply(x[!is.na(x)],function(y) as.numeric(unlist(strsplit(y, ","))))}else{x}), function(z) if(is.matrix(z)){paste(apply(z,1,function(b) max(b,na.rm=TRUE)),collapse=",")}else{if(length(z[!is.na(z)])>0){max(unlist(z), na.rm=TRUE)}else{NA}})
+    
+                                        #peptideCollapse none	
+  }else if(peptideCollapse == "none"){
+    peptideInfo <- unique(quantifications[ ,!names(quantifications) %in% c("experiment","condition","log2","ensp","condExp","peptide_id")])
+    
+  }
+  rownames(peptideInfo) <- peptideInfo$peptideName
+  
+  
+  features <- cbind(sapply(strsplit(rownames(exprs), "_"), function(x) x[1]), peptideInfo[rownames(exprs), c("positions", "peptide", "ensg","gene_name","locscores","residues","types")])
+  names(features) <- c("ensp","positions", "peptide", "ensg","gene_name","locscores","residues","types")
+  
+  featureData <- new("AnnotatedDataFrame",data=features)
+  
+                                        #WRAPPING THE EXPRESSION SET
+  eset <- ExpressionSet(
+            assayData=exprs,
+            phenoData=phenoData,
+            featureData=featureData)
+  
+  return(eset)
 }
