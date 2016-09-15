@@ -10,9 +10,9 @@ USE `ptmdb` ;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`condition` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `description` VARCHAR(45) NOT NULL,ptmdb
+  `description` VARCHAR(150) NOT NULL,
   `time_min` INT(11) NULL,
-  `control_description` VARCHAR(45) NULL,
+  `control_description` VARCHAR(150) NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
@@ -22,8 +22,8 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`organism` (
   `taxid` INT UNSIGNED NOT NULL,
-  `common_name` VARCHAR(45) NULL,
-  `scientific_name` VARCHAR(45) NULL,
+  `common_name` VARCHAR(150) NULL,
+  `scientific_name` VARCHAR(150) NULL,
   PRIMARY KEY (`taxid`),
   UNIQUE INDEX `taxid_UNIQUE` (`taxid` ASC),
   UNIQUE INDEX `common_name_UNIQUE` (`common_name` ASC),
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `labelling_method` VARCHAR(140) NULL,
   `spectrometer` VARCHAR(140) NULL,
   `enrichment_method` ENUM('TiO2','IMAC','Antibody','TiO2_IMAC') NULL,
-  `antibody` VARCHAR(11) NULL,
+  `antibody` VARCHAR(32) NULL,
   `identification_software` VARCHAR(140) NULL,
   `quantification_software` VARCHAR(140) NULL,
   PRIMARY KEY (`id`),
@@ -142,7 +142,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `spectral_count` INT UNSIGNED NULL,
+  `max_spectral_count` INT UNSIGNED NULL,
   `peptide` VARCHAR(200) NOT NULL,
   `scored_peptide` VARCHAR(300) NULL,
   `experiment` INT(11) UNSIGNED NOT NULL,
@@ -162,6 +162,7 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_quantification` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `condition` INT(11) UNSIGNED NOT NULL,
+  `spectral_count` INT UNSIGNED NULL,
   `log2` FLOAT NULL,
   `peptide` INT(11) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
@@ -204,7 +205,13 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`inparanoid` (
   `id` VARCHAR(30) NOT NULL,
-  PRIMARY KEY (`id`))
+  `taxid` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `org_key_inparanoid`
+    FOREIGN KEY (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -226,9 +233,15 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`uniprot_entry`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_entry` (
-  `id` VARCHAR(20) NOT NULL DEFAULT '',
+  `id` VARCHAR(32) NOT NULL DEFAULT '',
   `reviewed` TINYINT(1) NOT NULL,
-  PRIMARY KEY (`id`))
+  `taxid` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `org_key_entry`
+    FOREIGN KEY (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -236,7 +249,7 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`uniprot_isoform`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_isoform` (
-  `accession` VARCHAR(11) NOT NULL DEFAULT '',
+  `accession` VARCHAR(32) NOT NULL DEFAULT '',
   `sequence` TEXT NOT NULL,
   `length` INT(11) NOT NULL,
   `taxid` INT UNSIGNED NOT NULL,
@@ -254,9 +267,9 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`uniprot_acc`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_acc` (
-  `accession` VARCHAR(15) NOT NULL,
+  `accession` VARCHAR(32) NOT NULL,
   `id` VARCHAR(30) NOT NULL,
-  `reference_accession` VARCHAR(15) NOT NULL,
+  `reference_accession` VARCHAR(32) NOT NULL,
   PRIMARY KEY (`accession`, `reference_accession`),
   INDEX `id` (`id` ASC),
   INDEX `reference_accession` (`reference_accession` ASC),
@@ -275,7 +288,7 @@ ENGINE = InnoDB;
 -- Table `ptmdb`.`uniprot_ensembl`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_ensembl` (
-  `uniprot_accession` VARCHAR(11) NOT NULL,
+  `uniprot_accession` VARCHAR(32) NOT NULL,
   `ensembl_id` VARCHAR(30) NOT NULL,
   PRIMARY KEY (`uniprot_accession`, `ensembl_id`),
   INDEX `ensembl_id` (`ensembl_id` ASC),
@@ -295,7 +308,7 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_ipi` (
   `ipi_id` CHAR(11) NOT NULL,
-  `accession` VARCHAR(11) NOT NULL,
+  `accession` VARCHAR(32) NOT NULL,
   PRIMARY KEY (`accession`),
   INDEX `ipi_id` (`ipi_id` ASC),
   CONSTRAINT `uniprot_ipi_ibfk_3`
@@ -494,9 +507,9 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `ptmdb`.`domain` (
   `pfam_id` VARCHAR(7) NOT NULL,
-  `name` VARCHAR(15) NOT NULL,
+  `name` VARCHAR(32) NOT NULL,
   `description` VARCHAR(80) NULL,
-  `type` VARCHAR(20) NULL,
+  `type` VARCHAR(32) NULL,
   PRIMARY KEY (`pfam_id`),
   UNIQUE INDEX `pfam_id_UNIQUE` (`pfam_id` ASC))
 ENGINE = InnoDB;
