@@ -2,15 +2,15 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
-CREATE SCHEMA IF NOT EXISTS `drosophyla_ptmdb` DEFAULT CHARACTER SET latin1 ;
-USE `drosophyla_ptmdb` ;
+CREATE SCHEMA IF NOT EXISTS `ptmdb` DEFAULT CHARACTER SET latin1 ;
+USE `ptmdb` ;
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`condition`
+-- Table `ptmdb`.`condition`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`condition` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`condition` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `description` VARCHAR(45) NOT NULL,
+  `description` VARCHAR(45) NOT NULL,ptmdb
   `time_min` INT(11) NULL,
   `control_description` VARCHAR(45) NULL,
   PRIMARY KEY (`id`))
@@ -18,9 +18,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`organism`
+-- Table `ptmdb`.`organism`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`organism` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`organism` (
   `taxid` INT UNSIGNED NOT NULL,
   `common_name` VARCHAR(45) NULL,
   `scientific_name` VARCHAR(45) NULL,
@@ -32,9 +32,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`ensp`
+-- Table `ptmdb`.`ensp`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensp` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp` (
   `id` VARCHAR(30) NOT NULL,
   `sequence` TEXT NOT NULL,
   `length` INT(11) NOT NULL,
@@ -44,16 +44,16 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensp` (
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
   CONSTRAINT `org_key_ensp`
     FOREIGN KEY (`taxid`)
-    REFERENCES `drosophyla_ptmdb`.`organism` (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`ipi`
+-- Table `ptmdb`.`ipi`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ipi` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ipi` (
   `id` CHAR(11) NOT NULL,
   `sequence` TEXT NOT NULL,
   `length` INT(11) NOT NULL,
@@ -62,37 +62,37 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ipi` (
   INDEX `org_key_idx` (`taxid` ASC),
   CONSTRAINT `org_key_ipi`
     FOREIGN KEY (`taxid`)
-    REFERENCES `drosophyla_ptmdb`.`organism` (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`ensembl_ipi`
+-- Table `ptmdb`.`ensembl_ipi`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensembl_ipi` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensembl_ipi` (
   `ipi` CHAR(11) NOT NULL DEFAULT '',
   `ensembl_id` VARCHAR(30) NOT NULL DEFAULT '',
   PRIMARY KEY (`ipi`, `ensembl_id`),
   INDEX `ensembl_id` (`ensembl_id` ASC),
   CONSTRAINT `ensembl_ipi_ibfk_2`
     FOREIGN KEY (`ensembl_id`)
-    REFERENCES `drosophyla_ptmdb`.`ensp` (`id`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `ensembl_ipi_ibfk_1`
     FOREIGN KEY (`ipi`)
-    REFERENCES `drosophyla_ptmdb`.`ipi` (`id`)
+    REFERENCES `ptmdb`.`ipi` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`publication`
+-- Table `ptmdb`.`publication`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`publication` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`publication` (
   `pub_id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `pubmed_id` INT(11) NOT NULL,
   `fauthor` VARCHAR(50) NOT NULL,
@@ -105,9 +105,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`experiment`
+-- Table `ptmdb`.`experiment`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`experiment` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`experiment` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `publication` INT(11) UNSIGNED NULL,
   `organism` INT UNSIGNED NOT NULL,
@@ -126,21 +126,21 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`experiment` (
   INDEX `key_publication_idx` (`publication` ASC),
   CONSTRAINT `org_key_exp`
     FOREIGN KEY (`organism`)
-    REFERENCES `drosophyla_ptmdb`.`organism` (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `key_publication`
     FOREIGN KEY (`publication`)
-    REFERENCES `drosophyla_ptmdb`.`publication` (`pub_id`)
+    REFERENCES `ptmdb`.`publication` (`pub_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`peptide`
+-- Table `ptmdb`.`peptide`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`peptide` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `spectral_count` INT UNSIGNED NULL,
   `peptide` VARCHAR(200) NOT NULL,
@@ -150,16 +150,16 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`peptide` (
   INDEX `experiment` (`experiment` ASC),
   CONSTRAINT `site_evidence_ibfk_1`
     FOREIGN KEY (`experiment`)
-    REFERENCES `drosophyla_ptmdb`.`experiment` (`id`)
+    REFERENCES `ptmdb`.`experiment` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`peptide_quantification`
+-- Table `ptmdb`.`peptide_quantification`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`peptide_quantification` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_quantification` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `condition` INT(11) UNSIGNED NOT NULL,
   `log2` FLOAT NULL,
@@ -169,63 +169,63 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`peptide_quantification` (
   INDEX `peptide_id_map_idx` (`peptide` ASC),
   CONSTRAINT `site_quantification_ibfk_1`
     FOREIGN KEY (`condition`)
-    REFERENCES `drosophyla_ptmdb`.`condition` (`id`)
+    REFERENCES `ptmdb`.`condition` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `peptide_id_map`
     FOREIGN KEY (`peptide`)
-    REFERENCES `drosophyla_ptmdb`.`peptide` (`id`)
+    REFERENCES `ptmdb`.`peptide` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`ensp_peptide`
+-- Table `ptmdb`.`ensp_peptide`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensp_peptide` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_peptide` (
   `ensembl_id` VARCHAR(30) NOT NULL,
   `peptide_id` INT(11) UNSIGNED NOT NULL,
   PRIMARY KEY (`ensembl_id`, `peptide_id`),
   INDEX `site` (`peptide_id` ASC),
   CONSTRAINT `ensp_site_ibfk_2`
     FOREIGN KEY (`peptide_id`)
-    REFERENCES `drosophyla_ptmdb`.`peptide` (`id`)
+    REFERENCES `ptmdb`.`peptide` (`id`)
     ON DELETE CASCADE,
   CONSTRAINT `ensp_site_ibfk_1`
     FOREIGN KEY (`ensembl_id`)
-    REFERENCES `drosophyla_ptmdb`.`ensp` (`id`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`inparanoid`
+-- Table `ptmdb`.`inparanoid`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`inparanoid` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`inparanoid` (
   `id` VARCHAR(30) NOT NULL,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`ipi_history`
+-- Table `ptmdb`.`ipi_history`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ipi_history` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ipi_history` (
   `current_ipi` CHAR(11) NOT NULL,
   `all_ipi` CHAR(11) NOT NULL,
   PRIMARY KEY (`current_ipi`, `all_ipi`),
   CONSTRAINT `ipi_history_ibfk_1`
     FOREIGN KEY (`current_ipi`)
-    REFERENCES `drosophyla_ptmdb`.`ipi` (`id`)
+    REFERENCES `ptmdb`.`ipi` (`id`)
     ON DELETE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`uniprot_entry`
+-- Table `ptmdb`.`uniprot_entry`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`uniprot_entry` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_entry` (
   `id` VARCHAR(20) NOT NULL DEFAULT '',
   `reviewed` TINYINT(1) NOT NULL,
   PRIMARY KEY (`id`))
@@ -233,9 +233,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`uniprot_isoform`
+-- Table `ptmdb`.`uniprot_isoform`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`uniprot_isoform` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_isoform` (
   `accession` VARCHAR(11) NOT NULL DEFAULT '',
   `sequence` TEXT NOT NULL,
   `length` INT(11) NOT NULL,
@@ -244,16 +244,16 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`uniprot_isoform` (
   INDEX `org_key_idx` (`taxid` ASC),
   CONSTRAINT `org_key_iso`
     FOREIGN KEY (`taxid`)
-    REFERENCES `drosophyla_ptmdb`.`organism` (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`uniprot_acc`
+-- Table `ptmdb`.`uniprot_acc`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`uniprot_acc` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_acc` (
   `accession` VARCHAR(15) NOT NULL,
   `id` VARCHAR(30) NOT NULL,
   `reference_accession` VARCHAR(15) NOT NULL,
@@ -262,58 +262,58 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`uniprot_acc` (
   INDEX `reference_accession` (`reference_accession` ASC),
   CONSTRAINT `uniprot_acc_ibfk_1`
     FOREIGN KEY (`id`)
-    REFERENCES `drosophyla_ptmdb`.`uniprot_entry` (`id`)
+    REFERENCES `ptmdb`.`uniprot_entry` (`id`)
     ON DELETE CASCADE,
   CONSTRAINT `uniprot_acc_ibfk_2`
     FOREIGN KEY (`reference_accession`)
-    REFERENCES `drosophyla_ptmdb`.`uniprot_isoform` (`accession`)
+    REFERENCES `ptmdb`.`uniprot_isoform` (`accession`)
     ON DELETE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`uniprot_ensembl`
+-- Table `ptmdb`.`uniprot_ensembl`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`uniprot_ensembl` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_ensembl` (
   `uniprot_accession` VARCHAR(11) NOT NULL,
   `ensembl_id` VARCHAR(30) NOT NULL,
   PRIMARY KEY (`uniprot_accession`, `ensembl_id`),
   INDEX `ensembl_id` (`ensembl_id` ASC),
   CONSTRAINT `uniprot_ensembl_ibfk_3`
     FOREIGN KEY (`ensembl_id`)
-    REFERENCES `drosophyla_ptmdb`.`ensp` (`id`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE,
   CONSTRAINT `uniprot_ensembl_ibfk_2`
     FOREIGN KEY (`uniprot_accession`)
-    REFERENCES `drosophyla_ptmdb`.`uniprot_acc` (`accession`)
+    REFERENCES `ptmdb`.`uniprot_acc` (`accession`)
     ON DELETE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`uniprot_ipi`
+-- Table `ptmdb`.`uniprot_ipi`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`uniprot_ipi` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`uniprot_ipi` (
   `ipi_id` CHAR(11) NOT NULL,
   `accession` VARCHAR(11) NOT NULL,
   PRIMARY KEY (`accession`),
   INDEX `ipi_id` (`ipi_id` ASC),
   CONSTRAINT `uniprot_ipi_ibfk_3`
     FOREIGN KEY (`ipi_id`)
-    REFERENCES `drosophyla_ptmdb`.`ipi` (`id`)
+    REFERENCES `ptmdb`.`ipi` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `uniprot_ipi_ibfk_2`
     FOREIGN KEY (`accession`)
-    REFERENCES `drosophyla_ptmdb`.`uniprot_acc` (`accession`)
+    REFERENCES `ptmdb`.`uniprot_acc` (`accession`)
     ON DELETE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`ensg`
+-- Table `ptmdb`.`ensg`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensg` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensg` (
   `id` VARCHAR(30) NOT NULL,
   `name` VARCHAR(30) NULL,
   `description` VARCHAR(1000) NULL,
@@ -323,58 +323,58 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensg` (
   INDEX `tax_key_idx` (`taxid` ASC),
   CONSTRAINT `tax_key`
     FOREIGN KEY (`taxid`)
-    REFERENCES `drosophyla_ptmdb`.`organism` (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`ensg_ensp`
+-- Table `ptmdb`.`ensg_ensp`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensg_ensp` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensg_ensp` (
   `ensp_id` VARCHAR(30) NOT NULL,
   `ensg_id` VARCHAR(30) NOT NULL,
   UNIQUE INDEX `ensp_UNIQUE` (`ensp_id` ASC),
   INDEX `ensg_key_idx` (`ensg_id` ASC),
   CONSTRAINT `ensg_key`
     FOREIGN KEY (`ensg_id`)
-    REFERENCES `drosophyla_ptmdb`.`ensg` (`id`)
+    REFERENCES `ptmdb`.`ensg` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `ensp_key`
     FOREIGN KEY (`ensp_id`)
-    REFERENCES `drosophyla_ptmdb`.`ensp` (`id`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`ensp_inparanoid`
+-- Table `ptmdb`.`ensp_inparanoid`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensp_inparanoid` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_inparanoid` (
   `ensp` VARCHAR(30) NOT NULL,
   `inparanoid_id` VARCHAR(30) NOT NULL,
   PRIMARY KEY (`ensp`, `inparanoid_id`),
   INDEX `inpara_key_idx` (`inparanoid_id` ASC),
   CONSTRAINT `ensp_inpara_key`
     FOREIGN KEY (`ensp`)
-    REFERENCES `drosophyla_ptmdb`.`ensp` (`id`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `inpara_ensp_key`
     FOREIGN KEY (`inparanoid_id`)
-    REFERENCES `drosophyla_ptmdb`.`inparanoid` (`id`)
+    REFERENCES `ptmdb`.`inparanoid` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`modification`
+-- Table `ptmdb`.`modification`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`modification` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`modification` (
   `id` CHAR(1) NOT NULL,
   `description` VARCHAR(85) NOT NULL,
   PRIMARY KEY (`id`),
@@ -384,9 +384,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`site`
+-- Table `ptmdb`.`site`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`site` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`site` (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `localization_score` FLOAT NULL,
   `modif_type` CHAR(1) NOT NULL,
@@ -397,42 +397,42 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`site` (
   INDEX `key_modif_type_idx` (`modif_type` ASC),
   CONSTRAINT `key_site_experiment`
     FOREIGN KEY (`experiment`)
-    REFERENCES `drosophyla_ptmdb`.`experiment` (`id`)
+    REFERENCES `ptmdb`.`experiment` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `key_modif_type`
     FOREIGN KEY (`modif_type`)
-    REFERENCES `drosophyla_ptmdb`.`modification` (`id`)
+    REFERENCES `ptmdb`.`modification` (`id`)
     ON DELETE RESTRICT
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`peptide_site`
+-- Table `ptmdb`.`peptide_site`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`peptide_site` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`peptide_site` (
   `peptide_id` INT(11) UNSIGNED NOT NULL,
   `site_id` INT(11) UNSIGNED NOT NULL,
   PRIMARY KEY (`site_id`),
   INDEX `pep_site_map_idx` (`peptide_id` ASC),
   CONSTRAINT `pep_site_map`
     FOREIGN KEY (`peptide_id`)
-    REFERENCES `drosophyla_ptmdb`.`peptide` (`id`)
+    REFERENCES `ptmdb`.`peptide` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `site_pep_map`
     FOREIGN KEY (`site_id`)
-    REFERENCES `drosophyla_ptmdb`.`site` (`id`)
+    REFERENCES `ptmdb`.`site` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`ensp_site`
+-- Table `ptmdb`.`ensp_site`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensp_site` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_site` (
   `ensp` VARCHAR(30) NOT NULL,
   `site_id` INT(11) UNSIGNED NOT NULL,
   `position` INT UNSIGNED NOT NULL,
@@ -440,21 +440,21 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensp_site` (
   INDEX `map_sitekey_idx` (`site_id` ASC),
   CONSTRAINT `map_enspkey`
     FOREIGN KEY (`ensp`)
-    REFERENCES `drosophyla_ptmdb`.`ensp` (`id`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `map_sitekey`
     FOREIGN KEY (`site_id`)
-    REFERENCES `drosophyla_ptmdb`.`site` (`id`)
+    REFERENCES `ptmdb`.`site` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`refseq_protein`
+-- Table `ptmdb`.`refseq_protein`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`refseq_protein` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`refseq_protein` (
   `id` VARCHAR(30) NOT NULL,
   `organism` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
@@ -462,37 +462,37 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`refseq_protein` (
   INDEX `refseq_organism_idx` (`organism` ASC),
   CONSTRAINT `refseq_organism`
     FOREIGN KEY (`organism`)
-    REFERENCES `drosophyla_ptmdb`.`organism` (`taxid`)
+    REFERENCES `ptmdb`.`organism` (`taxid`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`ensp_refseq`
+-- Table `ptmdb`.`ensp_refseq`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`ensp_refseq` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`ensp_refseq` (
   `ensp_id` VARCHAR(30) NOT NULL,
   `refseq_id` VARCHAR(30) NOT NULL,
   PRIMARY KEY (`ensp_id`, `refseq_id`),
   INDEX `ensp_refseq2refseq_idx` (`refseq_id` ASC),
   CONSTRAINT `ensp_refseq2ensp`
     FOREIGN KEY (`ensp_id`)
-    REFERENCES `drosophyla_ptmdb`.`ensp` (`id`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `ensp_refseq2refseq`
     FOREIGN KEY (`refseq_id`)
-    REFERENCES `drosophyla_ptmdb`.`refseq_protein` (`id`)
+    REFERENCES `ptmdb`.`refseq_protein` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`domain`
+-- Table `ptmdb`.`domain`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`domain` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`domain` (
   `pfam_id` VARCHAR(7) NOT NULL,
   `name` VARCHAR(15) NOT NULL,
   `description` VARCHAR(80) NULL,
@@ -503,9 +503,9 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `drosophyla_ptmdb`.`domain_ensp`
+-- Table `ptmdb`.`domain_ensp`
 -- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`domain_ensp` (
+CREATE TABLE IF NOT EXISTS `ptmdb`.`domain_ensp` (
   `pfam_id` VARCHAR(7) NOT NULL,
   `ensp_id` VARCHAR(30) NOT NULL,
   `start` INT UNSIGNED NOT NULL,
@@ -515,12 +515,12 @@ CREATE TABLE IF NOT EXISTS `drosophyla_ptmdb`.`domain_ensp` (
   UNIQUE INDEX `ensp_id_UNIQUE` (`ensp_id` ASC),
   CONSTRAINT `from_domain_to_domain_ensp`
     FOREIGN KEY (`pfam_id`)
-    REFERENCES `drosophyla_ptmdb`.`domain` (`pfam_id`)
+    REFERENCES `ptmdb`.`domain` (`pfam_id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE,
   CONSTRAINT `from_ensp_to_domain_ensp`
     FOREIGN KEY (`ensp_id`)
-    REFERENCES `drosophyla_ptmdb`.`ensp` (`id`)
+    REFERENCES `ptmdb`.`ensp` (`id`)
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
