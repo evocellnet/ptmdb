@@ -1,51 +1,51 @@
-COMMON_NAME	SCIENTIFIC_NAME	TAXID	IPI	ENSEMBL_FTP	ENSEMBL_GENOME_VER	ENSEMBL_REL	BIOMART DATABASE	BIOMART_HOST
-Cow	Bos taurus	9913	ipi.BOVIN	ftp://ftp.ensembl.org/pub	UMD3.1	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-roundworm	Caenorhabditis elegans	6239	NA	ftp://ftp.ensembl.org/pub	WBcel235	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-Zebrafish	Danio rerio	7955	ipi.DANRE	ftp://ftp.ensembl.org/pub	GRCz10	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-fruitfly	Drosophila melanogaster	7227	NA	ftp://ftp.ensembl.org/pub	BDGP6	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-Chicken	Gallus gallus	9031	ipi.CHICK	ftp://ftp.ensembl.org/pub	Galgal4	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-human	Homo sapiens	9606	ipi.HUMAN	ftp://ftp.ensembl.org/pub	GRCh38	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-mouse	Mus musculus	10090	ipi.MOUSE	ftp://ftp.ensembl.org/pub	GRCm38	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-rat	Rattus norvegicus	10116	ipi.RAT	ftp://ftp.ensembl.org/pub	Rnor_6.0	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-saccharomyces_S288c	Saccharomyces cerevisiae	559292	NA	ftp://ftp.ensembl.org/pub	R64-1-1	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-Pig	Sus scrofa	9823	NA	ftp://ftp.ensembl.org/pub	Sscrofa10.2	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-Western_clawed_frog	Xenopus tropicalis	8364	NA	ftp://ftp.ensembl.org/pub	JGI 4.2	85	ENSEMBL GENES 85	http://Jul2016.archive.ensembl.org
-Ashbya_gossypii	Ashbya gossypii	284811	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM9102v1	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Aspergillus_nidulans_FGSC_A4	Aspergillus nidulans FGSC A4	227321	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM14920v2	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Candida_albicans_SC5314	Candida albicans SC5314	237561	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM18296v2	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Candida_glabrata	Candida glabrata	284593	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM254v2	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Cryptococcus_neoformans	Cryptococcus neoformans	214684	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	GCA_000091045.1	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Kluyveromyces_lactis	Kluyveromyces lactis	284590	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM251v1	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Komagataella_pastoris	Komagataella pastoris	644223	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	GCA_000027005.1	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Lachancea_thermotolerans	Lachancea thermotolerans CBS 6340	559295	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM14280v1	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Magnaporthe_oryzae	Magnaporthe oryzae	242507	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	MG8	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Meyerozyma_guilliermondii_ATCC_6260	Meyerozyma guilliermondii ATCC 6260	294746	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM14942v1	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Naumovozyma_castellii_CBS_4309	Naumovozyma castellii CBS 4309	1064592	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM23734v1	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Saccharomyces_kudriavzevii_IFO_1802	Saccharomyces kudriavzevii IFO 1802	226230	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	Saccharomyces_kudriavzevii_strain_IFO1802_v1.0	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Scheffersomyces_stipitis_CBS_6054	Scheffersomyces stipitis CBS 6054	322104	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM20916v1	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Schizosaccharomyces_pombe_972h-	Schizosaccharomyces pombe	284812	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM294v2	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Zygosaccharomyces_rouxii	Zygosaccharomyces rouxii	559307	NA	ftp://ftp.ensemblgenomes.org/pub/fungi	ASM2636v1	32	ENSEMBL FUNGI 32	http://Jul2016.archive.ensembl.org
-Apis_mellifera	Apis mellifera	7460	NA	ftp://ftp.ensemblgenomes.org/pub/metazoa	GCA_000002195.1	32	ENSEMBL METAZOA 32	http://Jul2016.archive.ensembl.org
-Drosophila_ananassae	Drosophila ananassae	7217	NA	ftp://ftp.ensemblgenomes.org/pub/metazoa	GCA_000005115.1	32	ENSEMBL METAZOA 32	http://Jul2016.archive.ensembl.org
-Drosophila_pseudoobscura	Drosophila pseudoobscura	46245	NA	ftp://ftp.ensemblgenomes.org/pub/metazoa	GCA_000001765.2	32	ENSEMBL METAZOA 32	http://Jul2016.archive.ensembl.org
-Drosophila_simulans	Drosophila simulans	7240	NA	ftp://ftp.ensemblgenomes.org/pub/metazoa	GCA_000259055.1	32	ENSEMBL METAZOA 32	http://Jul2016.archive.ensembl.org
-Drosophila_virilis	Drosophila virilis	7244	NA	ftp://ftp.ensemblgenomes.org/pub/metazoa	GCA_000005245.1	32	ENSEMBL METAZOA 32	http://Jul2016.archive.ensembl.org
-Drosophila_yakuba	Drosophila yakuba	7245	NA	ftp://ftp.ensemblgenomes.org/pub/metazoa	GCA_000005975.1	32	ENSEMBL METAZOA 32	http://Jul2016.archive.ensembl.org
-Pristionchus_pacificus	Pristionchus pacificus	54126	NA	ftp://ftp.ensemblgenomes.org/pub/metazoa	P_pacificus-5.0	32	ENSEMBL METAZOA 32	http://Jul2016.archive.ensembl.org
-Sea_urchin	Strongylocentrotus purpuratus	7668	NA	ftp://ftp.ensemblgenomes.org/pub/metazoa	GCA_000002235.2	32	ENSEMBL METAZOA 32	http://Jul2016.archive.ensembl.org
-Trichoplax_adhaerens	Trichoplax adhaerens	10228	NA	ftp://ftp.ensemblgenomes.org/pub/metazoa	ASM15027v1	32	ENSEMBL METAZOA 32	http://Jul2016.archive.ensembl.org
-arabidopsis	Arabidopsis thaliana	3702	ipi.ARATH	ftp://ftp.ensemblgenomes.org/pub/plants	TAIR10	32	ENSEMBL PLANTS 32	http://Jul2016.archive.ensembl.org
-brome	Brachypodium distachyon	15368	NA	ftp://ftp.ensemblgenomes.org/pub/plants	v1.0	32	ENSEMBL PLANTS 32	http://Jul2016.archive.ensembl.org
-chlamydomonas_reinhardtii	Chlamydomonas reinhardtii	3055	NA	ftp://ftp.ensemblgenomes.org/pub/plants	v3.1	32	ENSEMBL PLANTS 32	http://Jul2016.archive.ensembl.org
-Glycine_max	Glycine max	3847	NA	ftp://ftp.ensemblgenomes.org/pub/plants	V1.0	32	ENSEMBL PLANTS 32	http://Jul2016.archive.ensembl.org
-barrel_medic	Medicago truncatula	3880	NA	ftp://ftp.ensemblgenomes.org/pub/plants	MedtrA17_4.0	32	ENSEMBL PLANTS 32	http://Jul2016.archive.ensembl.org
-Oryza_sativa_Japonica	Oryza sativa	39947	NA	ftp://ftp.ensemblgenomes.org/pub/plants	IRGSP-1.0	32	ENSEMBL PLANTS 32	http://Jul2016.archive.ensembl.org
-selaginella	Selaginella moellendorffii	88036	NA	ftp://ftp.ensemblgenomes.org/pub/plants	v1.0	32	ENSEMBL PLANTS 32	http://Jul2016.archive.ensembl.org
-maize	Zea mays	4577	NA	ftp://ftp.ensemblgenomes.org/pub/plants	AGPv4	32	ENSEMBL PLANTS 32	http://Jul2016.archive.ensembl.org
-Dictyostelium_discoideum	Dictyostelium discoideum	44689	NA	ftp://ftp.ensemblgenomes.org/pub/protists	dicty_2.7	32	ENSEMBL PROTISTS 32	http://Jul2016.archive.ensembl.org
-Marine_pennate_diatom	Phaeodactylum tricornutum	556484	NA	ftp://ftp.ensemblgenomes.org/pub/protists	ASM15095v2	32	ENSEMBL PROTISTS 32	http://Jul2016.archive.ensembl.org
-Plasmodium_falciparum_3D7	Plasmodium falciparum	5833	NA	ftp://ftp.ensemblgenomes.org/pub/protists	ASM276v1	32	ENSEMBL PROTISTS 32	http://Jul2016.archive.ensembl.org
-Tetrahymena_thermophila	Tetrahymena thermophila	312017	NA	ftp://ftp.ensemblgenomes.org/pub/protists	JCVI-TTA1-2.2	32	ENSEMBL PROTISTS 32	http://Jul2016.archive.ensembl.org
-Toxoplasma_gondii	Toxoplasma gondii	508771	NA	ftp://ftp.ensemblgenomes.org/pub/protists	ToxoDB-7.1	32	ENSEMBL PROTISTS 32	http://Jul2016.archive.ensembl.org
-Trypanosoma_brucei_brucei_TREU927	Trypanosoma brucei	185431	NA	ftp://ftp.ensemblgenomes.org/pub/protists	TryBru_Apr2005_chr11	32	ENSEMBL PROTISTS 32	http://Jul2016.archive.ensembl.org
-Vitis_vinifera	Vitis vinifera	29760	NA	ftp://ftp.ensemblgenomes.org/pub/plants	IGGP_12x	32	ENSEMBL PLANTS 32	http://Jul2016.archive.ensembl.org
+COMMON_NAME;SCIENTIFIC_NAME;TAXID;IPI;ENSEMBL_FTP;ENSEMBL_GENOME_VER;ENSEMBL_REL;BIOMART DATABASE;BIOMART_HOST
+Cow;Bos taurus;9913;ipi.BOVIN;ftp://ftp.ensembl.org/pub;UMD3.1;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+roundworm;Caenorhabditis elegans;6239;NA;ftp://ftp.ensembl.org/pub;WBcel235;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+Zebrafish;Danio rerio;7955;ipi.DANRE;ftp://ftp.ensembl.org/pub;GRCz10;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+fruitfly;Drosophila melanogaster;7227;NA;ftp://ftp.ensembl.org/pub;BDGP6;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+Chicken;Gallus gallus;9031;ipi.CHICK;ftp://ftp.ensembl.org/pub;Galgal4;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+human;Homo sapiens;9606;ipi.HUMAN;ftp://ftp.ensembl.org/pub;GRCh38;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+mouse;Mus musculus;10090;ipi.MOUSE;ftp://ftp.ensembl.org/pub;GRCm38;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+rat;Rattus norvegicus;10116;ipi.RAT;ftp://ftp.ensembl.org/pub;Rnor_6.0;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+saccharomyces_S288c;Saccharomyces cerevisiae;559292;NA;ftp://ftp.ensembl.org/pub;R64-1-1;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+Pig;Sus scrofa;9823;NA;ftp://ftp.ensembl.org/pub;Sscrofa10.2;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+Western_clawed_frog;Xenopus tropicalis;8364;NA;ftp://ftp.ensembl.org/pub;JGI 4.2;85;ENSEMBL GENES 85;http://Jul2016.archive.ensembl.org
+Ashbya_gossypii;Ashbya gossypii;284811;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM9102v1;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Aspergillus_nidulans_FGSC_A4;Aspergillus nidulans FGSC A4;227321;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM14920v2;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Candida_albicans_SC5314;Candida albicans SC5314;237561;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM18296v2;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Candida_glabrata;Candida glabrata;284593;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM254v2;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Cryptococcus_neoformans;Cryptococcus neoformans;214684;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;GCA_000091045.1;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Kluyveromyces_lactis;Kluyveromyces lactis;284590;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM251v1;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Komagataella_pastoris;Komagataella pastoris;644223;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;GCA_000027005.1;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Lachancea_thermotolerans;Lachancea thermotolerans CBS 6340;559295;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM14280v1;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Magnaporthe_oryzae;Magnaporthe oryzae;242507;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;MG8;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Meyerozyma_guilliermondii_ATCC_6260;Meyerozyma guilliermondii ATCC 6260;294746;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM14942v1;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Naumovozyma_castellii_CBS_4309;Naumovozyma castellii CBS 4309;1064592;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM23734v1;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Saccharomyces_kudriavzevii_IFO_1802;Saccharomyces kudriavzevii IFO 1802;226230;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;Saccharomyces_kudriavzevii_strain_IFO1802_v1.0;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Scheffersomyces_stipitis_CBS_6054;Scheffersomyces stipitis CBS 6054;322104;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM20916v1;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Schizosaccharomyces_pombe_972h-;Schizosaccharomyces pombe;284812;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM294v2;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Zygosaccharomyces_rouxii;Zygosaccharomyces rouxii;559307;NA;ftp://ftp.ensemblgenomes.org/pub/fungi;ASM2636v1;32;ENSEMBL FUNGI 32;http://Jul2016.archive.ensembl.org
+Apis_mellifera;Apis mellifera;7460;NA;ftp://ftp.ensemblgenomes.org/pub/metazoa;GCA_000002195.1;32;ENSEMBL METAZOA 32;http://Jul2016.archive.ensembl.org
+Drosophila_ananassae;Drosophila ananassae;7217;NA;ftp://ftp.ensemblgenomes.org/pub/metazoa;GCA_000005115.1;32;ENSEMBL METAZOA 32;http://Jul2016.archive.ensembl.org
+Drosophila_pseudoobscura;Drosophila pseudoobscura;46245;NA;ftp://ftp.ensemblgenomes.org/pub/metazoa;GCA_000001765.2;32;ENSEMBL METAZOA 32;http://Jul2016.archive.ensembl.org
+Drosophila_simulans;Drosophila simulans;7240;NA;ftp://ftp.ensemblgenomes.org/pub/metazoa;GCA_000259055.1;32;ENSEMBL METAZOA 32;http://Jul2016.archive.ensembl.org
+Drosophila_virilis;Drosophila virilis;7244;NA;ftp://ftp.ensemblgenomes.org/pub/metazoa;GCA_000005245.1;32;ENSEMBL METAZOA 32;http://Jul2016.archive.ensembl.org
+Drosophila_yakuba;Drosophila yakuba;7245;NA;ftp://ftp.ensemblgenomes.org/pub/metazoa;GCA_000005975.1;32;ENSEMBL METAZOA 32;http://Jul2016.archive.ensembl.org
+Pristionchus_pacificus;Pristionchus pacificus;54126;NA;ftp://ftp.ensemblgenomes.org/pub/metazoa;P_pacificus-5.0;32;ENSEMBL METAZOA 32;http://Jul2016.archive.ensembl.org
+Sea_urchin;Strongylocentrotus purpuratus;7668;NA;ftp://ftp.ensemblgenomes.org/pub/metazoa;GCA_000002235.2;32;ENSEMBL METAZOA 32;http://Jul2016.archive.ensembl.org
+Trichoplax_adhaerens;Trichoplax adhaerens;10228;NA;ftp://ftp.ensemblgenomes.org/pub/metazoa;ASM15027v1;32;ENSEMBL METAZOA 32;http://Jul2016.archive.ensembl.org
+arabidopsis;Arabidopsis thaliana;3702;ipi.ARATH;ftp://ftp.ensemblgenomes.org/pub/plants;TAIR10;32;ENSEMBL PLANTS 32;http://Jul2016.archive.ensembl.org
+brome;Brachypodium distachyon;15368;NA;ftp://ftp.ensemblgenomes.org/pub/plants;v1.0;32;ENSEMBL PLANTS 32;http://Jul2016.archive.ensembl.org
+chlamydomonas_reinhardtii;Chlamydomonas reinhardtii;3055;NA;ftp://ftp.ensemblgenomes.org/pub/plants;v3.1;32;ENSEMBL PLANTS 32;http://Jul2016.archive.ensembl.org
+Glycine_max;Glycine max;3847;NA;ftp://ftp.ensemblgenomes.org/pub/plants;V1.0;32;ENSEMBL PLANTS 32;http://Jul2016.archive.ensembl.org
+barrel_medic;Medicago truncatula;3880;NA;ftp://ftp.ensemblgenomes.org/pub/plants;MedtrA17_4.0;32;ENSEMBL PLANTS 32;http://Jul2016.archive.ensembl.org
+Oryza_sativa_Japonica;Oryza sativa;39947;NA;ftp://ftp.ensemblgenomes.org/pub/plants;IRGSP-1.0;32;ENSEMBL PLANTS 32;http://Jul2016.archive.ensembl.org
+selaginella;Selaginella moellendorffii;88036;NA;ftp://ftp.ensemblgenomes.org/pub/plants;v1.0;32;ENSEMBL PLANTS 32;http://Jul2016.archive.ensembl.org
+maize;Zea mays;4577;NA;ftp://ftp.ensemblgenomes.org/pub/plants;AGPv4;32;ENSEMBL PLANTS 32;http://Jul2016.archive.ensembl.org
+Dictyostelium_discoideum;Dictyostelium discoideum;44689;NA;ftp://ftp.ensemblgenomes.org/pub/protists;dicty_2.7;32;ENSEMBL PROTISTS 32;http://Jul2016.archive.ensembl.org
+Marine_pennate_diatom;Phaeodactylum tricornutum;556484;NA;ftp://ftp.ensemblgenomes.org/pub/protists;ASM15095v2;32;ENSEMBL PROTISTS 32;http://Jul2016.archive.ensembl.org
+Plasmodium_falciparum_3D7;Plasmodium falciparum;5833;NA;ftp://ftp.ensemblgenomes.org/pub/protists;ASM276v1;32;ENSEMBL PROTISTS 32;http://Jul2016.archive.ensembl.org
+Tetrahymena_thermophila;Tetrahymena thermophila;312017;NA;ftp://ftp.ensemblgenomes.org/pub/protists;JCVI-TTA1-2.2;32;ENSEMBL PROTISTS 32;http://Jul2016.archive.ensembl.org
+Toxoplasma_gondii;Toxoplasma gondii;508771;NA;ftp://ftp.ensemblgenomes.org/pub/protists;ToxoDB-7.1;32;ENSEMBL PROTISTS 32;http://Jul2016.archive.ensembl.org
+Trypanosoma_brucei_brucei_TREU927;Trypanosoma brucei;185431;NA;ftp://ftp.ensemblgenomes.org/pub/protists;TryBru_Apr2005_chr11;32;ENSEMBL PROTISTS 32;http://Jul2016.archive.ensembl.org
+Vitis_vinifera;Vitis vinifera;29760;NA;ftp://ftp.ensemblgenomes.org/pub/plants;IGGP_12x;32;ENSEMBL PLANTS 32;http://Jul2016.archive.ensembl.org
