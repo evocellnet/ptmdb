@@ -69,6 +69,11 @@ while(<INFILE>){
 		@ensseqlines=();
 		
 		$ensembl_id=$1;
+    # Romain: added this section to remove ".2" in Ensembl ID
+    if(substr($ensembl_id, 0, 3) eq "ENS") {
+      $ensembl_id =~ s/\.[^.]+$//;
+    }
+    
 	}else{
 		chomp($line);
 		push(@ensseqlines, $line);
@@ -120,7 +125,7 @@ while ( <PS> )
 #### INPARANOID ############################
 print "\t* Inserting Inparanoid...\n";
 #preparing Inparanoid-related inserts
-my $ins_inparanoid = $dbh->prepare('INSERT INTO inparanoid(id) VALUES (?)');
+my $ins_inparanoid = $dbh->prepare('INSERT INTO inparanoid(id, taxid) VALUES (?, ?)');
 
 my $inpara_id="";
 my %inInpara=();
@@ -133,14 +138,14 @@ while(<INFILE>){
 			$up = uc $1;
 			$inpara_id = $up;
 		#if ($allensembls{$up}){
-			$ins_inparanoid->execute($inpara_id);
+			$ins_inparanoid->execute($inpara_id, $TAXID);
 			#}
 			$inInpara{$inpara_id}=1;
 		}
 		
 			else{
 			$inpara_id = $1;
-			$ins_inparanoid->execute($inpara_id);
+			$ins_inparanoid->execute($inpara_id, $TAXID);
 			$inInpara{$inpara_id}=1;
 			}			
 	}	
@@ -191,7 +196,7 @@ my %thisinpensp;
 print "\t* Inserting Uniprot...\n";
 
 #Preparing insertions
-my $ins_uniprot_entry = $dbh->prepare('INSERT INTO uniprot_entry(id,reviewed) VALUES (?,?)');
+my $ins_uniprot_entry = $dbh->prepare('INSERT INTO uniprot_entry(id,reviewed,taxid) VALUES (?,?,?)');
 my $ins_uniport_isoform = $dbh->prepare('INSERT INTO uniprot_isoform(accession,sequence,length,taxid) VALUES (?,?,?,?)');
 my $ins_uniport_acc = $dbh->prepare('INSERT INTO uniprot_acc(accession,id,reference_accession) VALUES (?,?,?)');
 my $ins_uniport_ensembl = $dbh->prepare('INSERT INTO uniprot_ensembl(uniprot_accession,ensembl_id) VALUES (?,?)');
@@ -249,7 +254,7 @@ while(<INFILE>){
 		if($id ne ""){
 			if($line=~/^AC\s+(.+);\n/){
 				push(@acclines,$1);
-			}elsif($line=~/^OX\s+NCBI_TaxID=(\d+);/){
+			}elsif($line=~/^OX\s+NCBI_TaxID=(\d+)/){
 				$thisorg=$1;
 				if($thisorg != $TAXID){
 					last;
@@ -347,7 +352,7 @@ while(<INFILE>){
 	if(defined($thisorg)){
 		if($thisorg == $TAXID){
 			#inserting into uniprot_entry
-			unless($ins_uniprot_entry->execute($id,$reviewed)){
+			unless($ins_uniprot_entry->execute($id,$reviewed,$thisorg))
 				$errflag=1;
 			}
 			
