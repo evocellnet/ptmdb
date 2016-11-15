@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS `ensp` (
   `sequence` TEXT NOT NULL,
   `length` INT(11) NOT NULL,
   `taxid` INT UNSIGNED NOT NULL,
+  `version` INT UNSIGNED NULL,
   PRIMARY KEY (`id`),
   INDEX `org_key_idx` (`taxid` ASC),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC),
