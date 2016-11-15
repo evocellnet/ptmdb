@@ -196,22 +196,6 @@ CREATE TABLE IF NOT EXISTS `ensp_peptide` (
     ON DELETE CASCADE)
 ENGINE = InnoDB;
 
-
--- -----------------------------------------------------
--- Table `inparanoid`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `inparanoid` (
-  `id` VARCHAR(30) NOT NULL,
-  `taxid` INT UNSIGNED NOT NULL,
-  PRIMARY KEY (`id`),
-  CONSTRAINT `org_key_inparanoid`
-    FOREIGN KEY (`taxid`)
-    REFERENCES `organism` (`taxid`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
-
 -- -----------------------------------------------------
 -- Table `ipi_history`
 -- -----------------------------------------------------
@@ -358,28 +342,6 @@ CREATE TABLE IF NOT EXISTS `ensg_ensp` (
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `ensp_inparanoid`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ensp_inparanoid` (
-  `ensp` VARCHAR(30) NOT NULL,
-  `inparanoid_id` VARCHAR(30) NOT NULL,
-  PRIMARY KEY (`ensp`, `inparanoid_id`),
-  INDEX `inpara_key_idx` (`inparanoid_id` ASC),
-  CONSTRAINT `ensp_inpara_key`
-    FOREIGN KEY (`ensp`)
-    REFERENCES `ensp` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-  CONSTRAINT `inpara_ensp_key`
-    FOREIGN KEY (`inparanoid_id`)
-    REFERENCES `inparanoid` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
 
 -- -----------------------------------------------------
 -- Table `modification`
