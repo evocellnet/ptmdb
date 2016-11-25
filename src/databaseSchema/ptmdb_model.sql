@@ -93,10 +93,12 @@ ENGINE = InnoDB;
 CREATE TABLE IF NOT EXISTS `publication` (
   `pub_id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `pubmed_id` INT(11) NOT NULL,
-  `fauthor` VARCHAR(50) NOT NULL,
+  `fauthor` varchar(50) CHARACTER SET utf8 NOT NULL,
+  `leading` varchar(50) CHARACTER SET utf8 DEFAULT '',
   `publication_date` DATE NOT NULL,
-  `journal` VARCHAR(100) NOT NULL,
-  `title` TEXT NOT NULL,
+  `journal` varchar(100) CHARACTER SET utf8 NOT NULL,
+  `title` text CHARACTER SET utf8 NOT NULL,
+  `pride` varchar(50) CHARACTER SET utf8 DEFAULT '',
   PRIMARY KEY (`pub_id`),
   UNIQUE INDEX `pubmed_id` (`pubmed_id` ASC))
 ENGINE = InnoDB;
@@ -422,82 +424,6 @@ CREATE TABLE IF NOT EXISTS `ensp_site` (
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `refseq_protein`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `refseq_protein` (
-  `id` VARCHAR(30) NOT NULL,
-  `organism` INT UNSIGNED NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC),
-  INDEX `refseq_organism_idx` (`organism` ASC),
-  CONSTRAINT `refseq_organism`
-    FOREIGN KEY (`organism`)
-    REFERENCES `organism` (`taxid`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `ensp_refseq`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `ensp_refseq` (
-  `ensp_id` VARCHAR(30) NOT NULL,
-  `refseq_id` VARCHAR(30) NOT NULL,
-  PRIMARY KEY (`ensp_id`, `refseq_id`),
-  INDEX `ensp_refseq2refseq_idx` (`refseq_id` ASC),
-  CONSTRAINT `ensp_refseq2ensp`
-    FOREIGN KEY (`ensp_id`)
-    REFERENCES `ensp` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-  CONSTRAINT `ensp_refseq2refseq`
-    FOREIGN KEY (`refseq_id`)
-    REFERENCES `refseq_protein` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `domain`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `domain` (
-  `pfam_id` VARCHAR(7) NOT NULL,
-  `name` VARCHAR(32) NOT NULL,
-  `description` VARCHAR(80) NULL,
-  `type` VARCHAR(32) NULL,
-  PRIMARY KEY (`pfam_id`),
-  UNIQUE INDEX `pfam_id_UNIQUE` (`pfam_id` ASC))
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `domain_ensp`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `domain_ensp` (
-  `pfam_id` VARCHAR(7) NOT NULL,
-  `ensp_id` VARCHAR(30) NOT NULL,
-  `start` INT UNSIGNED NOT NULL,
-  `end` INT UNSIGNED NOT NULL,
-  PRIMARY KEY (`pfam_id`, `ensp_id`, `start`),
-  UNIQUE INDEX `pfam_id_UNIQUE` (`pfam_id` ASC),
-  UNIQUE INDEX `ensp_id_UNIQUE` (`ensp_id` ASC),
-  CONSTRAINT `from_domain_to_domain_ensp`
-    FOREIGN KEY (`pfam_id`)
-    REFERENCES `domain` (`pfam_id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE,
-  CONSTRAINT `from_ensp_to_domain_ensp`
-    FOREIGN KEY (`ensp_id`)
-    REFERENCES `ensp` (`id`)
-    ON DELETE CASCADE
-    ON UPDATE CASCADE)
-ENGINE = InnoDB;
-
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

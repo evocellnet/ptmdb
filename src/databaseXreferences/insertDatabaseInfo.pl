@@ -15,13 +15,12 @@ my $TAXID = $ARGV[6];
 my $SCIENTIFIC_NAME = $ARGV[7];
 my $COMMON_NAME = $ARGV[8];
 my $ENSNAME = $ARGV[9];
-my $INPARANNOID = $ARGV[10];
-my $UNIPROT = $ARGV[11];
-my $IPI_FASTA = $ARGV[12];
-my $IPI_HISTORY_PARSED = $ARGV[13];
-my $BIOMARTLWP = $ARGV[14];
-my $XML_PATH = $ARGV[15];
-my $BIOMART_HOST = $ARGV[16];
+my $UNIPROT = $ARGV[10];
+my $IPI_FASTA = $ARGV[11];
+my $IPI_HISTORY_PARSED = $ARGV[12];
+my $BIOMARTLWP = $ARGV[13];
+my $XML_PATH = $ARGV[14];
+my $BIOMART_HOST = $ARGV[15];
 
 my $tolerance = 0.05;	# Tolerance in sequence length for two IDs to be considered the same (When evidences support it)
 my $relaxtolerance = 0.5;	# Tolerance in sequence length for two IDs to be considered the same (Stronger evidences support it)
@@ -40,40 +39,49 @@ $ins_org->execute($TAXID,$COMMON_NAME,$SCIENTIFIC_NAME);
 #### ENSEMBL ##############################
 print "\t* Inserting Ensembl...\n";
 #preparing Ensembl-related inserts
-my $ins_ensp = $dbh->prepare('INSERT INTO ensp(id,sequence,length,taxid) VALUES (?,?,?,?)');
+my $ins_ensp = $dbh->prepare('INSERT INTO ensp(id,sequence,length,taxid,version) VALUES (?,?,?,?,?)');
+my $ins_ensp_withnull = $dbh->prepare('INSERT INTO ensp(id,sequence,length,taxid) VALUES (?,?,?,?)');
 
 my $ensembl_id="";
+my $ensembl_version="";
 my @ensseqlines=();
 my %allensembls=();
 my %ensp2length;
 #my $i;
 my $up;
-#my @inparanoid;
 
 open(INFILE, $ENSEMBL_FASTA)    or die $!;
 while(<INFILE>){
 	my $line = $_;
 	#print $line;
-	if($line=~/^>(\S+)\s/){
+	if($line=~/^>([\S\.]+)\s/){
 		if(scalar(@ensseqlines)){
-			my $resultseq=join("",@ensseqlines);
-			my $seqlength=scalar(split("",$resultseq));
-			$ensp2length{$ensembl_id}=$seqlength;
-				#print "$ensembl_id\n";
-			unless($ins_ensp->execute($ensembl_id,$resultseq,$seqlength,$TAXID)){
-				$errflag=1;
+		    my $resultseq=join("",@ensseqlines);
+		    my $seqlength=scalar(split("",$resultseq));
+		    $ensp2length{$ensembl_id}=$seqlength;
+		    #print "$ensembl_id\n";
+		    if(defined($ensembl_version) && ($ensembl_version ne "")){
+			unless($ins_ensp->execute($ensembl_id,$resultseq,$seqlength,$TAXID,$ensembl_version)){
+			    $errflag=1;
 			}
-			$allensembls{$ensembl_id}=1;
+		    }else{
+			unless($ins_ensp_withnull->execute($ensembl_id,$resultseq,$seqlength,$TAXID)){
+			    $errflag=1;
+			}			
+		    }
+		    $allensembls{$ensembl_id}=1;
 		}
 		$ensembl_id="";
+		$ensembl_version="";
 		@ensseqlines=();
 		
 		$ensembl_id=$1;
-    # Romain: added this section to remove ".2" in Ensembl ID
-    if(substr($ensembl_id, 0, 3) eq "ENS") {
-      $ensembl_id =~ s/\.[^.]+$//;
-    }
-    
+		if($ensembl_id =~/^(ENS[A-Z0-9]+)\.?(\d+)?/){
+		    if(defined($2)){
+			$ensembl_version=$2;
+		    }
+		    $ensembl_id=$1;
+		}
 	}else{
 		chomp($line);
 		push(@ensseqlines, $line);
@@ -85,8 +93,14 @@ if(scalar(@ensseqlines)){
 	my $seqlength=scalar(split("",$resultseq));
 	$ensp2length{$ensembl_id}=$seqlength;
 	#print $ensembl_id;
-	unless($ins_ensp->execute($ensembl_id,$resultseq,$seqlength,$TAXID)){
+	if(defined($ensembl_version) && ($ensembl_version ne "")){
+	    unless($ins_ensp->execute($ensembl_id,$resultseq,$seqlength,$TAXID,$ensembl_version)){
 		$errflag=1;
+	    }
+	}else{
+	    unless($ins_ensp_withnull->execute($ensembl_id,$resultseq,$seqlength,$TAXID)){
+		$errflag=1;
+	    }			
 	}
 }
 close(INFILE);
@@ -121,76 +135,6 @@ while ( <PS> )
 		}
 	}	
 }	
-
-#### INPARANOID ############################
-print "\t* Inserting Inparanoid...\n";
-#preparing Inparanoid-related inserts
-my $ins_inparanoid = $dbh->prepare('INSERT INTO inparanoid(id, taxid) VALUES (?, ?)');
-
-my $inpara_id="";
-my %inInpara=();
-
-open(INFILE, $INPARANNOID)    or die $!;
-while(<INFILE>){
-	my $line = $_;
-	if($line =~/^>(\S+)\n/){
-		if ($TAXID == 3702){
-			$up = uc $1;
-			$inpara_id = $up;
-		#if ($allensembls{$up}){
-			$ins_inparanoid->execute($inpara_id, $TAXID);
-			#}
-			$inInpara{$inpara_id}=1;
-		}
-		
-			else{
-			$inpara_id = $1;
-			$ins_inparanoid->execute($inpara_id, $TAXID);
-			$inInpara{$inpara_id}=1;
-			}			
-	}	
-}
-
-#### INPARANOID-ENSEMBL ############################
-my $ins_inpara_ensembl = $dbh->prepare('INSERT INTO ensp_inparanoid(ensp,inparanoid_id) VALUES (?,?)');
-
-if ($TAXID == 6239)
-{
-    open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/${COMMON_NAME}_inparanoid_ensp.xml ${BIOMART_HOST} |") || die "Failed: $!\n";
-    while(<PS>){
-        my $line = $_;
-
-        if($line=~/^(\S+)\t(\S+)/){
-            if ($allensembls{$1}){
-				if ($inInpara{$2}){
-				$ins_inpara_ensembl->execute($1,$2);
-            #print "$1\n";
-				}
-            }
-        }
-    }
-}
-
-####COMPLETING INPARANOID-ENSEMBL ############################
-my $thisensp;
-my $thisinpara;
-my %thisinpensp;
-
-   my $ensinparaQuery = "SELECT DISTINCT ensp.id, inparanoid.id FROM ensp INNER JOIN inparanoid ON ensp.id = inparanoid.id WHERE ensp.taxid='$TAXID'";   
-   my $ensinparaHandle = $dbh->prepare($ensinparaQuery) or die "Cannot prepare: " . $dbh->errstr();
-   $ensinparaHandle->execute() or die "Cannot execute: " . $ensinparaHandle->errstr();
-   $ensinparaHandle->bind_columns(\$thisensp, \$thisinpara);
-        
-    while($ensinparaHandle->fetch()){
-			#print "2";
-		
-		if(not defined($thisinpensp{$thisensp."-".$thisinpara})){
-			unless($ins_inpara_ensembl->execute($thisensp,$thisinpara)){
-				$errflag=1;
-			}
-			$thisinpensp{$thisensp."-".$thisinpara}=1;
-		}
-	}    
      
 #### UNIPROT ##############################
 print "\t* Inserting Uniprot...\n";
@@ -205,7 +149,6 @@ my %insertedIso=();
 my %insertedAcc=();
 
 my %thisENSPinserted=();
-
 
 #about the sequences
 open(INFILE, $UNIPROT)    or die $!;
@@ -239,6 +182,7 @@ while(<INFILE>){
 	my %varseq2start=();
 	my %varseq2end=();
 	my $currentAlternate=0;
+	my $errflag=0;
 	# print $line;
 	while($line !~/^\/\//){
 		# print $line."\n";
@@ -254,11 +198,14 @@ while(<INFILE>){
 		if($id ne ""){
 			if($line=~/^AC\s+(.+);\n/){
 				push(@acclines,$1);
-			}elsif($line=~/^OX\s+NCBI_TaxID=(\d+)/){
-				$thisorg=$1;
-				if($thisorg != $TAXID){
-					last;
-				}
+			}
+			elsif($line=~/^OX\s+NCBI_TaxID=(\d+)/){
+			    # This was activated in previous versions to exclude not matching uniprots
+			    # $thisorg=$1;
+			    $thisorg = $TAXID; # new option 
+			    if($thisorg != $TAXID){
+				last;
+			    }
 			}elsif($line=~/^CC\s+\-\!\-\s(.+)\:/){
 				if($1=~/ALTERNATIVE\sPRODUCTS/){
 					$alternative=1;
@@ -350,111 +297,111 @@ while(<INFILE>){
 		$line = <INFILE>;
 	}
 	if(defined($thisorg)){
-		if($thisorg == $TAXID){
-			#inserting into uniprot_entry
-			unless($ins_uniprot_entry->execute($id,$reviewed,$thisorg))
-				$errflag=1;
-			}
-			
-			my $allacclines = join("; ", @acclines);
-			my @accs = split("; ", $allacclines);
-						
-			#inserting into uniprot_isoform
-			$seq=join("",@seqlines);
-			unless($ins_uniport_isoform->execute($accs[0],$seq,$thislength,$thisorg)){
-				$errflag=1;
-			}
-			
-			if($isAlternative){				
-				foreach my $iso (@isonames){
-					my $isoformSeq="";
-					my $isoLength="";
-					#Inserting uniprot_isoform
-					if(!defined($insertedIso{$iso})){
-						$isoformSeq=getAlternative($seq,\%varseq2desc,\%varseq2start,\%varseq2end,\@{$acc2varseqs{$iso}});
-						$isoLength=scalar(split("",$isoformSeq));						
-						unless($ins_uniport_isoform->execute($iso,$isoformSeq,$isoLength,$thisorg)){
-							$errflag=1;
-						}
-						$insertedIso{$iso}=1;
-					}
-					#inserting into uniprot_acc
-					foreach my $acc (@accs){
-						#inserting isoforms of alternative splicing
-						if($iso=~/\w+\-(\d+)/){
-							my $currIsoAcc=$acc."-".$1;
-							## FOR THE ISOFORMS ###
-							#inserting the isoforms
-							if(not defined($insertedAcc{$currIsoAcc})){
-								unless($ins_uniport_acc->execute($currIsoAcc,$id,$iso)){
-									$errflag=1;
-								}
-								$insertedAcc{$currIsoAcc}=1;
-							}
-							#inserting uniprot_ensembl for directly mapped and same length isoforms
-							foreach my $ensp (@thisEnsps){
-								if(defined($ensp2length{$ensp}) && ($isoLength ne "") && ($isoLength > 0)){
-									my $seqLenRatio = $ensp2length{$ensp} / $isoLength;
-									if(($seqLenRatio > (1-$tolerance)) && ($seqLenRatio < (1+$tolerance))){
-										if(not defined($thisENSPinserted{$currIsoAcc."-".$ensp})){
-											unless($ins_uniport_ensembl->execute($currIsoAcc,$ensp)){
-												$errflag=1;
-											}
-										}
-										$thisENSPinserted{$currIsoAcc."-".$ensp}=1;
-									}
-								}
-							}
-							## FOR THE MAIN ACCESSION ###
-							#inserting the main accession
-							if(not defined($insertedAcc{$acc."_".$iso})){
-								unless($ins_uniport_acc->execute($acc,$id,$iso)){
-									$errflag=1;
-								}
-								$insertedAcc{$acc."_".$iso}=1;
-							}
-							#inserting uniprot_ensembl
-							foreach my $ensp (@thisEnsps){
-								if(defined($ensp2length{$ensp})){
-									my $seqLenRatio = $ensp2length{$ensp} / $thislength;
-									if(($seqLenRatio > (1-$tolerance)) && ($seqLenRatio < (1+$tolerance))){
-										if(not defined($thisENSPinserted{$acc."-".$ensp})){
-											unless($ins_uniport_ensembl->execute($acc,$ensp)){
-												$errflag=1;
-											}
-										}
-										$thisENSPinserted{$acc."-".$ensp}=1;
-									}
-								}
-							}
-						}
-					}
-				}
-			}else{
-				foreach my $acc (@accs){
-					if(!defined($insertedAcc{$acc})){					
-						#inserting proteins with no alternative splicing
-						unless($ins_uniport_acc->execute($acc,$id,$accs[0])){
-							$errflag=1;
-						}
-						$insertedAcc{$acc}=1;
-					}
-					if(scalar(@thisEnsps)){
-						foreach my $ensp (@thisEnsps){
-							#inserting into uniprot_ensembl directly mapped ensembls with no isoforms
-							if(not defined($thisENSPinserted{$acc."-".$ensp})){
-								if($allensembls{$ensp}){
-									unless($ins_uniport_ensembl->execute($acc,$ensp)){
-										$errflag=1;
-									}
-									$thisENSPinserted{$acc."-".$ensp}=1;
-								}
-							}
-						}
-					}				
-				}
-			}			
+	    if($thisorg == $TAXID){
+		#inserting into uniprot_entry
+		unless($ins_uniprot_entry->execute($id,$reviewed,$thisorg)){
+		    $errflag=1;
 		}
+		
+		my $allacclines = join("; ", @acclines);
+		my @accs = split("; ", $allacclines);
+		
+		#inserting into uniprot_isoform
+		$seq=join("",@seqlines);
+		unless($ins_uniport_isoform->execute($accs[0],$seq,$thislength,$thisorg)){
+		    $errflag=1;
+		}
+		
+		if($isAlternative){				
+		    foreach my $iso (@isonames){
+			my $isoformSeq="";
+			my $isoLength="";
+			#Inserting uniprot_isoform
+			if(!defined($insertedIso{$iso})){
+			    $isoformSeq=getAlternative($seq,\%varseq2desc,\%varseq2start,\%varseq2end,\@{$acc2varseqs{$iso}});
+			    $isoLength=scalar(split("",$isoformSeq));						
+			    unless($ins_uniport_isoform->execute($iso,$isoformSeq,$isoLength,$thisorg)){
+				$errflag=1;
+			    }
+			    $insertedIso{$iso}=1;
+			}
+			#inserting into uniprot_acc
+			foreach my $acc (@accs){
+			    #inserting isoforms of alternative splicing
+			    if($iso=~/\w+\-(\d+)/){
+				my $currIsoAcc=$acc."-".$1;
+				## FOR THE ISOFORMS ###
+				#inserting the isoforms
+				if(not defined($insertedAcc{$currIsoAcc})){
+				    unless($ins_uniport_acc->execute($currIsoAcc,$id,$iso)){
+					$errflag=1;
+				    }
+				    $insertedAcc{$currIsoAcc}=1;
+				}
+				#inserting uniprot_ensembl for directly mapped and same length isoforms
+				foreach my $ensp (@thisEnsps){
+				    if(defined($ensp2length{$ensp}) && ($isoLength ne "") && ($isoLength > 0)){
+					my $seqLenRatio = $ensp2length{$ensp} / $isoLength;
+					if(($seqLenRatio > (1-$tolerance)) && ($seqLenRatio < (1+$tolerance))){
+					    if(not defined($thisENSPinserted{$currIsoAcc."-".$ensp})){
+						unless($ins_uniport_ensembl->execute($currIsoAcc,$ensp)){
+						    $errflag=1;
+						}
+					    }
+					    $thisENSPinserted{$currIsoAcc."-".$ensp}=1;
+					}
+				    }
+				}
+				## FOR THE MAIN ACCESSION ###
+				#inserting the main accession
+				if(not defined($insertedAcc{$acc."_".$iso})){
+				    unless($ins_uniport_acc->execute($acc,$id,$iso)){
+					$errflag=1;
+				    }
+				    $insertedAcc{$acc."_".$iso}=1;
+				}
+				#inserting uniprot_ensembl
+				foreach my $ensp (@thisEnsps){
+				    if(defined($ensp2length{$ensp})){
+					my $seqLenRatio = $ensp2length{$ensp} / $thislength;
+					if(($seqLenRatio > (1-$tolerance)) && ($seqLenRatio < (1+$tolerance))){
+					    if(not defined($thisENSPinserted{$acc."-".$ensp})){
+						unless($ins_uniport_ensembl->execute($acc,$ensp)){
+						    $errflag=1;
+						}
+					    }
+					    $thisENSPinserted{$acc."-".$ensp}=1;
+					}
+				    }
+				}
+			    }
+			}
+		    }
+		}
+		#this was before applied for non alternate isoforms (else)
+		foreach my $acc (@accs){
+		    if(!defined($insertedAcc{$acc})){					
+			#inserting proteins with no alternative splicing
+			unless($ins_uniport_acc->execute($acc,$id,$accs[0])){
+			    $errflag=1;
+			}
+			$insertedAcc{$acc}=1;
+		    }
+		    if(scalar(@thisEnsps)){
+			foreach my $ensp (@thisEnsps){
+			    #inserting into uniprot_ensembl directly mapped ensembls with no isoforms
+			    if(not defined($thisENSPinserted{$acc."-".$ensp})){
+				if($allensembls{$ensp}){
+				    unless($ins_uniport_ensembl->execute($acc,$ensp)){
+					$errflag=1;
+				    }
+				    $thisENSPinserted{$acc."-".$ensp}=1;
+				}
+			    }
+			}
+		    }				
+		}
+	    }			
 	}
 }
 close(INFILE);
@@ -469,7 +416,6 @@ my $ins_ensembl_ipi = $dbh->prepare('INSERT INTO ensembl_ipi(ipi,ensembl_id) VAL
 
 my %acc2ipi;
 my %ipi2ens;
-my %ipi2inpara;
 
 my @currentIPIs;
 
@@ -613,8 +559,6 @@ if (-e $IPI_FASTA)
 	my $thisacc;
 	my $thisipi;
 
-
-
 	my $ens2uniprotQuery = "SELECT DISTINCT T.id, UACC.accession FROM (SELECT DISTINCT ensp.id, ensipi.ipi, uniacc.reference_accession, uniso.length FROM ensp INNER JOIN ensembl_ipi AS ensipi ON ensp.id = ensipi.ensembl_id INNER JOIN ipi ON ensipi.ipi = ipi.id INNER JOIN uniprot_ipi AS unipi ON ipi.id = unipi.ipi_id INNER JOIN uniprot_acc AS uniacc ON unipi.accession = uniacc.accession INNER JOIN uniprot_isoform AS uniso ON uniacc.reference_accession = uniso.accession WHERE ensp.taxid = \'$TAXID\' AND uniso.taxid = \'$TAXID\' AND ipi.taxid = \'$TAXID\') AS T INNER JOIN uniprot_acc AS UACC ON T.reference_accession = UACC.reference_accession";
 	# my $ens2uniprotQuery = "SELECT DISTINCT T.id, UACC.accession FROM (SELECT DISTINCT ensp.id, ensipi.ipi, uniacc.reference_accession, uniso.length FROM ensp INNER JOIN ensembl_ipi AS ensipi ON ensp.id = ensipi.ensembl_id INNER JOIN ipi ON ensipi.ipi = ipi.id INNER JOIN uniprot_ipi AS unipi ON ipi.id = unipi.ipi_id INNER JOIN uniprot_acc AS uniacc ON unipi.accession = uniacc.accession INNER JOIN uniprot_isoform AS uniso ON uniacc.reference_accession = uniso.accession WHERE ensp.length / ipi.length BETWEEN (1-$relaxtolerance) AND (1+$relaxtolerance) AND ipi.length / uniso.length BETWEEN 1-$tolerance AND 1+$tolerance) AS T INNER JOIN uniprot_acc AS UACC ON T.reference_accession = UACC.reference_accession";
 	my $ens2uniprotHandle = $dbh->prepare($ens2uniprotQuery) or die "Cannot prepare: " . $dbh->errstr();
@@ -653,47 +597,37 @@ if (-e $IPI_FASTA)
 
 #### COMPLETE UNIPROT_ENSEMBL WITH POTENTIAL MISSING MAPPINGS USING BIOMART ##############################
 
+
 open(PS,"perl $BIOMARTLWP/biomartLWP.pl $XML_PATH/${COMMON_NAME}_uniprot_ensp.xml ${BIOMART_HOST} |") || die "Failed: $!\n";
 while(<PS>){
-	my $line = $_;
-	if($line =~/^(\S+)\t(.*)\t(.*)/){
-
-	my $th = $dbh->prepare(qq{SELECT uniprot_accession FROM uniprot_ensembl WHERE uniprot_ensembl.uniprot_accession='$2'});
-	$th->execute() or die "Cannot execute: " . $th->errstr();
-	my $found = 0;
-	
-			while ($th->fetch()){
-					$found = 1;
-				}
-				if ($found!=1) 
-				{
-					if ($allensembls{$1}){
-						if ($insertedAcc{$2}){
-							$ins_uniport_ensembl->execute($2,$1);
-						}	
-					}
-				}	
-		
-	$th = $dbh->prepare(qq{SELECT uniprot_accession FROM uniprot_ensembl WHERE uniprot_ensembl.uniprot_accession='$3'});
-	$th->execute() or die "Cannot execute: " . $th->errstr();
-	$found = 0;
-	
-			while ($th->fetch()){
-					$found = 1;
-				}
-				if ($found!=1) 
-				{
-					if ($allensembls{$1}){
-						if ($insertedAcc{$3}){
-							$ins_uniport_ensembl->execute($3,$1);
-						}	
-					}
-				}		
-	
-	}   
-	
-}		
-	
+    my $line = $_;
+    chomp($line);
+    my @f = split("\t", $line);
+    if(defined($f[1])){
+	if($f[1] ne ""){
+	    if($allensembls{$f[0]}){
+		if($insertedAcc{$f[1]}){
+		    if(!defined($thisENSPinserted{$f[1]."-".$f[0]})){
+			$ins_uniport_ensembl->execute($f[1],$f[0]);
+			$thisENSPinserted{$f[1]."-".$f[0]}=1;
+		    }
+		}
+	    }	    
+	}
+    }
+    if(defined($f[2])){
+	if($f[2] ne ""){
+	    if($allensembls{$f[0]}){
+		if($insertedAcc{$f[2]}){
+		    if(!defined($thisENSPinserted{$f[2]."-".$f[0]})){
+			$ins_uniport_ensembl->execute($f[2],$f[0]);
+			$thisENSPinserted{$f[2]."-".$f[0]}=1;
+		    }
+		}
+	    }     
+	}
+    }
+}
 
 ### FINISHING #################################
 

@@ -68,6 +68,20 @@ parallelise some of the processes, use the `-j` option (i.e. `-j4`
 runs four parallel processes).  You probably only want to parallelise
 the downloads of proteomic data (`make -j4 proteomes; make all`).
 
+### Updating DB
+
+The reference databases and all the mappings can be updated with the
+next commands. The `NEWDB` variable contains the new database name
+where all the contents will be dumped. During the process, the IDs
+will change using the Ensembl ID conversion when possible. If not, uniprot
+is used to translate old to new Ensembl IDs. All peptides are remapped,
+and the sites are relocated on their new positions.
+
+```
+make updateDB NEWDB=ptmdb3
+```
+	
+	
 ### Cleaning up
 
 There are three `clean` targets in the `Makefile`.  The first two
