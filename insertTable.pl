@@ -62,57 +62,73 @@ for (my $i=1;$i<scalar(@inlines);$i++){
 	
 	#Inserting the peptide
 	if(! defined($peptideRegistry{$fields[$cols{"id"}]}{$fields[$cols{$pepRefColumn}]})){
-		if($quantitativeStudy){
-			if($pepRefColumn eq "peptide"){
-				$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide) VALUES (?,?)');
-				unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}])){
-					$errflag=1;
-				}
-			}else{
-				$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, scored_peptide) VALUES (?,?,?)');
-				unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"peptide_scored"}])){
-					$errflag=1;
-				}
-			}
-			#Inserting the peptide quantifications
-			my $pepId = $ins_peptide->{mysql_insertid};
-			for(my $j=0;$j<scalar(@conditionsNames);$j++){
-				my $logvalue;
-				if($fields[$cols{$conditionsNames[$j]}] eq "NA"){
-					$ins_peptide_quantification=$dbh->prepare('INSERT INTO peptide_quantification(peptide_quantification.condition, peptide) VALUES (?,?)');
-					unless($ins_peptide_quantification->execute($conditionsIdsString[$j],$pepId)){
-						$errflag=1;
-					}
-				}else{
-					$ins_peptide_quantification=$dbh->prepare('INSERT INTO peptide_quantification(peptide_quantification.condition, log2, peptide) VALUES (?,?,?)');
-					unless($ins_peptide_quantification->execute($conditionsIdsString[$j],$fields[$cols{$conditionsNames[$j]}],$pepId)){
-						$errflag=1;
-					}
-				}
-			}
-		}else{
-			if($pepRefColumn eq "peptide"){			
-				$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, spectral_count) VALUES (?,?,?)');
-				unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"spectral_count"}])){
-					$errflag=1;
-				}
-			}else{
-				$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, spectral_count, scored_peptide) VALUES (?,?,?,?)');
-				unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"spectral_count"}],$fields[$cols{"peptide_scored"}])){
-					$errflag=1;
-				}
-			}
-		}
-		
-		my $peptide_id = $ins_peptide->{mysql_insertid};
-		
-		#Inserting ensp_peptide relationship
-		unless($ins_ensp_peptide->execute($fields[$cols{"ensembl_id"}],$peptide_id)){
+	    if($quantitativeStudy){
+		if($pepRefColumn eq "peptide"){
+		    $ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide) VALUES (?,?)');
+		    unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}])){
 			$errflag=1;
+		    }
+		}else{
+		    $ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, scored_peptide) VALUES (?,?,?)');
+		    unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"peptide_scored"}])){
+			$errflag=1;
+		    }
 		}
+		#Inserting the peptide quantifications
+		my $pepId = $ins_peptide->{mysql_insertid};
+		for(my $j=0;$j<scalar(@conditionsNames);$j++){
+		    my $logvalue;
+		    if($fields[$cols{$conditionsNames[$j]}] eq "NA"){
+			$ins_peptide_quantification=$dbh->prepare('INSERT INTO peptide_quantification(peptide_quantification.condition, peptide) VALUES (?,?)');
+			unless($ins_peptide_quantification->execute($conditionsIdsString[$j],$pepId)){
+			    $errflag=1;
+			}
+		    }else{
+			$ins_peptide_quantification=$dbh->prepare('INSERT INTO peptide_quantification(peptide_quantification.condition, log2, peptide) VALUES (?,?,?)');
+			unless($ins_peptide_quantification->execute($conditionsIdsString[$j],$fields[$cols{$conditionsNames[$j]}],$pepId)){
+			    $errflag=1;
+			}
+		    }
+		}
+	    }else{
+		if($pepRefColumn eq "peptide"){
+		    if($fields[$cols{"spectral_count"}] eq "NA"){
+			$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide) VALUES (?,?)');
+			unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}])){
+			    $errflag=1;
+			}
+		    }else{
+			$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, max_spectral_count) VALUES (?,?,?)');
+			unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"spectral_count"}])){
+			    $errflag=1;
+			}
+
+		    }
+		}else{
+		    if($fields[$cols{"spectral_count"}] eq "NA"){
+			$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, scored_peptide) VALUES (?,?,?)');
+			unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"peptide_scored"}])){
+			    $errflag=1;
+			}
+		    }else{
+			$ins_peptide= $dbh->prepare('INSERT INTO peptide(experiment, peptide, max_spectral_count, scored_peptide) VALUES (?,?,?,?)');
+			unless($ins_peptide->execute($experiment,$fields[$cols{"peptide"}],$fields[$cols{"spectral_count"}],$fields[$cols{"peptide_scored"}])){
+			    $errflag=1;
+			}
+
+		    }
+		}
+	    }
 		
-		#Peptide register number
-		$peptideRegistry{$fields[$cols{"id"}]}{$fields[$cols{$pepRefColumn}]}=$peptide_id;
+	    my $peptide_id = $ins_peptide->{mysql_insertid};
+	    
+	    #Inserting ensp_peptide relationship
+	    unless($ins_ensp_peptide->execute($fields[$cols{"ensembl_id"}],$peptide_id)){
+		$errflag=1;
+	    }
+	    
+	    #Peptide register number
+	    $peptideRegistry{$fields[$cols{"id"}]}{$fields[$cols{$pepRefColumn}]}=$peptide_id;
 	}
 	
 	#Inserting the site and peptide_site relationship
