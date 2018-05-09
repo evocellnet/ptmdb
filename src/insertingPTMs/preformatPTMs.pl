@@ -268,13 +268,15 @@ sub standarizePeptides{
 		my @fields=split($fs, $lines[$i]);
 		$fields[$column{"peptide"}]=~s/_//g;
 		if($peptideFormat eq "phospho_parenthesis"){
-			#next
-			$ptmString="(ph)";
+		    #next
+		    $ptmString="(ph)";
+		}elsif($peptideFormat eq "ubi_parenthesis"){
+		    $ptmString = "(ub)";
 		}
 		elsif($peptideFormat eq "arginineAmp"){
-			$ptmString="(ar)";
-			$fields[$column{"peptide"}]=~s/#/\(ar\)/g;
-			$fields[$column{"peptide"}]="_".$fields[$column{"peptide"}]."_";
+		    $ptmString="(ar)";
+		    $fields[$column{"peptide"}]=~s/#/\(ar\)/g;
+		    $fields[$column{"peptide"}]="_".$fields[$column{"peptide"}]."_";
 		}
 		push(@newlines, join($fs,@fields));
 	}
@@ -287,11 +289,13 @@ sub getPeptideFormat{
 	my $format; 
 	#Format containing the modifications within parenthesis
 	if($peptide=~/\(ph\)/){
-		$format="phospho_parenthesis";
-	}if($peptide=~/R#/){
-		$format="arginineAmp";
+	    $format="phospho_parenthesis";   
+	}elsif($peptide=~/\(ub\)/){
+	    $format = "ubi_parenthesis";
+	}elsif($peptide=~/R#/){
+	    $format="arginineAmp";
 	}elsif($peptide=~/A-Z+/){
-		$format="plain";
+	    $format="plain";
 	}
 	return($format)
 }
@@ -457,7 +461,9 @@ sub getNumberOfSites{
 	my $format = $_[1];
 	my $pattern;
 	if($format eq "phospho_parenthesis"){
-		$pattern="\(ph\)";
+	    $pattern="\(ph\)";
+	}elsif($format eq "ubi_parenthesis"){
+	    $pattern="\(ub\)";
 	}
 	my $c = () = $peptide=~/$pattern/g;
 	return($c);

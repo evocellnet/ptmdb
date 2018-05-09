@@ -85,9 +85,11 @@ sub getPositions{
 		if($allchars[$i]=~/\(/){
 			push(@positions, $positionCounter-1);
 		}
-		
 		if($allchars[$i]!~/[\(ph\)]/){
 			$positionCounter++;
+		}
+		if($allchars[$i]!~/[\(ub\)]/){
+		    $positionCounter++;
 		}
 	}
 	return(\@positions);
