@@ -40,7 +40,7 @@ if($conditionalData eq "true"){
 
 #PREFORMATING 
 my $preformatScript = $ptmdbDir."/src/insertingPTMs/preformatPTMs.pl";
-my $preformatCommand = "perl ".$preformatScript;
+my $preformatCommand = "/usr/local/bin/perl ".$preformatScript;
 for (my $i=8;$i<scalar(@ARGV);$i++){
 	$preformatCommand.=" ";
 	$preformatCommand.=("\'".$ARGV[$i]."\'");
@@ -48,11 +48,11 @@ for (my $i=8;$i<scalar(@ARGV);$i++){
 
 #MAPPING IDs SCRIPT
 my $mappingScript = $ptmdbDir."/src/insertingPTMs/mappingIDs.R";
-my $mappingCommand = "Rscript ".$mappingScript." ".$dbhost." ".$database." ".$dbuser." ".$dbpass." ".$dbport." ".$idformat." ".$taxid;
+my $mappingCommand = "/usr/local/bin/Rscript ".$mappingScript." ".$dbhost." ".$database." ".$dbuser." ".$dbpass." ".$dbport." ".$idformat." ".$taxid;
 
 
 #PEPTIDE MATCH
 my $peptideMatchScript = $ptmdbDir."/src/insertingPTMs/peptideMatcher.pl";
-my $peptideCommand = "perl ".$peptideMatchScript;
+my $peptideCommand = "/usr/local/bin/perl ".$peptideMatchScript;
 
 system($preformatCommand." | ".$mappingCommand. " | ".$peptideCommand);
