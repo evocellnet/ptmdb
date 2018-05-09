@@ -74,14 +74,20 @@ names(ptms)[1] <- "index"
 
 #Database Table mapping uniprot 2 ensembl ids
 if(idType == "ipi"){
-	#Query database
-	directMappingsQuery <- paste("SELECT ipihis.all_ipi,ensipi.ensembl_id,ensp.sequence FROM ipi_history AS ipihis INNER JOIN ensembl_ipi AS ensipi ON ipihis.current_ipi = ensipi.ipi INNER JOIN ensp ON ensipi.ensembl_id = ensp.id WHERE ensp.taxid=\'",org,"\'",sep="")
-	directMapping <- query(directMappingsQuery)
-	if(length(directMapping)){
-		res <- merge(ptms, unique(directMapping[ ,c("all_ipi", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="all_ipi")
-	}else{
-		stop("No results returned from the database")
-	}
+                                        #Query database
+  directMappingsQuery <- paste("SELECT ipihis.all_ipi,ensipi.ensembl_id,ensp.sequence FROM ipi_history AS ipihis INNER JOIN ensembl_ipi AS ensipi ON ipihis.current_ipi = ensipi.ipi INNER JOIN ensp ON ensipi.ensembl_id = ensp.id WHERE ensp.taxid=\'",org,"\'",sep="")
+  directMapping <- query(directMappingsQuery)
+
+  directMappingQuery <- paste("SELECT ipi_history.all_ipi AS ipi,ensembl_ipi.ensembl_id AS ensembl_id,ensp.sequence FROM ipi_history INNER JOIN ensembl_ipi ON ensembl_ipi.ipi = ipi_history.`current_ipi` INNER JOIN ensp ON ensembl_ipi.ensembl_id = ensp.id WHERE ensp.taxid=\'",org,"\'",sep="")
+  directMapping <- query(directMappingQuery)
+  historyMappingQuery <- paste("SELECT ensembl_ipi.ipi AS ipi, ensembl_ipi.ensembl_id AS `ensembl_id`,ensp.sequence FROM ensembl_ipi INNER JOIN ensp ON ensembl_ipi.ensembl_id = ensp.id WHERE ensp.taxid=\'",org,"\'",sep="")
+  historyMapping <- query(historyMappingQuery)
+  allIPImappings <- rbind(directMapping, historyMapping)
+  if(length(allIPImappings)){
+    res <- merge(ptms, unique(allIPImappings[ ,c("ipi", "ensembl_id", "sequence")]), all.x=TRUE, by.x="id", by.y="ipi")
+  }else{
+    stop("No results returned from the database")
+  }
 }else if(idType == "uniprot"){
 	directMappingsQuery <- paste("SELECT uniens.uniprot_accession,uniens.ensembl_id,ensp.sequence FROM uniprot_ensembl AS uniens INNER JOIN ensp ON uniens.ensembl_id = ensp.id WHERE ensp.taxid=\'",org,"\'",sep="")
 	directMapping <- query(directMappingsQuery)
