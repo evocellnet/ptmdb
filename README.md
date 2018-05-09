@@ -103,7 +103,7 @@ are implemented as simple functions. This framework should be useful
 when asking higher order questions.
 
 
-#####Using ptmdbR
+##### Using ptmdbR
 
 Integrating ptmdbR on your on project is extremely easy. You just have
 to invoke the library from the proper path:
@@ -111,7 +111,7 @@ to invoke the library from the proper path:
 	library(ptmdbR, lib.loc="<path to the libraries parent directory>")
 
 
-#####Updating ptmdbR
+##### Updating ptmdbR
 
 To add or modify ptmdbR functions, you can find the code for the whole
 package under `src/ptmdbR/src`. Note that the package code is
